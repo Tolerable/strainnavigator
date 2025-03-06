@@ -268,6 +268,7 @@
 
 		.partner-card {
 			transition: opacity 0.3s ease;
+			opacity: 1; /* Ensure it starts fully visible */
 		}
 
 		.partner-fade {
@@ -287,7 +288,7 @@
 
 		.visit-button {
 			display: inline-block;
-			background-color: #f44336;  /* Red button to stand out */
+			background-color: #f57f17;  /* Red button to stand out */
 			color: white;
 			padding: 0.5rem 1rem;
 			border-radius: 4px;
@@ -296,7 +297,7 @@
 		}
 
 		.visit-button:hover {
-			background-color: #d32f2f;
+			background-color: #f9a825;
 			transform: translateY(-2px);
 			box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 		}
@@ -313,6 +314,10 @@
 
 		.feature-card-link:focus .feature-card {
 			box-shadow: 0 0 0 3px var(--primary-green);
+		}
+
+		.feature-card-link:not(:hover) .partner-card:not(.partner-fade) {
+			opacity: 1 !important;
 		}
   
         footer {
@@ -460,18 +465,22 @@
 				</div>
 			</a>
 			
-			<div id="partner-card" class="feature-card partner-card">
-				<div id="partner-img" class="feature-img"></div>
-				<div class="feature-content">
-					<div>
-						<h3 id="partner-title">Partner Site</h3>
-						<p id="partner-desc">Loading partner information...</p>
-					</div>
-					<div class="partner-cta">
-						<span class="visit-button">Visit Site <i class="fas fa-external-link-alt"></i></span>
+			<a id="partner-link" href="#" class="feature-card-link" target="_blank" rel="noopener noreferrer">
+				<div id="partner-card" class="feature-card partner-card">
+					<div id="partner-img" class="feature-img"></div>
+					<div class="feature-content">
+						<div>
+							<h3 id="partner-title">Partner Site</h3>
+							<p id="partner-desc">Loading partner information...</p>
+						</div>
+						<div class="partner-cta">
+							<a id="visit-site-button" href="#" class="visit-button" target="_blank" rel="noopener noreferrer">
+								Visit Site <i class="fas fa-external-link-alt"></i>
+							</a>
+						</div>
 					</div>
 				</div>
-			</div>
+			</a>
 
 		</section>
 
