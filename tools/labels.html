@@ -906,7 +906,7 @@
 				const enhanceParam = enhanceOption.checked ? '&enhance=true' : '';
 				const privateParam = privateOption.checked ? '&private=true' : '';
 				const modelParam = '&model=flux';
-				const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true${enhanceParam}${privateParam}${modelParam}&width=512&height=512&seed=${randomSeed}`;
+				const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true${enhanceParam}${privateParam}${modelParam}&width=2048&height=2048&seed=${randomSeed}`;
 				
 				try {
 					showToast("Generating your branded label...");
