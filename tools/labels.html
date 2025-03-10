@@ -1144,43 +1144,49 @@
             }
             
             // Function to add a thumbnail to the gallery
-            function addThumbnail(imageUrl) {
-                // Only add if it's a valid URL (not the placeholder)
-                if (imageUrl && !imageUrl.includes('data:image/svg+xml')) {
-                    // Create thumbnail element
-                    const thumb = document.createElement('img');
-                    thumb.src = imageUrl;
-                    thumb.className = 'thumbnail';
-                    thumb.alt = 'Previous design';
-                    thumb.title = 'Click to view this design';
-                    
-                    // Add click event to restore this image
-                    thumb.addEventListener('click', () => {
-                        currentImage.src = imageUrl;
-                        // If QR code is enabled, ensure it's positioned correctly
-                        if (qrToggle.checked) {
-                            positionQrOverlay();
-                        }
-                    });
-                    
-                    // Add to thumbnail history
-                    thumbnailHistory.push(imageUrl);
-                    
-                    // Limit to 12 thumbnails
-                    if (thumbnailHistory.length > 12) {
-                        thumbnailHistory.shift(); // Remove oldest
-                        if (thumbnailGallery.children.length > 0) {
-                            thumbnailGallery.removeChild(thumbnailGallery.children[0]);
-                        }
-                    }
-                    
-                    // Add to gallery
-                    thumbnailGallery.appendChild(thumb);
-                    
-                    // Scroll to the end
-                    thumbnailGallery.scrollLeft = thumbnailGallery.scrollWidth;
-                }
-            }
+			function addThumbnail(imageUrl) {
+				// Only add if it's a valid URL (not the placeholder)
+				if (imageUrl && !imageUrl.includes('data:image/svg+xml')) {
+					// Create thumbnail element
+					const thumb = document.createElement('img');
+					thumb.src = imageUrl;
+					thumb.className = 'thumbnail';
+					thumb.alt = 'Previous design';
+					thumb.title = 'Click to view this design';
+					
+					// Add click event to restore this image
+					thumb.addEventListener('click', () => {
+						currentImage.src = imageUrl;
+						// If QR code is enabled, ensure it's positioned correctly
+						if (qrToggle.checked) {
+							positionQrOverlay();
+						}
+					});
+					
+					// Add to thumbnail history array
+					thumbnailHistory.push(imageUrl);
+					
+					// FIXED: Strictly limit to maximum 8 thumbnails in the DOM
+					const MAX_THUMBNAILS = 8;
+					
+					// If we already have the maximum number of thumbnails in the DOM
+					while (thumbnailGallery.children.length >= MAX_THUMBNAILS) {
+						// Remove the oldest thumbnail from DOM
+						thumbnailGallery.removeChild(thumbnailGallery.firstChild);
+					}
+					
+					// Also trim the history array if needed
+					if (thumbnailHistory.length > MAX_THUMBNAILS) {
+						thumbnailHistory = thumbnailHistory.slice(-MAX_THUMBNAILS);
+					}
+					
+					// Add to gallery
+					thumbnailGallery.appendChild(thumb);
+					
+					// Scroll to the end
+					thumbnailGallery.scrollLeft = thumbnailGallery.scrollWidth;
+				}
+			}
 
 			// Function to send message to AI with better error handling
 			async function sendMessage(message, generateImage = false, retryCount = 0) {
