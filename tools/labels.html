@@ -692,7 +692,7 @@
         <div class="chat-container">
 			<div class="chat-header">
 				<i class="fas fa-comment-dots"></i>
-				<h2>STRAINNAVIGATOR AI Branding Assistant</h2>
+				<h2>DAYDREAMER GENETICS AI Branding Assistant</h2>
 			</div>
             <div class="chat-messages" id="chatMessages">
                 <!-- Messages will be added here -->
@@ -744,7 +744,7 @@
                             <span class="toggle-slider"></span>
                         </label>
                         <label for="qrToggle">Add QR Code</label>
-                        <input type="text" id="qrUrlInput" placeholder="Enter URL for QR code" value="https://www.strainnavigator.com">
+                        <input type="text" id="qrUrlInput" placeholder="Enter URL for QR code" value="https://www.daydreamergenetics.com">
                         <button class="qr-button" id="generateQrBtn">
                             <i class="fas fa-qrcode"></i>
                         </button>
@@ -761,6 +761,15 @@
                         <span id="qrSizeValue">20%</span>
                     </div>
                 </div>
+
+				<div style="margin-top: 5px;">
+					<label for="qrCenterType">QR Center Element:</label>
+					<select id="qrCenterType">
+						<option value="none">None</option>
+						<option value="21plus" selected>21+ Badge</option>
+						<option value="leaf">Cannabis Leaf</option>
+					</select>
+				</div>
                 
 				<div class="options-group bottom-margin">
 					<label for="styleSelector"></label>
@@ -793,7 +802,7 @@
 				Generations by Pollinations.ai
 			</a>
 		</p>
-		<p>© StrainNavigator.com 2025. All Rights Reserved.</p>
+		<p>© DaydreamerGenetics.com 2025. All Rights Reserved.</p>
 	</footer>	
 
     <script>
@@ -1587,6 +1596,97 @@
                     }
                 });
             }
+
+			async function generateQrCodeWithCenter(url) {
+				if (!url) {
+					showToast('Please enter a URL for the QR code');
+					return null;
+				}
+				
+				try {
+					// Generate basic QR code
+					const encodedUrl = encodeURIComponent(url);
+					const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
+					
+					// Load QR code image
+					const img = new Image();
+					img.crossOrigin = "Anonymous";
+					
+					const qrCodeLoaded = new Promise((resolve, reject) => {
+						img.onload = () => resolve(img);
+						img.onerror = (err) => reject(new Error('Failed to load QR code'));
+						img.src = qrCodeUrl;
+					});
+					
+					const qrImg = await qrCodeLoaded;
+					
+					// Create canvas for editing
+					const canvas = document.createElement('canvas');
+					canvas.width = qrImg.width;
+					canvas.height = qrImg.height;
+					const ctx = canvas.getContext('2d');
+					
+					// Draw QR code
+					ctx.drawImage(qrImg, 0, 0);
+					
+					// Get center element type from dropdown
+					const centerType = document.getElementById('qrCenterType').value;
+					
+					// Calculate center area size (25% of QR code)
+					const centerSize = Math.floor(canvas.width * 0.25);
+					const centerX = (canvas.width - centerSize) / 2;
+					const centerY = (canvas.height - centerSize) / 2;
+					
+					// Draw white background for center
+					ctx.fillStyle = '#FFFFFF';
+					ctx.fillRect(centerX, centerY, centerSize, centerSize);
+					
+					// Draw selected center element
+					if (centerType === '21plus') {
+						// Draw green circle with 21+
+						ctx.fillStyle = '#00AA00';
+						ctx.beginPath();
+						ctx.arc(canvas.width/2, canvas.height/2, centerSize/2, 0, Math.PI * 2);
+						ctx.fill();
+						
+						ctx.fillStyle = 'white';
+						ctx.font = `bold ${centerSize * 0.4}px Arial`;
+						ctx.textAlign = 'center';
+						ctx.textBaseline = 'middle';
+						ctx.fillText('21+', canvas.width/2, canvas.height/2);
+						
+					} else if (centerType === 'leaf') {
+						// Draw simple cannabis leaf
+						ctx.fillStyle = '#00AA00';
+						
+						// Draw leaf stem
+						ctx.fillRect(canvas.width/2 - centerSize*0.05, canvas.height/2, centerSize*0.1, centerSize*0.4);
+						
+						// Draw leaf parts
+						for (let i = 0; i < 7; i++) {
+							const angle = (Math.PI * 2 * i) / 7;
+							
+							ctx.save();
+							ctx.translate(canvas.width/2, canvas.height/2);
+							ctx.rotate(angle);
+							
+							ctx.beginPath();
+							ctx.ellipse(0, -centerSize*0.2, centerSize*0.1, centerSize*0.25, 0, 0, Math.PI * 2);
+							ctx.fill();
+							
+							ctx.restore();
+						}
+					}
+					
+					// Return data URL
+					return canvas.toDataURL('image/png');
+					
+				} catch (error) {
+					console.error('Error generating QR code:', error);
+					showToast('Error generating QR code. Please try again.');
+					return null;
+				}
+			}
 
             // Function to populate style selector
             function populateStyleSelector() {
