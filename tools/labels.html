@@ -244,7 +244,6 @@
 			justify-content: space-between;
 		}
 
-		/* Fixed height for image area */
 		.image-display {
 			flex: 0 0 auto;
 			height: 450px;
@@ -278,6 +277,23 @@
 			border-top: 4px solid var(--primary-color);
 			border-radius: 50%;
 			animation: spin 1s linear infinite;
+		}
+
+		#downloadLink {
+			display: flex;
+			gap: 10px;
+		}
+
+		#downloadLink a {
+			display: inline-flex;
+			align-items: center;
+			color: white;
+			text-decoration: none;
+			font-size: 0.8rem;
+		}
+
+		#downloadLink a i {
+			margin-right: 4px;
 		}
 
 		@keyframes spin {
@@ -701,10 +717,6 @@
 			</div>
             <div class="image-display" id="imageDisplay">
                 <img id="currentImage" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMDAgMzAwIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTQwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2NjY2NjYiPkJyYW5kIExvZ28gRGVzaWduPC90ZXh0Pjx0ZXh0IHg9IjE1MCIgeT0iMTYwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM4ODg4ODgiPkRlc2NyaWJlIHlvdXIgYnJhbmQgYW5kIGNsaWNrIEdlbmVyYXRlPC90ZXh0Pjwvc3ZnPg==" alt="Generate a brand design">
-                <!-- QR Code Overlay Container -->
-                <div id="qrOverlay" class="qr-overlay">
-                    <img id="qrImage" width="60" height="60" alt="QR Code">
-                </div>
             </div>
             
             <!-- Thumbnail Gallery -->
@@ -868,6 +880,11 @@
             let thumbnailHistory = []; // Store previous generations
             let currentQrUrl = '';
             let qrPosition = 'bottom-right'; // Default position
+			
+			// New variables for storing image versions
+			let originalImageUrl = ''; // Store the original image without QR
+			let qrImageUrl = '';      // Store the version with QR
+			let qrCodeDataUrl = '';   // Store the generated QR code image			
 			
             // Function to show toast notification
             function showToast(message, duration = 3000) {
@@ -1148,11 +1165,21 @@
 					thumb.title = 'Click to view this design';
 					
 					// Add click event to restore this image
-					thumb.addEventListener('click', () => {
+					thumb.addEventListener('click', async () => {
+						// Set this as the original image
+						originalImageUrl = imageUrl;
 						currentImage.src = imageUrl;
-						// If QR code is enabled, ensure it's positioned correctly
+						
+						// If QR toggle is on, add QR to this image
 						if (qrToggle.checked) {
-							positionQrOverlay();
+							await addQrCodeToCurrentImage();
+						} else {
+							// Update download link for original only
+							downloadLink.innerHTML = `
+								<a href="${originalImageUrl}" download="brand_design.jpg" style="color: white;">
+									<i class="fas fa-download"></i> Download
+								</a>
+							`;
 						}
 					});
 					
@@ -1389,61 +1416,16 @@
 					// Wait for the image to load
 					await imageLoadPromise;
 					
-					let finalImageUrl = imageUrl;
+					// Save the original image URL
+					originalImageUrl = imageUrl;
+					qrImageUrl = ''; // Reset QR version
 					
-					// If QR code is enabled, composite it onto the image
-					if (qrToggle.checked) {
-						try {
-							// Generate QR code if needed
-							if (!qrImage.src || qrImage.src === '' || qrUrlInput.value !== currentQrUrl) {
-								currentQrUrl = qrUrlInput.value;
-								const qrDataUrl = await generateQrCode(qrUrlInput.value);
-								if (qrDataUrl) {
-									qrImage.src = qrDataUrl;
-									console.log("Generated new QR code for URL:", qrUrlInput.value);
-								} else {
-									throw new Error("Failed to generate QR code");
-								}
-							}
-							
-							// Get QR size and position
-							const position = qrPositionSelect.value;
-							const sizePercent = document.getElementById('qrSizeSlider').value;
-							
-							console.log("Compositing QR code with params:", {
-								position,
-								sizePercent,
-								qrSrc: qrImage.src.substring(0, 30) + "..."
-							});
-							
-							// Composite QR code onto image
-							finalImageUrl = await compositeQrCodeOntoImage(
-								imageUrl, 
-								qrImage.src, 
-								position, 
-								parseInt(sizePercent)
-							);
-							
-							if (finalImageUrl) {
-								console.log("Successfully composited QR code onto image");
-								showToast("Added QR code to image");
-							} else {
-								console.error("Composite operation returned no URL");
-								throw new Error("Failed to composite images");
-							}
-						} catch (qrError) {
-							console.error("Error adding QR code:", qrError);
-							showToast("Generated image but couldn't add QR code");
-							// Continue with the original image
-						}
-					}
-					
-					// Success! Update the UI with the final image
-					currentImage.src = finalImageUrl;
+					// Display the original image
+					currentImage.src = originalImageUrl;
 					currentImage.alt = "Branded label";
 					
 					// Add to thumbnail gallery
-					addThumbnail(finalImageUrl);
+					addThumbnail(originalImageUrl);
 					
 					// Add text notification to chat
 					addMessage("Your brand design has been generated in the display area.", false);
@@ -1454,9 +1436,11 @@
 						content: "Your brand design has been generated in the display area."
 					});
 					
-					// Add download link
-					const fileName = qrToggle.checked ? 'brand_design_with_qr.jpg' : 'brand_design.jpg';
-					downloadLink.innerHTML = `<a href="${finalImageUrl}" download="${fileName}" style="color: white;"><i class="fas fa-download"></i></a>`;
+					// Only add QR if toggle is checked
+					if (qrToggle.checked && qrUrlInput.value.trim()) {
+						// Generate and apply QR code
+						await addQrCodeToCurrentImage();
+					}
 					
 				} catch (error) {
 					console.error('Error generating image:', error);
@@ -1472,6 +1456,86 @@
 					// Always clean up regardless of success/failure
 					imageDisplay.classList.remove('loading');
 					isGenerating = false;
+				}
+			}
+
+			async function addQrCodeToCurrentImage() {
+				if (!currentImage.src || currentImage.src.includes('data:image/svg+xml')) {
+					showToast("Please generate an image first");
+					return;
+				}
+				
+				try {
+					showToast("Adding QR code...");
+					
+					// Generate the QR code if needed
+					if (!qrCodeDataUrl || qrUrlInput.value !== currentQrUrl) {
+						currentQrUrl = qrUrlInput.value;
+						qrCodeDataUrl = await generateQrCode(qrUrlInput.value);
+						if (!qrCodeDataUrl) {
+							throw new Error("Failed to generate QR code");
+						}
+					}
+					
+					// Get QR position and size
+					const position = qrPositionSelect.value;
+					const sizePercent = document.getElementById('qrSizeSlider').value;
+					
+					// Use the original image as the base
+					const sourceImageUrl = originalImageUrl || currentImage.src;
+					
+					// Composite QR code onto the image
+					qrImageUrl = await compositeQrCodeOntoImage(
+						sourceImageUrl,
+						qrCodeDataUrl,
+						position,
+						parseInt(sizePercent)
+					);
+					
+					if (!qrImageUrl) {
+						throw new Error("Failed to composite QR code onto image");
+					}
+					
+					// Update current image to show QR version
+					currentImage.src = qrImageUrl;
+					
+					// Add to thumbnail gallery (optional - you may want to skip this)
+					// addThumbnail(qrImageUrl);
+					
+					// Add download link specifically for QR version
+					const fileName = 'brand_design_with_qr.jpg';
+					downloadLink.innerHTML = `
+						<a href="${qrImageUrl}" download="${fileName}" style="color: white; margin-right: 10px;">
+							<i class="fas fa-download"></i> With QR
+						</a>
+						<a href="${originalImageUrl}" download="brand_design.jpg" style="color: white;">
+							<i class="fas fa-download"></i> No QR
+						</a>
+					`;
+					
+					showToast("QR code added");
+					return qrImageUrl;
+					
+				} catch (error) {
+					console.error("Error adding QR code:", error);
+					showToast("Failed to add QR code");
+					return null;
+				}
+			}
+
+			function removeQrCodeFromCurrentImage() {
+				if (originalImageUrl) {
+					// Switch back to the original image
+					currentImage.src = originalImageUrl;
+					
+					// Update download link
+					downloadLink.innerHTML = `
+						<a href="${originalImageUrl}" download="brand_design.jpg" style="color: white;">
+							<i class="fas fa-download"></i> Download
+						</a>
+					`;
+					
+					showToast("QR code removed");
 				}
 			}
 
@@ -1689,47 +1753,57 @@
 					return;
 				}
 				
+				// Generate and cache QR code
 				showToast('Generating QR code...');
-				const qrDataUrl = await generateQrCode(url);
-				if (qrDataUrl) {
-					qrImage.src = qrDataUrl;
+				qrCodeDataUrl = await generateQrCode(url);
+				currentQrUrl = url;
+				
+				if (!qrCodeDataUrl) {
+					showToast('Failed to generate QR code');
+					return;
+				}
+				
+				// Turn on QR toggle if it's not already on
+				if (!qrToggle.checked) {
 					qrToggle.checked = true;
+				}
+				
+				// Apply QR to current image
+				if (currentImage.src && !currentImage.src.includes('data:image/svg+xml')) {
+					await addQrCodeToCurrentImage();
+				} else {
 					showToast('QR code ready for next generation');
-					
-					// If there's already an image, apply the QR code to it
-					if (currentImage.src && !currentImage.src.includes('data:image/svg+xml')) {
-						try {
-							const position = qrPositionSelect.value;
-							const sizePercent = document.getElementById('qrSizeSlider').value;
-							
-							const compositeUrl = await compositeQrCodeOntoImage(
-								currentImage.src,
-								qrDataUrl,
-								position,
-								parseInt(sizePercent)
-							);
-							
-							// Update the current image
-							currentImage.src = compositeUrl;
-							addThumbnail(compositeUrl);
-							
-							// Update download link
-							const fileName = 'brand_design_with_qr.jpg';
-							downloadLink.innerHTML = `<a href="${compositeUrl}" download="${fileName}" style="color: white;"><i class="fas fa-download"></i></a>`;
-							
-							showToast('QR code added to current image');
-						} catch (error) {
-							console.error('Error applying QR code to image:', error);
-							showToast('Could not add QR code to current image');
-						}
-					}
 				}
 			});
             
-            qrPositionSelect.addEventListener('change', positionQrOverlay);
-            
-            // QR size slider event
-            document.getElementById('qrSizeSlider').addEventListener('input', positionQrOverlay);
+			qrPositionSelect.addEventListener('change', async () => {
+				if (qrToggle.checked && currentImage.src && !currentImage.src.includes('data:image/svg+xml')) {
+					await addQrCodeToCurrentImage();
+				}
+			});
+
+			document.getElementById('qrSizeSlider').addEventListener('input', async (e) => {
+				// Update size display immediately
+				document.getElementById('qrSizeValue').textContent = `${e.target.value}%`;
+			});
+
+			document.getElementById('qrSizeSlider').addEventListener('change', async () => {
+				if (qrToggle.checked && currentImage.src && !currentImage.src.includes('data:image/svg+xml')) {
+					await addQrCodeToCurrentImage();
+				}
+			});
+
+			qrToggle.addEventListener('change', async () => {
+				if (qrToggle.checked) {
+					// Add QR code to current image
+					if (currentImage.src && !currentImage.src.includes('data:image/svg+xml')) {
+						await addQrCodeToCurrentImage();
+					}
+				} else {
+					// Remove QR code and show original
+					removeQrCodeFromCurrentImage();
+				}
+			});
 
             // Initialize
             populateStyleSelector();
