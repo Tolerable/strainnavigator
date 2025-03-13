@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StrainNavigator Strain Release Generator</title>
+    <style>
+		:root {
+			--bg-primary: #1a1a1a;
+			--bg-secondary: #2d2d2d;
+			--text-primary: #ffffff;
+			--text-secondary: #cccccc;
+			--accent: #7c4dff;
+			--accent-hover: #9969ff;
+			--nav-height: 72px;
+		}
+
+		body {
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+			background-color: var(--bg-primary);
+			color: var(--text-primary);
+			line-height: 1.6;
+			margin: 0;
+			padding: 0;
+			min-height: 100vh;
+		}
+
+		.container {
+			max-width: 1200px;
+			margin: 0 auto;
+			padding: 0 20px;
+			min-height: calc(100vh - var(--nav-height));
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			padding-top: var(--nav-height);
+		}
+
+		.container.has-content {
+			justify-content: flex-start;
+			padding-top: calc(var(--nav-height) + 15px);
+		}
+
+		.image-container {
+			position: relative;
+			width: 100%;
+		}
+
+		.regenerate-image {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			background-color: rgba(124, 77, 255, 0.8);
+			border-radius: 50%;
+			width: 40px;
+			height: 40px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: background-color 0.3s;
+			border: none;
+			padding: 0;
+		}
+
+		.regenerate-image:hover {
+			background-color: var(--accent-hover);
+		}
+
+		.regenerate-image svg {
+			width: 24px;
+			height: 24px;
+			fill: white;
+		}
+
+		.controls {
+			background-color: var(--bg-secondary);
+			padding: 30px;
+			border-radius: 10px;
+			width: 100%;
+			max-width: 800px;
+		}
+
+		.audio-controls {
+			margin: 20px 0;
+			padding: 15px;
+			background-color: rgba(124, 77, 255, 0.1);
+			border-radius: 8px;
+		}
+
+		.audio-controls h3 {
+			margin-top: 0;
+			margin-bottom: 10px;
+			color: var(--accent);
+			font-size: 1.2em;
+		}
+
+		.audio-player {
+			width: 100%;
+			height: 40px;
+			border-radius: 5px;
+			background-color: var(--bg-primary);
+		}
+
+		.input-group {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+		}
+
+		input[type="text"] {
+			flex: 1;
+			height: 45px;
+			padding: 0 20px;
+			border: none;
+			border-radius: 5px;
+			background-color: var(--bg-primary);
+			color: var(--text-primary);
+			font-size: 16px;
+		}
+
+		button {
+			height: 45px;
+			padding: 0 25px;
+			border: none;
+			border-radius: 5px;
+			background-color: var(--accent);
+			color: var(--text-primary);
+			font-size: 16px;
+			cursor: pointer;
+			transition: background-color 0.3s;
+			white-space: nowrap;
+		}
+
+		button:hover {
+			background-color: var(--accent-hover);
+		}
+
+		.blog-post {
+			width: 100%;
+			max-width: 800px;
+			background-color: var(--bg-secondary);
+			padding: 30px;
+			border-radius: 10px;
+			opacity: 0;
+			transform: translateY(20px);
+			transition: opacity 0.5s, transform 0.5s;
+			margin-top: 30px;
+		}
+
+		.blog-post.visible {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		.blog-post article {
+			width: 100%;
+		}
+
+		.blog-post h1 {
+			margin: 0;
+			color: var(--accent);
+			font-size: 2.5em;
+			line-height: 1.3;
+			text-align: center;
+			padding: 30px 0;
+			max-width: 90%;
+			margin-left: auto;
+			margin-right: auto;
+			border-bottom: 2px solid var(--accent);
+		}
+
+		.blog-post img {
+			width: 100%;
+			height: auto;
+			border-radius: 8px;
+			margin: 0 0 20px 0;
+		}
+
+		.blog-post .content {
+			color: var(--text-secondary);
+			font-size: 18px;
+			padding: 20px 0;
+			white-space: pre-line;
+			line-height: 1.8;
+		}
+
+		.blog-post .content p.blog-paragraph {
+			margin-bottom: 1.5em;
+			text-align: justify;
+			line-height: 1.8;
+			font-size: 18px;
+		}
+
+		.button-container {
+			text-align: right;
+			margin-top: 20px;
+		}
+
+		.copy-button {
+			display: inline-block;
+			margin-left: auto;
+			background-color: var(--accent);
+			color: white;
+			padding: 10px 20px;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+
+		.loading {
+			text-align: center;
+			padding: 20px;
+			display: none;
+		}
+
+		.loading:after {
+			content: "...";
+			animation: dots 1.5s steps(5, end) infinite;
+		}
+
+		@keyframes dots {
+			0%, 20% { content: "."; }
+			40% { content: ".."; }
+			60%, 100% { content: "..."; }
+		}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="topicInput" placeholder="Enter strain name or click Random">
+                <button onclick="generatePost()">Generate Strain Post</button>
+                <button onclick="generateRandomPost()">Random Strain</button>
+            </div>
+        </div>
+        <div id="loading" class="loading">Generating your strain release</div>
+        <div id="blogPost" class="blog-post"></div>
+    </div>
+
+    <script>
+
+        function getRandomElements(arr, count) {
+            return arr.sort(() => 0.5 - Math.random()).slice(0, count);
+        }
+
+		function generatePrompt(concept) {
+			return `Create a brief, appealing strain description for "${concept}".
+					Keep it concise (2-3 short paragraphs maximum).
+					Be authentic and do not make up specific details you cannot know.
+					Focus on the strain name vibe and general cannabis attributes.
+					Format with "TITLE:" at the beginning, followed by the description.
+					The tone should be professional but accessible to cannabis enthusiasts.
+					Do not use any special characters, markdown, or formatting - use plain text only.`;
+		}
+
+		function generateRandomConcept() {
+			const phenomenon = phenomena[Math.floor(Math.random() * phenomena.length)];
+			const location = locations[Math.floor(Math.random() * locations.length)];
+			const implication = implications[Math.floor(Math.random() * implications.length)];
+			
+			return `${phenomenon}, a ${location}, ${implication}`;
+		}
+
+		async function generatePost() {
+			const topicInput = document.getElementById('topicInput');
+			const concept = topicInput.value.trim() || generateRandomConcept();
+			const seed = Math.floor(Math.random() * 1000000);
+			
+			document.getElementById('loading').style.display = 'block';
+			const blogPost = document.getElementById('blogPost');
+			blogPost.classList.remove('visible');
+
+			try {
+				const articleResponse = await fetch('https://text.pollinations.ai/', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						messages: [
+							{
+								role: 'system',
+								content: `You are a cannabis strain description writer for StrainNavigator. 
+								Keep your writing clean and professional - do NOT use asterisks, 
+								markdown, or special formatting characters in your responses.
+								Write naturally with plain text only.
+								Your writing style is professional yet engaging, with accurate cannabis terminology
+								and vivid sensory descriptions.`
+							},
+							{
+								role: 'user',
+								content: generatePrompt(concept)
+							}
+						],
+						model: 'openai',
+						seed: seed
+					})
+				});
+
+				const articleData = await articleResponse.text();
+				
+				const titleMatch = articleData.match(/TITLE:\s*(.+?)(?:\n|$)/);
+				let title = titleMatch ? titleMatch[1].trim() : concept;
+				// Remove any asterisks or other markdown characters
+				title = title.replace(/[\*\#\_\~\`]/g, '');
+				
+				const cleanArticleData = articleData
+					.replace(/TITLE:\s*.+?\n/, '')
+					.replace(/^[#*]+ ?.*?\n+/g, '')
+					.replace(/\*\*/g, '')
+					.trim();
+				
+				const imagePrompt = `detailed ${title} promotional logo including the cannabis strain name in TEXT with vibrant colors, bold lines, intense label design, high contrast, premium branding, excessive cannabis imagery, high resolution, include visual rendering styles`;
+				const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=800&height=400&nologo=true&model=flux&enhance=true`;
+				const audioText = `${title}. ${cleanArticleData}`;
+				const audioUrl = await generateAudio(audioText, { voice: 'nova' });
+				blogPost.innerHTML = `
+					<article>
+						<div class="image-container">
+							<img src="${imageUrl}" alt="${title}">
+							<button class="regenerate-image" onclick="regenerateImage('${encodeURIComponent(imagePrompt)}')">
+								<svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+							</button>
+						</div>
+						<h1>${title}</h1>
+						<div class="content">
+							${cleanArticleData.split('\n\n').map(paragraph => 
+								`<p class="blog-paragraph">${paragraph}</p>`
+							).join('')}
+						</div>
+						<div class="audio-controls">
+							<h3>Listen to Description</h3>
+							<audio controls id="description-audio" class="audio-player">
+								<source src="${audioUrl}" type="audio/mpeg" id="audio-source">
+							</audio>
+						</div>
+						<div class="footer">
+							<p>© ${new Date().getFullYear()} StrainNavigator</p>
+							<p>www.strainnavigator.com</p>
+						</div>
+						<div class="button-container">
+							<button id="copyButton" class="copy-button">Copy Formatted Post</button>
+						</div>
+					</article>
+				`;
+
+				document.getElementById('copyButton').onclick = copyFormattedPost;
+				
+				document.getElementById('loading').style.display = 'none';
+				blogPost.classList.add('visible');
+
+			} catch (error) {
+				console.error('Error:', error);
+				document.getElementById('loading').style.display = 'none';
+				blogPost.innerHTML = '<p>Error generating strain post. Please try again.</p>';
+				blogPost.classList.add('visible');
+			}
+		}
+
+		async function generateAudio(text, options = {}) {
+		  try {
+			// First, we need to create a prompt that instructs the AI to read verbatim
+			const instructionPrefix = "READ THIS TEXT VERBATIM WITHOUT ANY COMMENTARY OR RESPONSE: ";
+			const textToRead = instructionPrefix + text;
+			const encodedText = encodeURIComponent(textToRead);
+			const voice = options.voice || 'nova';
+			
+			const url = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=${voice}`;
+			
+			console.log("Generating audio with URL:", url);
+			return url;
+		  } catch (error) {
+			console.error("Audio generation error:", error);
+			return null;
+		  }
+		}
+
+		function regenerateImage(imagePrompt) {
+			const img = document.querySelector('.image-container img');
+			const newSeed = Math.floor(Math.random() * 1000000);
+			const decodedPrompt = decodeURIComponent(imagePrompt);
+			const newImageUrl = `https://image.pollinations.ai/prompt/${imagePrompt}?width=800&height=400&nologo=true&model=flux&enhance=true&seed=${newSeed}`;
+			
+			img.style.opacity = '0.5';
+			const newImage = new Image();
+			newImage.onload = () => {
+				img.src = newImageUrl;
+				img.style.opacity = '1';
+			};
+			newImage.src = newImageUrl;
+		}
+				
+        function generateRandomPost() {
+            document.getElementById('topicInput').value = '';
+            generatePost();
+        }
+
+		function copyFormattedPost() {
+			const blogPost = document.getElementById('blogPost');
+			if (!blogPost.querySelector('article')) return;
+
+			const title = blogPost.querySelector('h1').innerText;
+			const paragraphs = Array.from(blogPost.querySelectorAll('.blog-paragraph'));
+			
+			// Create text with proper line breaks and StrainNavigator info
+			const formattedContent = `${title}\n\n${paragraphs.map(p => p.innerText).join('\n\n')}\n\n© ${new Date().getFullYear()} StrainNavigator\nwww.strainnavigator.com`;
+			
+			// Use newer clipboard API for better text handling
+			navigator.clipboard.writeText(formattedContent)
+				.then(() => {
+					const button = document.getElementById('copyButton');
+					button.textContent = 'Copied!';
+					setTimeout(() => {
+						button.textContent = 'Copy Formatted Post';
+					}, 2000);
+				})
+				.catch(err => {
+					console.error('Failed to copy:', err);
+				});
+		}
+		
+		window.onload = function() {
+			document.getElementById('topicInput').value = '';
+		};
+    </script>
+</body>
+</html>
