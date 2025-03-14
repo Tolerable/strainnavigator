@@ -996,6 +996,13 @@
 
 			twentyOneDataUrl = createTwentyOneSvg();
 
+			function createWeedLeafOverlay() {
+			  // Create a simple div with the cannabis Font Awesome icon
+			  const weedLeafDiv = document.createElement('div');
+			  weedLeafDiv.innerHTML = '<i class="fas fa-cannabis" style="color: #00AA00; font-size: 100px;"></i>';
+			  return weedLeafDiv;
+			}
+
 			// Function to add message to chat
 			function addMessage(content, isUser, imageUrl = null) {
 				const messageDiv = document.createElement('div');
