@@ -991,6 +991,9 @@
 				return 'data:image/svg+xml;base64,' + btoa(svg);
 			}
 
+			twentyOneDataUrl = createTwentyOneSvg();
+			weedLeafDataUrl = createWeedLeafSvg();
+
 			// Function to add message to chat
 			function addMessage(content, isUser, imageUrl = null) {
 				const messageDiv = document.createElement('div');
