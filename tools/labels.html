@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI BRANDING ASSISTANT</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
 		:root {
 			--primary-color: #2E7D32;
@@ -984,15 +985,28 @@
 				return 'data:image/svg+xml;base64,' + btoa(svg);
 			}
 
-			function createWeedLeafSvg() {
-				const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-					<path d="M50,10 C50,10 45,30 35,40 C25,50 10,50 10,60 C10,70 20,75 30,70 C40,65 45,55 45,55 C45,55 30,80 50,95 C70,80 55,55 55,55 C55,55 60,65 70,70 C80,75 90,70 90,60 C90,50 75,50 65,40 C55,30 50,10 50,10 Z" fill="green"/>
-				</svg>`;
-				return 'data:image/svg+xml;base64,' + btoa(svg);
+			function createWeedLeafOverlay() {
+				// Create a div element to hold the Font Awesome icon
+				const weedLeafDiv = document.createElement('div');
+				weedLeafDiv.style.position = 'absolute';
+				weedLeafDiv.style.display = 'flex';
+				weedLeafDiv.style.alignItems = 'center';
+				weedLeafDiv.style.justifyContent = 'center';
+				weedLeafDiv.style.color = '#00AA00'; // Green color
+				weedLeafDiv.style.zIndex = '100';
+				
+				// Add the Font Awesome cannabis icon
+				const icon = document.createElement('i');
+				icon.className = 'fas fa-cannabis fa-fw';
+				icon.style.width = '100%';
+				icon.style.height = '100%';
+				icon.style.fontSize = '100%';
+				
+				weedLeafDiv.appendChild(icon);
+				return weedLeafDiv;
 			}
 
 			twentyOneDataUrl = createTwentyOneSvg();
-			weedLeafDataUrl = createWeedLeafSvg();
 
 			// Function to add message to chat
 			function addMessage(content, isUser, imageUrl = null) {
@@ -1126,76 +1140,121 @@
 				}
 			}
 
-			async function compositeOverlayOntoImage(imageUrl, overlayUrl, position, sizePercent) {
+			async function compositeOverlayOntoImage(imageUrl, overlay, position, sizePercent) {
 				return new Promise((resolve, reject) => {
 					const mainImg = new Image();
 					mainImg.crossOrigin = "Anonymous";
 					
 					mainImg.onload = function() {
-						const overlayImg = new Image();
-						overlayImg.crossOrigin = "Anonymous";
+						const canvas = document.createElement('canvas');
+						canvas.width = mainImg.width;
+						canvas.height = mainImg.height;
+						const ctx = canvas.getContext('2d');
 						
-						overlayImg.onload = function() {
-							const canvas = document.createElement('canvas');
-							canvas.width = mainImg.width;
-							canvas.height = mainImg.height;
-							const ctx = canvas.getContext('2d');
-							
-							// Draw main image on canvas
-							ctx.drawImage(mainImg, 0, 0, mainImg.width, mainImg.height);
-							
-							// Calculate overlay size based on the main image dimension
-							const size = Math.min(mainImg.width, mainImg.height) * (sizePercent / 100);
-							
-							// Calculate overlay position
-							let x = 0;
-							let y = 0;
-							const padding = size * 0.1; // 10% padding
-							
-							// Determine position
-							switch(position) {
-								case 'top-left':
-									x = padding;
-									y = padding;
-									break;
-								case 'top-right':
-									x = mainImg.width - size - padding;
-									y = padding;
-									break;
-								case 'bottom-left':
-									x = padding;
-									y = mainImg.height - size - padding;
-									break;
-								case 'bottom-right':
-									x = mainImg.width - size - padding;
-									y = mainImg.height - size - padding;
-									break;
-							}
-							
-							// Add white background for QR codes only
-							if (overlayUrl === qrCodeDataUrl) {
-								ctx.fillStyle = 'white';
-								ctx.fillRect(x, y, size, size);
-							}
-							
-							// Draw overlay on canvas
-							ctx.drawImage(overlayImg, x, y, size, size);
-							
-							try {
-								const compositeImageUrl = canvas.toDataURL('image/jpeg', 0.95);
-								resolve(compositeImageUrl);
-							} catch (err) {
-								console.error("Canvas toDataURL error:", err);
-								reject(new Error('Failed to convert canvas to data URL'));
-							}
-						};
+						// Draw main image on canvas
+						ctx.drawImage(mainImg, 0, 0, mainImg.width, mainImg.height);
 						
-						overlayImg.onerror = function(err) {
-							console.error("Overlay image load error:", err);
-							reject(new Error('Failed to load overlay image'));
-						};
+						// Calculate overlay size based on the main image dimension
+						const size = Math.min(mainImg.width, mainImg.height) * (sizePercent / 100);
 						
-						overlayImg.src = overlayUrl;
+						// Calculate overlay position
+						let x = 0;
+						let y = 0;
+						const padding = size * 0.1; // 10% padding
+						
+						// Determine position
+						switch(position) {
+							case 'top-left':
+								x = padding;
+								y = padding;
+								break;
+							case 'top-right':
+								x = mainImg.width - size - padding;
+								y = padding;
+								break;
+							case 'bottom-left':
+								x = padding;
+								y = mainImg.height - size - padding;
+								break;
+							case 'bottom-right':
+								x = mainImg.width - size - padding;
+								y = mainImg.height - size - padding;
+								break;
+						}
+						
+						// Handle different types of overlays
+						if (typeof overlay === 'string') {
+							// It's a QR code or 21+ symbol (URL string)
+							const overlayImg = new Image();
+							overlayImg.crossOrigin = "Anonymous";
+							
+							overlayImg.onload = function() {
+								// Add white background for QR codes only
+								if (overlay === qrCodeDataUrl) {
+									ctx.fillStyle = 'white';
+									ctx.fillRect(x, y, size, size);
+								}
+								
+								// Draw overlay on canvas
+								ctx.drawImage(overlayImg, x, y, size, size);
+								
+								try {
+									const compositeImageUrl = canvas.toDataURL('image/jpeg', 0.95);
+									resolve(compositeImageUrl);
+								} catch (err) {
+									console.error("Canvas toDataURL error:", err);
+									reject(new Error('Failed to convert canvas to data URL'));
+								}
+							};
+							
+							overlayImg.onerror = function(err) {
+								console.error("Overlay image load error:", err);
+								reject(new Error('Failed to load overlay image'));
+							};
+							
+							overlayImg.src = overlay;
+						} else if (overlay instanceof HTMLElement) {
+							// It's a DOM element (Font Awesome icon)
+							// Create a temporary container for the icon
+							const tempContainer = document.createElement('div');
+							tempContainer.style.position = 'absolute';
+							tempContainer.style.top = '0';
+							tempContainer.style.left = '0';
+							tempContainer.style.width = size + 'px';
+							tempContainer.style.height = size + 'px';
+							tempContainer.style.zIndex = '-1000';
+							tempContainer.style.opacity = '0';
+							
+							// Add the overlay element to the temporary container
+							const clonedOverlay = overlay.cloneNode(true);
+							clonedOverlay.style.width = size + 'px';
+							clonedOverlay.style.height = size + 'px';
+							tempContainer.appendChild(clonedOverlay);
+							
+							// Add to document temporarily
+							document.body.appendChild(tempContainer);
+							
+							// Use html2canvas to render the Font Awesome icon
+							html2canvas(clonedOverlay, {backgroundColor: null}).then(iconCanvas => {
+								// Draw the icon on our main canvas
+								ctx.drawImage(iconCanvas, x, y, size, size);
+								
+								// Remove temporary container
+								document.body.removeChild(tempContainer);
+								
+								try {
+									const compositeImageUrl = canvas.toDataURL('image/jpeg', 0.95);
+									resolve(compositeImageUrl);
+								} catch (err) {
+									console.error("Canvas toDataURL error:", err);
+									reject(new Error('Failed to convert canvas to data URL'));
+								}
+							}).catch(err => {
+								document.body.removeChild(tempContainer);
+								console.error("html2canvas error:", err);
+								reject(new Error('Failed to render icon'));
+							});
+						}
 					};
 					
 					mainImg.onerror = function(err) {
@@ -1585,11 +1644,24 @@
 						hasOverlays = true;
 					}
 					
-					// Add weed leaf if enabled
+					// Add weed leaf if enabled - THIS IS THE UPDATED PART
 					if (weedLeafToggle.checked) {
+						// We'll need to include html2canvas library first
+						if (typeof html2canvas === 'undefined') {
+							// Load html2canvas if it's not already loaded
+							await new Promise((resolve, reject) => {
+								const script = document.createElement('script');
+								script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+								script.onload = resolve;
+								script.onerror = reject;
+								document.head.appendChild(script);
+							});
+						}
+						
+						const weedLeafElement = createWeedLeafOverlay();
 						currentImageUrl = await compositeOverlayOntoImage(
 							currentImageUrl,
-							weedLeafDataUrl,
+							weedLeafElement,
 							weedLeafPositionSelect.value,
 							parseInt(weedLeafSizeSlider.value)
 						);
