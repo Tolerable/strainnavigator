@@ -296,6 +296,32 @@
 			margin-right: 4px;
 		}
 
+		.overlay-options {
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+			margin-top: 0.5rem;
+		}
+
+		.overlay-option {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			flex-wrap: wrap;
+		}
+
+		.overlay-option select {
+			padding: 0.4rem;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			font-size: 0.8rem;
+			background-color: white;
+		}
+
+		.overlay-option input[type="range"] {
+			width: 100px;
+		}
+
 		@keyframes spin {
 			0% { transform: translate(-50%, -50%) rotate(0deg); }
 			100% { transform: translate(-50%, -50%) rotate(360deg); }
@@ -692,7 +718,7 @@
         <div class="chat-container">
 			<div class="chat-header">
 				<i class="fas fa-comment-dots"></i>
-				<h2>DAYDREAMER GENETICS AI Branding Assistant</h2>
+				<h2>STRAINNAVIGATOR AI Branding Assistant</h2>
 			</div>
             <div class="chat-messages" id="chatMessages">
                 <!-- Messages will be added here -->
@@ -744,7 +770,7 @@
                             <span class="toggle-slider"></span>
                         </label>
                         <label for="qrToggle">Add QR Code</label>
-                        <input type="text" id="qrUrlInput" placeholder="Enter URL for QR code" value="https://www.daydreamergenetics.com">
+                        <input type="text" id="qrUrlInput" placeholder="Enter URL for QR code" value="https://www.strainnavigator.com">
                         <button class="qr-button" id="generateQrBtn">
                             <i class="fas fa-qrcode"></i>
                         </button>
@@ -761,28 +787,59 @@
                         <span id="qrSizeValue">20%</span>
                     </div>
                 </div>
-
-				<div style="margin-top: 5px;">
-					<label for="qrCenterType">QR Center Element:</label>
-					<select id="qrCenterType">
-						<option value="none">None</option>
-						<option value="21plus" selected>21+ Badge</option>
-						<option value="leaf">Cannabis Leaf</option>
-					</select>
-				</div>
                 
-				<div class="options-group bottom-margin">
-					<label for="styleSelector"></label>
-					<div class="style-selector">
-						<select id="styleSelector">
-							<option value="">Select a style...</option>
-							<!-- Styles will be populated by JavaScript -->
-						</select>
-					</div>
-					<div class="style-tags" id="styleTags">
-						<!-- Selected styles will appear here -->
-					</div>
-				</div>
+                <!-- Image Overlays -->
+                <div class="options-group">
+                    <label>Image Overlays</label>
+                    <div class="overlay-options">
+                        <div class="overlay-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="twentyOneToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <label for="twentyOneToggle">Add 21+ Symbol</label>
+                            <select id="twentyOnePositionSelect">
+                                <option value="top-left">Top Left</option>
+                                <option value="top-right">Top Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="bottom-right" selected>Bottom Right</option>
+                            </select>
+                            <input type="range" id="twentyOneSizeSlider" min="10" max="30" value="15" 
+                                title="21+ Symbol Size (% of image)">
+                            <span id="twentyOneSizeValue">15%</span>
+                        </div>
+                        
+                        <div class="overlay-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="weedLeafToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <label for="weedLeafToggle">Add Weed Leaf</label>
+                            <select id="weedLeafPositionSelect">
+                                <option value="top-left">Top Left</option>
+                                <option value="top-right" selected>Top Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="bottom-right">Bottom Right</option>
+                            </select>
+                            <input type="range" id="weedLeafSizeSlider" min="10" max="30" value="15" 
+                                title="Weed Leaf Size (% of image)">
+                            <span id="weedLeafSizeValue">15%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="options-group bottom-margin">
+                    <label for="styleSelector"></label>
+                    <div class="style-selector">
+                        <select id="styleSelector">
+                            <option value="">Select a style...</option>
+                            <!-- Styles will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="style-tags" id="styleTags">
+                        <!-- Selected styles will appear here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -802,8 +859,9 @@
 				Generations by Pollinations.ai
 			</a>
 		</p>
-		<p>© DaydreamerGenetics.com 2025. All Rights Reserved.</p>
+		<p>© StrainNavigator.com 2025. All Rights Reserved.</p>
 	</footer>	
+
 
     <script>
         // Main application logic
@@ -853,6 +911,17 @@
             const qrImage = document.getElementById('qrImage');
             const qrPositionSelect = document.getElementById('qrPositionSelect');
 
+			const twentyOneToggle = document.getElementById('twentyOneToggle');
+			const twentyOnePositionSelect = document.getElementById('twentyOnePositionSelect');
+			const twentyOneSizeSlider = document.getElementById('twentyOneSizeSlider');
+			const twentyOneSizeValue = document.getElementById('twentyOneSizeValue');
+
+			const weedLeafToggle = document.getElementById('weedLeafToggle');
+			const weedLeafPositionSelect = document.getElementById('weedLeafPositionSelect');
+			const weedLeafSizeSlider = document.getElementById('weedLeafSizeSlider');
+			const weedLeafSizeValue = document.getElementById('weedLeafSizeValue');
+
+
 			const systemMessage = {
 				role: 'system',
 				content: `You are a branding specialist ranging from Cannabis to anything requsted.
@@ -895,6 +964,9 @@
 			let qrImageUrl = '';      // Store the version with QR
 			let qrCodeDataUrl = '';   // Store the generated QR code image			
 			
+			let twentyOneDataUrl = '';
+			let weedLeafDataUrl = '';
+			
             // Function to show toast notification
             function showToast(message, duration = 3000) {
                 toast.textContent = message;
@@ -903,6 +975,21 @@
                     toast.classList.remove('show');
                 }, duration);
             }
+
+			function createTwentyOneSvg() {
+				const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+					<circle cx="50" cy="50" r="45" fill="black" stroke="white" stroke-width="2"/>
+					<text x="50" y="60" font-family="Arial" font-size="40" font-weight="bold" fill="white" text-anchor="middle">21+</text>
+				</svg>`;
+				return 'data:image/svg+xml;base64,' + btoa(svg);
+			}
+
+			function createWeedLeafSvg() {
+				const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+					<path d="M50,15 C50,15 20,30 20,60 C20,75 35,80 45,70 C45,70 45,85 50,95 C55,85 55,70 55,70 C65,80 80,75 80,60 C80,30 50,15 50,15 Z" fill="green"/>
+				</svg>`;
+				return 'data:image/svg+xml;base64,' + btoa(svg);
+			}
 
 			// Function to add message to chat
 			function addMessage(content, isUser, imageUrl = null) {
@@ -1036,21 +1123,16 @@
 				}
 			}
 
-			async function compositeQrCodeOntoImage(imageUrl, qrCodeUrl, position, sizePercent) {
+			async function compositeOverlayOntoImage(imageUrl, overlayUrl, position, sizePercent) {
 				return new Promise((resolve, reject) => {
-					// Create main image element
 					const mainImg = new Image();
-					mainImg.crossOrigin = "Anonymous"; // Add CORS handling
+					mainImg.crossOrigin = "Anonymous";
 					
-					// Handle main image load
 					mainImg.onload = function() {
-						// Create QR code image element
-						const qrImg = new Image();
-						qrImg.crossOrigin = "Anonymous"; // Add CORS handling
+						const overlayImg = new Image();
+						overlayImg.crossOrigin = "Anonymous";
 						
-						// Handle QR code image load
-						qrImg.onload = function() {
-							// Create a fresh canvas for this operation
+						overlayImg.onload = function() {
 							const canvas = document.createElement('canvas');
 							canvas.width = mainImg.width;
 							canvas.height = mainImg.height;
@@ -1059,10 +1141,10 @@
 							// Draw main image on canvas
 							ctx.drawImage(mainImg, 0, 0, mainImg.width, mainImg.height);
 							
-							// Calculate QR code size based on the main image dimension
+							// Calculate overlay size based on the main image dimension
 							const size = Math.min(mainImg.width, mainImg.height) * (sizePercent / 100);
 							
-							// Calculate QR code position
+							// Calculate overlay position
 							let x = 0;
 							let y = 0;
 							const padding = size * 0.1; // 10% padding
@@ -1087,27 +1169,17 @@
 									break;
 							}
 							
-							// Add debugging
-							console.log("QR Overlay:", {
-								position,
-								size,
-								x, y,
-								canvasW: canvas.width,
-								canvasH: canvas.height,
-								qrImgSrc: qrImg.src.substring(0, 30) + "..."
-							});
+							// Add white background for QR codes only
+							if (overlayUrl === qrCodeDataUrl) {
+								ctx.fillStyle = 'white';
+								ctx.fillRect(x, y, size, size);
+							}
 							
-							// Create background for QR code to ensure visibility
-							ctx.fillStyle = 'white';
-							ctx.fillRect(x, y, size, size);
+							// Draw overlay on canvas
+							ctx.drawImage(overlayImg, x, y, size, size);
 							
-							// Draw QR code on canvas
-							ctx.drawImage(qrImg, x, y, size, size);
-							
-							// Convert canvas to data URL
 							try {
 								const compositeImageUrl = canvas.toDataURL('image/jpeg', 0.95);
-								// Resolve the Promise with the composite image URL
 								resolve(compositeImageUrl);
 							} catch (err) {
 								console.error("Canvas toDataURL error:", err);
@@ -1115,25 +1187,25 @@
 							}
 						};
 						
-						// Handle QR code image error
-						qrImg.onerror = function(err) {
-							console.error("QR image load error:", err);
-							reject(new Error('Failed to load QR code image'));
+						overlayImg.onerror = function(err) {
+							console.error("Overlay image load error:", err);
+							reject(new Error('Failed to load overlay image'));
 						};
 						
-						// Set QR code image source
-						qrImg.src = qrCodeUrl;
+						overlayImg.src = overlayUrl;
 					};
 					
-					// Handle main image error
 					mainImg.onerror = function(err) {
 						console.error("Main image load error:", err);
 						reject(new Error('Failed to load main image'));
 					};
 					
-					// Set main image source
 					mainImg.src = imageUrl;
 				});
+			}
+
+			function compositeQrCodeOntoImage(imageUrl, qrCodeUrl, position, sizePercent) {
+				return compositeOverlayOntoImage(imageUrl, qrCodeUrl, position, sizePercent);
 			}
             
             // Function to position QR code overlay
@@ -1468,83 +1540,112 @@
 				}
 			}
 
-			async function addQrCodeToCurrentImage() {
-				if (!currentImage.src || currentImage.src.includes('data:image/svg+xml')) {
+			async function updateCurrentImage() {
+				if (!originalImageUrl || originalImageUrl.includes('data:image/svg+xml')) {
 					showToast("Please generate an image first");
 					return;
 				}
 				
 				try {
-					showToast("Adding QR code...");
+					showToast("Updating image overlays...");
 					
-					// Generate the QR code if needed
-					if (!qrCodeDataUrl || qrUrlInput.value !== currentQrUrl) {
-						currentQrUrl = qrUrlInput.value;
-						qrCodeDataUrl = await generateQrCode(qrUrlInput.value);
-						if (!qrCodeDataUrl) {
-							throw new Error("Failed to generate QR code");
+					// Start with the original image
+					let currentImageUrl = originalImageUrl;
+					let hasOverlays = false;
+					
+					// Add QR code if enabled
+					if (qrToggle.checked && qrUrlInput.value.trim()) {
+						if (!qrCodeDataUrl || qrUrlInput.value !== currentQrUrl) {
+							currentQrUrl = qrUrlInput.value;
+							qrCodeDataUrl = await generateQrCode(qrUrlInput.value);
+						}
+						
+						if (qrCodeDataUrl) {
+							currentImageUrl = await compositeOverlayOntoImage(
+								currentImageUrl,
+								qrCodeDataUrl,
+								qrPositionSelect.value,
+								parseInt(document.getElementById('qrSizeSlider').value)
+							);
+							hasOverlays = true;
 						}
 					}
 					
-					// Get QR position and size
-					const position = qrPositionSelect.value;
-					const sizePercent = document.getElementById('qrSizeSlider').value;
-					
-					// Use the original image as the base
-					const sourceImageUrl = originalImageUrl || currentImage.src;
-					
-					// Composite QR code onto the image
-					qrImageUrl = await compositeQrCodeOntoImage(
-						sourceImageUrl,
-						qrCodeDataUrl,
-						position,
-						parseInt(sizePercent)
-					);
-					
-					if (!qrImageUrl) {
-						throw new Error("Failed to composite QR code onto image");
+					// Add 21+ symbol if enabled
+					if (twentyOneToggle.checked) {
+						currentImageUrl = await compositeOverlayOntoImage(
+							currentImageUrl,
+							twentyOneDataUrl,
+							twentyOnePositionSelect.value,
+							parseInt(twentyOneSizeSlider.value)
+						);
+						hasOverlays = true;
 					}
 					
-					// Update current image to show QR version
-					currentImage.src = qrImageUrl;
+					// Add weed leaf if enabled
+					if (weedLeafToggle.checked) {
+						currentImageUrl = await compositeOverlayOntoImage(
+							currentImageUrl,
+							weedLeafDataUrl,
+							weedLeafPositionSelect.value,
+							parseInt(weedLeafSizeSlider.value)
+						);
+						hasOverlays = true;
+					}
 					
-					// Add to thumbnail gallery (optional - you may want to skip this)
-					// addThumbnail(qrImageUrl);
+					// Update the current image
+					currentImage.src = currentImageUrl;
 					
-					// Add download link specifically for QR version
-					const fileName = 'brand_design_with_qr.jpg';
-					downloadLink.innerHTML = `
-						<a href="${qrImageUrl}" download="${fileName}" style="color: white; margin-right: 10px;">
-							<i class="fas fa-download"></i> With QR
-						</a>
-						<a href="${originalImageUrl}" download="brand_design.jpg" style="color: white;">
-							<i class="fas fa-download"></i> No QR
-						</a>
-					`;
+					// Update download links
+					if (hasOverlays) {
+						downloadLink.innerHTML = `
+							<a href="${currentImageUrl}" download="brand_design_with_overlays.jpg" style="color: white; margin-right: 10px;">
+								<i class="fas fa-download"></i> With Overlays
+							</a>
+							<a href="${originalImageUrl}" download="brand_design.jpg" style="color: white;">
+								<i class="fas fa-download"></i> Original
+							</a>
+						`;
+					} else {
+						downloadLink.innerHTML = `
+							<a href="${originalImageUrl}" download="brand_design.jpg" style="color: white;">
+								<i class="fas fa-download"></i> Download
+							</a>
+						`;
+					}
 					
-					showToast("QR code added");
-					return qrImageUrl;
-					
+					showToast("Image updated");
+					return currentImageUrl;
 				} catch (error) {
-					console.error("Error adding QR code:", error);
-					showToast("Failed to add QR code");
+					console.error("Error updating image:", error);
+					showToast("Failed to update image with overlays");
 					return null;
 				}
 			}
 
+			// ADD THIS SIMPLE WRAPPER FUNCTION TO MAINTAIN COMPATIBILITY
+			function addQrCodeToCurrentImage() {
+				return updateCurrentImage();
+			}
+
 			function removeQrCodeFromCurrentImage() {
 				if (originalImageUrl) {
-					// Switch back to the original image
-					currentImage.src = originalImageUrl;
-					
-					// Update download link
-					downloadLink.innerHTML = `
-						<a href="${originalImageUrl}" download="brand_design.jpg" style="color: white;">
-							<i class="fas fa-download"></i> Download
-						</a>
-					`;
-					
-					showToast("QR code removed");
+					// If any other overlay is still active, update the image without QR
+					if (twentyOneToggle.checked || weedLeafToggle.checked) {
+						updateCurrentImage();
+					} else {
+						// Switch back to the original image
+						currentImage.src = originalImageUrl;
+						
+						// Update download link
+						downloadLink.innerHTML = `
+							<a href="${originalImageUrl}" download="brand_design.jpg" style="color: white;">
+								<i class="fas fa-download"></i> Download
+							</a>
+						`;
+						
+						showToast("Overlays removed");
+					}
 				}
 			}
 
@@ -1596,97 +1697,6 @@
                     }
                 });
             }
-
-			async function generateQrCodeWithCenter(url) {
-				if (!url) {
-					showToast('Please enter a URL for the QR code');
-					return null;
-				}
-				
-				try {
-					// Generate basic QR code
-					const encodedUrl = encodeURIComponent(url);
-					const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedUrl}&format=png&margin=20`;
-					
-					// Load QR code image
-					const img = new Image();
-					img.crossOrigin = "Anonymous";
-					
-					const qrCodeLoaded = new Promise((resolve, reject) => {
-						img.onload = () => resolve(img);
-						img.onerror = (err) => reject(new Error('Failed to load QR code'));
-						img.src = qrCodeUrl;
-					});
-					
-					const qrImg = await qrCodeLoaded;
-					
-					// Create canvas for editing
-					const canvas = document.createElement('canvas');
-					canvas.width = qrImg.width;
-					canvas.height = qrImg.height;
-					const ctx = canvas.getContext('2d');
-					
-					// Draw QR code
-					ctx.drawImage(qrImg, 0, 0);
-					
-					// Get center element type from dropdown
-					const centerType = document.getElementById('qrCenterType').value;
-					
-					// Calculate center area size (25% of QR code)
-					const centerSize = Math.floor(canvas.width * 0.25);
-					const centerX = (canvas.width - centerSize) / 2;
-					const centerY = (canvas.height - centerSize) / 2;
-					
-					// Draw white background for center
-					ctx.fillStyle = '#FFFFFF';
-					ctx.fillRect(centerX, centerY, centerSize, centerSize);
-					
-					// Draw selected center element
-					if (centerType === '21plus') {
-						// Draw green circle with 21+
-						ctx.fillStyle = '#00AA00';
-						ctx.beginPath();
-						ctx.arc(canvas.width/2, canvas.height/2, centerSize/2, 0, Math.PI * 2);
-						ctx.fill();
-						
-						ctx.fillStyle = 'white';
-						ctx.font = `bold ${centerSize * 0.4}px Arial`;
-						ctx.textAlign = 'center';
-						ctx.textBaseline = 'middle';
-						ctx.fillText('21+', canvas.width/2, canvas.height/2);
-						
-					} else if (centerType === 'leaf') {
-						// Draw simple cannabis leaf
-						ctx.fillStyle = '#00AA00';
-						
-						// Draw leaf stem
-						ctx.fillRect(canvas.width/2 - centerSize*0.05, canvas.height/2, centerSize*0.1, centerSize*0.4);
-						
-						// Draw leaf parts
-						for (let i = 0; i < 7; i++) {
-							const angle = (Math.PI * 2 * i) / 7;
-							
-							ctx.save();
-							ctx.translate(canvas.width/2, canvas.height/2);
-							ctx.rotate(angle);
-							
-							ctx.beginPath();
-							ctx.ellipse(0, -centerSize*0.2, centerSize*0.1, centerSize*0.25, 0, 0, Math.PI * 2);
-							ctx.fill();
-							
-							ctx.restore();
-						}
-					}
-					
-					// Return data URL
-					return canvas.toDataURL('image/png');
-					
-				} catch (error) {
-					console.error('Error generating QR code:', error);
-					showToast('Error generating QR code. Please try again.');
-					return null;
-				}
-			}
 
             // Function to populate style selector
             function populateStyleSelector() {
@@ -1936,16 +1946,33 @@
 			});
 
 			qrToggle.addEventListener('change', async () => {
-				if (qrToggle.checked) {
-					// Add QR code to current image
-					if (currentImage.src && !currentImage.src.includes('data:image/svg+xml')) {
-						await addQrCodeToCurrentImage();
+				if (currentImage.src && !currentImage.src.includes('data:image/svg+xml')) {
+					if (qrToggle.checked) {
+						await updateCurrentImage();
+					} else {
+						// Only reset to original if no other overlays are active
+						if (!twentyOneToggle.checked && !weedLeafToggle.checked) {
+							removeQrCodeFromCurrentImage();
+						} else {
+							await updateCurrentImage();
+						}
 					}
-				} else {
-					// Remove QR code and show original
-					removeQrCodeFromCurrentImage();
 				}
 			});
+
+			twentyOneToggle.addEventListener('change', updateCurrentImage);
+			twentyOnePositionSelect.addEventListener('change', updateCurrentImage);
+			twentyOneSizeSlider.addEventListener('input', (e) => {
+				twentyOneSizeValue.textContent = `${e.target.value}%`;
+			});
+			twentyOneSizeSlider.addEventListener('change', updateCurrentImage);
+
+			weedLeafToggle.addEventListener('change', updateCurrentImage);
+			weedLeafPositionSelect.addEventListener('change', updateCurrentImage);
+			weedLeafSizeSlider.addEventListener('input', (e) => {
+				weedLeafSizeValue.textContent = `${e.target.value}%`;
+			});
+			weedLeafSizeSlider.addEventListener('change', updateCurrentImage);
 
             // Initialize
             populateStyleSelector();
