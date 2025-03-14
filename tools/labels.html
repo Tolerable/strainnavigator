@@ -1438,10 +1438,17 @@
 					
 					if (imageMatch && imageMatch[1]) {
 						// Extract image description
-						const imagePrompt = imageMatch[1].trim();
+						let imagePrompt = imageMatch[1].trim();
 						
-						// Store for reuse
-						currentPrompt = imagePrompt;
+						// *** FIX: Add selected styles to AI-generated prompt ***
+						if (selectedStyles.length > 0) {
+							const styleText = selectedStyles.map(style => style.value).join(', ');
+							imagePrompt = `${imagePrompt}, ${styleText}`;
+							console.log("Enhanced AI prompt with styles:", imagePrompt);
+						}
+						
+						// Store for reuse (original prompt without styles)
+						currentPrompt = imageMatch[1].trim();
 						
 						// Clean the response
 						let cleanResponse = responseText.replace(/GENERATE_IMAGE:\s*(.*?)(?:$|(?=\n\n))/s, '').trim();
@@ -1459,7 +1466,7 @@
 							content: responseText // Keep full response for context
 						});
 						
-						// Call generateImageFromPrompt here
+						// Call generateImageFromPrompt with the enhanced prompt
 						setTimeout(() => {
 							generateImageFromPrompt(imagePrompt);
 						}, 100);
