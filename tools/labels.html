@@ -1392,9 +1392,9 @@
 									const allTags = EXIF.getAllTags(this);
 									console.log("All EXIF tags:", allTags);
 									
-									if (allTags.UserComment) {
+									if (allTags.undefined) {  // CHANGED FROM UserComment TO undefined
 										const decoder = new TextDecoder('utf-8');
-										const jsonStr = decoder.decode(new Uint8Array(allTags.UserComment)).replace('ASCII\x00\x00\x00', '');
+										const jsonStr = decoder.decode(new Uint8Array(allTags.undefined)).replace('ASCII\x00\x00\x00', '');
 										console.log("Decoded UserComment:", jsonStr);
 										
 										try {
@@ -1405,7 +1405,7 @@
 											reject(`Error parsing metadata: ${error}`);
 										}
 									} else {
-										reject("UserComment not found in EXIF data");
+										reject("EXIF metadata not found");  // Updated error message
 									}
 								});
 							};
