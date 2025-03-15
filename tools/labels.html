@@ -925,7 +925,7 @@
 
 			const systemMessage = {
 				role: 'system',
-				content: `You are a branding specialist ranging from Cannabis to anything requested.
+				content: `You are a branding specialist ranging from Cannabis to anything requsted.
 				KEEP ALL RESPONSES BRIEF AND TO THE POINT. Follow the users lead on design ideas.
 				
 				If it is a Cannabis strain AND Only If users ask for names:
@@ -941,15 +941,15 @@
 				2. A user supplies a name and concept OR selects one of your suggested names
 				3. No need to also tell the user the description unless asking, generation is plenty.
 				
-				IMPORTANT: When writing image prompts, focus ONLY on the CONTENT, OBJECTS and COMPOSITION.
-				- DO describe: what objects should appear, their arrangement, text elements, color themes, mood
-				- DO NOT include any visual style directives (no terms like "cartoon style", "animated", "3D render", etc.)
-				- The user will select visual styles separately through the interface
+				When using GENERATE_IMAGE, provide a detailed visual description that includes:
+				- Text that should appear (strain name, breeder or distribution if requested, etc.)
+				- Main elements and their arrangement: Focus on describing content, objects, composition, and text
+				- Visual styles: Unless Requested Avoid including any visual style instructions (like animated, cartoon, photorealistic)
 				
-				Example of a good prompt: "GENERATE_IMAGE: A design for 'Cosmic Haze' cannabis strain featuring a spiral galaxy in the center, with deep purple and blue colors, gold text overlay, and a dark background with subtle cosmic dust elements."
+				Example: "GENERATE_IMAGE: A design for 'Cosmic Haze' cannabis strain with deep purple and blue gradients, featuring a stylized galaxy spiral in the center, gold metallic text overlay, and a luxurious dark background with subtle cosmic dust elements."
 				
 				You can both respond conversationally AND generate an image in the same message if appropriate.`
-			}
+			};
 
             // State management
             let selectedStyles = [];
