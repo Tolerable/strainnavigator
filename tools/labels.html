@@ -1352,22 +1352,23 @@
 					return prompt;
 				}
 				
-				if (selectedStyles.length === 1) {
-					// For a single style, apply it directly
-					return `${prompt}. ${selectedStyles[0].value}`;
-				} else {
-					// For multiple styles, create a more natural blend instruction
-					const styleNames = selectedStyles.map(style => style.text).join(' and ');
-					
-					// Take the first sentence of each style value to avoid overly long prompts
-					const styleDescriptions = selectedStyles.map(style => {
-						// Extract first sentence or use the whole value if no period found
-						const firstSentence = style.value.split('.')[0];
-						return firstSentence;
-					}).join('; ');
-					
-					return `${prompt}. Blend the styles of ${styleNames} - ${styleDescriptions}`;
-				}
+				// Create a Set to hold unique style terms
+				let styleTerms = new Set();
+				
+				// Add all terms from all selected styles to the Set
+				selectedStyles.forEach(style => {
+					// Split the style value by commas and add each term
+					const terms = style.value.split(',').map(term => term.trim());
+					terms.forEach(term => {
+						if (term) styleTerms.add(term);
+					});
+				});
+				
+				// Convert Set back to a string with commas
+				const combinedStyle = Array.from(styleTerms).join(', ');
+				
+				// Add to the prompt with a period separator
+				return `${prompt}. ${combinedStyle}`;
 			}
 
 			// Function to send message to AI with better error handling
