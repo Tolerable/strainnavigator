@@ -1371,6 +1371,48 @@
 				return `${prompt}. ${combinedStyle}`;
 			}
 
+			async function extractPromptFromImage(imageUrl) {
+				try {
+					// Fetch the image as a blob
+					const response = await fetch(imageUrl);
+					const imageBlob = await response.blob();
+					
+					return new Promise((resolve, reject) => {
+						const reader = new FileReader();
+						reader.onload = function(e) {
+							const img = new Image();
+							img.onload = function() {
+								EXIF.getData(img, function() {
+									const allTags = EXIF.getAllTags(this);
+									console.log("All EXIF tags:", allTags);
+									
+									if (allTags.UserComment) {
+										const decoder = new TextDecoder('utf-8');
+										const jsonStr = decoder.decode(new Uint8Array(allTags.UserComment)).replace('ASCII\x00\x00\x00', '');
+										console.log("Decoded UserComment:", jsonStr);
+										
+										try {
+											const metadata = JSON.parse(jsonStr);
+											resolve(metadata.prompt || "No prompt found in metadata");
+										} catch (error) {
+											console.error("Error parsing UserComment JSON:", error);
+											reject(`Error parsing metadata: ${error}`);
+										}
+									} else {
+										reject("UserComment not found in EXIF data");
+									}
+								});
+							};
+							img.src = e.target.result;
+						};
+						reader.readAsDataURL(imageBlob);
+					});
+				} catch (error) {
+					console.error("Error extracting prompt:", error);
+					return "Error extracting prompt: " + error.message;
+				}
+			}
+
 			// Function to send message to AI with better error handling
 			async function sendMessage(message, generateImage = false, retryCount = 0) {
 				// Define userMessage at function level so it's available everywhere in the function
@@ -1540,6 +1582,7 @@
 				
 				// Always apply selected styles to the prompt before generating
 				const enhancedPrompt = applySelectedStylesToPrompt(prompt);
+				console.log("Enhanced prompt with styles:", enhancedPrompt);
 				
 				// Create image URL with parameters
 				const randomSeed = Math.floor(Math.random() * 1000000);
@@ -1584,6 +1627,17 @@
 					
 					// Add to thumbnail gallery
 					addThumbnail(originalImageUrl);
+					
+					// Extract and display the actual prompt that was used
+					try {
+						const actualPrompt = await extractPromptFromImage(imageUrl);
+						// Add the actual prompt to the chat
+						addMessage(`Actual prompt used: "${actualPrompt}"`, false);
+						console.log("Actual prompt used:", actualPrompt);
+					} catch (exifError) {
+						console.error("Failed to extract prompt from image:", exifError);
+						addMessage("Could not extract the actual prompt from the image metadata.", false);
+					}
 					
 					// Add text notification to chat
 					addMessage("Your brand design has been generated in the display area.", false);
