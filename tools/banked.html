@@ -336,9 +336,27 @@
         <div class="subtitle">Seed Collection Collaborative Lists</div>
     </header>
     
-    <div class="container">
-        
-    </div>
+	<div class="container">
+		<div class="tab-container">
+			<div class="tab-content active">
+				<div class="search-container">
+					<input type="text" class="search-input" placeholder="Search seeds by name, breeder, etc.">
+					<button class="search-btn">Search</button>
+				</div>
+				<div class="filters">
+					<button class="filter-btn active" data-filter="all">All</button>
+					<button class="filter-btn" data-filter="reg">REG</button>
+					<button class="filter-btn" data-filter="fem">FEM</button>
+					<button class="filter-btn" data-filter="auto">AUTO</button>
+					<button class="filter-btn" data-filter="photo">PHOTO</button>
+					<button class="filter-btn" data-filter="fast">FAST</button>
+				</div>
+				<div id="sheet-content-0" class="sheet-content">
+					<div class="loader"></div>
+				</div>
+			</div>
+		</div>
+	</div>
     
     <footer>
         &copy; 2025 Daydreamer Genetics | Collaborative Seed Collection Tracker
