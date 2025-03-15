@@ -1346,6 +1346,14 @@
 				}
 			}
 
+			function applySelectedStylesToPrompt(prompt) {
+				if (selectedStyles.length > 0) {
+					const styleText = selectedStyles.map(style => style.value).join(', ');
+					return `${prompt}, ${styleText}`;
+				}
+				return prompt;
+			}
+
 			// Function to send message to AI with better error handling
 			async function sendMessage(message, generateImage = false, retryCount = 0) {
 				// Define userMessage at function level so it's available everywhere in the function
@@ -1440,15 +1448,8 @@
 						// Extract image description
 						let imagePrompt = imageMatch[1].trim();
 						
-						// *** FIX: Add selected styles to AI-generated prompt ***
-						if (selectedStyles.length > 0) {
-							const styleText = selectedStyles.map(style => style.value).join(', ');
-							imagePrompt = `${imagePrompt}, ${styleText}`;
-							console.log("Enhanced AI prompt with styles:", imagePrompt);
-						}
-						
 						// Store for reuse (original prompt without styles)
-						currentPrompt = imageMatch[1].trim();
+						currentPrompt = imagePrompt;
 						
 						// Clean the response
 						let cleanResponse = responseText.replace(/GENERATE_IMAGE:\s*(.*?)(?:$|(?=\n\n))/s, '').trim();
@@ -1466,7 +1467,7 @@
 							content: responseText // Keep full response for context
 						});
 						
-						// Call generateImageFromPrompt with the enhanced prompt
+						// Call generateImageFromPrompt with the prompt
 						setTimeout(() => {
 							generateImageFromPrompt(imagePrompt);
 						}, 100);
@@ -1517,16 +1518,11 @@
 				
 				console.log("Generating image with prompt:", prompt);
 				
-				// Incorporate selected styles into the prompt
-				let enhancedPrompt = prompt;
-				if (selectedStyles.length > 0) {
-					// Extract the style values and join them
-					const styleText = selectedStyles.map(style => style.value).join(', ');
-					enhancedPrompt = `${prompt}, ${styleText}`;
-				}
-				
 				// Store current prompt for potential reuse (store the original, not the enhanced one)
 				currentPrompt = prompt;
+				
+				// Always apply selected styles to the prompt before generating
+				const enhancedPrompt = applySelectedStylesToPrompt(prompt);
 				
 				// Create image URL with parameters
 				const randomSeed = Math.floor(Math.random() * 1000000);
