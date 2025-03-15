@@ -925,7 +925,7 @@
 
 			const systemMessage = {
 				role: 'system',
-				content: `You are a branding specialist ranging from Cannabis to anything requsted.
+				content: `You are a branding specialist ranging from Cannabis to anything requested.
 				KEEP ALL RESPONSES BRIEF AND TO THE POINT. Follow the users lead on design ideas.
 				
 				If it is a Cannabis strain AND Only If users ask for names:
@@ -941,15 +941,15 @@
 				2. A user supplies a name and concept OR selects one of your suggested names
 				3. No need to also tell the user the description unless asking, generation is plenty.
 				
-				When using GENERATE_IMAGE, provide a detailed visual description that includes:
-				- Text that should appear (strain name, breeder or distrubtion if requested, etc.)
-				- Main elements and their arrangement: Focus on describing content, objects, composition, and text
-				- Visual styles: Unless Requested Avoid including any visual style instructions (like animated, cartoon, photorealistic)
+				IMPORTANT: When writing image prompts, focus ONLY on the CONTENT, OBJECTS and COMPOSITION.
+				- DO describe: what objects should appear, their arrangement, text elements, color themes, mood
+				- DO NOT include any visual style directives (no terms like "cartoon style", "animated", "3D render", etc.)
+				- The user will select visual styles separately through the interface
 				
-				Example: "GENERATE_IMAGE: A design for 'Cosmic Haze' cannabis strain with deep purple and blue gradients, featuring a stylized galaxy spiral in the center, gold metallic text overlay, and a luxurious dark background with subtle cosmic dust elements."
+				Example of a good prompt: "GENERATE_IMAGE: A design for 'Cosmic Haze' cannabis strain featuring a spiral galaxy in the center, with deep purple and blue colors, gold text overlay, and a dark background with subtle cosmic dust elements."
 				
 				You can both respond conversationally AND generate an image in the same message if appropriate.`
-			};
+			}
 
             // State management
             let selectedStyles = [];
@@ -1346,12 +1346,28 @@
 				}
 			}
 
+			// Improved function to apply styles in a more natural way
 			function applySelectedStylesToPrompt(prompt) {
-				if (selectedStyles.length > 0) {
-					const styleText = selectedStyles.map(style => style.value).join(', ');
-					return `${prompt}, ${styleText}`;
+				if (selectedStyles.length === 0) {
+					return prompt;
 				}
-				return prompt;
+				
+				if (selectedStyles.length === 1) {
+					// For a single style, apply it directly
+					return `${prompt}. ${selectedStyles[0].value}`;
+				} else {
+					// For multiple styles, create a more natural blend instruction
+					const styleNames = selectedStyles.map(style => style.text).join(' and ');
+					
+					// Take the first sentence of each style value to avoid overly long prompts
+					const styleDescriptions = selectedStyles.map(style => {
+						// Extract first sentence or use the whole value if no period found
+						const firstSentence = style.value.split('.')[0];
+						return firstSentence;
+					}).join('; ');
+					
+					return `${prompt}. Blend the styles of ${styleNames} - ${styleDescriptions}`;
+				}
 			}
 
 			// Function to send message to AI with better error handling
@@ -1774,80 +1790,80 @@
             // Function to populate style selector
             function populateStyleSelector() {
                 // An abbreviated list of styles - you can expand this with more from your provided list
-				const styles = [
-					// Traditional Art Styles
-					{ text: "Oil Painting", value: "oil painting:1.2, canvas texture, brush strokes, vivid colors, realistic, hyperdetailed" },
-					{ text: "Watercolor", value: "watercolor painting, soft edges, pastel colors, natural textures, highly detailed" },
-					{ text: "Sketch", value: "sketch, pencil drawing, line art, detailed shading, monochromatic, artistic" },
-					{ text: "Ink Wash", value: "ink wash, traditional, monochromatic, flowing, highly detailed" },
+			const styles = [
+				// Traditional Art Styles
+				{ text: "Oil Painting", value: "create this as an oil painting with rich textures and visible brushstrokes, like a museum masterpiece" },
+				{ text: "Watercolor", value: "render this as a delicate watercolor with flowing translucent colors and soft bleeding edges" },
+				{ text: "Sketch", value: "present this as a hand-drawn sketch with careful pencil linework and subtle shading" },
+				{ text: "Ink Wash", value: "depict this as a flowing ink wash painting with elegant brush strokes and varying tones of black" },
 
-					// Classical Art Movements
-					{ text: "Impressionism", value: "impressionism, light brushstrokes, soft brushstrokes, vibrant colors, everyday scenes, highly detailed, atmospheric" },
-					{ text: "Art Nouveau", value: "art nouveau, decorative, flowing lines, detailed, organic shapes, floral patterns, vibrant colors, intricate, elegant" },
-					{ text: "Art Deco", value: "art deco, geometric shapes, rich colors, lavish ornamentation, luxurious, symmetry, detailed, elegant" },
-					{ text: "Renaissance", value: "renaissance, detailed, realistic, classical themes, balanced composition, muted colors, humanism, light and shadow" },
-					{ text: "Baroque", value: "baroque, dramatic, detailed, grandiose, dark shadows, bright highlights, dynamic, rich colors" },
+				// Classical Art Movements
+				{ text: "Impressionism", value: "paint this in impressionist style with small, visible brushstrokes and emphasis on light and movement, similar to Monet's work" },
+				{ text: "Art Nouveau", value: "design this with Art Nouveau elegance, featuring ornate curved lines, natural forms, and decorative elements like Alphonse Mucha" },
+				{ text: "Art Deco", value: "style this with bold Art Deco geometry, symmetrical patterns, and luxurious gold and metallic elements" },
+				{ text: "Renaissance", value: "render this with Renaissance mastery, displaying perfect proportions, realistic details, and classical composition like Leonardo da Vinci" },
+				{ text: "Baroque", value: "portray this with Baroque drama, using rich contrasts between light and shadow, emotional intensity, and ornate details" },
 
-					// Modern Art Movements
-					{ text: "Cubism", value: "cubism, abstract, geometric shapes, fragmented, highly detailed, fragmented objects, multiple perspectives, muted colors" },
-					{ text: "Surrealism", value: "surrealism, dream-like, bizarre, abstract, fantastical, juxtapositions, detailed, strange, whimsical" },
-					{ text: "Pop Art", value: "pop art, bold colors, commercial imagery, comic strip style, repetition, detailed, vibrant" },
-					{ text: "Abstract", value: "abstract art, non-representational, expressive, vibrant colors, spontaneous, bold shapes" },
-					{ text: "Minimalism", value: "minimalism, simple, clean lines, modern, monochromatic, basic shapes, less is more" },
+				// Modern Art Movements
+				{ text: "Cubism", value: "interpret this through Cubist fragmentation, showing multiple perspectives simultaneously, with geometric shapes like Picasso's work" },
+				{ text: "Surrealism", value: "transform this into a surrealist dreamscape with impossible elements and strange juxtapositions, reminiscent of Salvador Dali" },
+				{ text: "Pop Art", value: "recreate this as vibrant Pop Art with bold outlines, primary colors, and commercial imagery in the style of Andy Warhol" },
+				{ text: "Abstract", value: "express this as an abstract composition focusing on pure form, color, and line without recognizable subject matter" },
+				{ text: "Minimalism", value: "distill this into minimalist form, using clean lines, limited elements, and intentional negative space" },
 
-					// Digital & Contemporary
-					{ text: "Digital Painting", value: "digital painting, smooth gradients, vibrant colors, highly detailed" },
-					{ text: "Concept Art", value: "concept art, imaginative, detailed, sketch-like, highly detailed" },
-					{ text: "Hyperrealism", value: "hyperrealism, extremely detailed, lifelike, photographic, high contrast, textures, meticulous, natural colors, precise" },
-					{ text: "Photorealism", value: "photorealism, extremely detailed, lifelike, high contrast, textures, meticulous, realistic" },
-					{ text: "Low Poly", value: "low poly, geometric, stylized, clean lines, highly detailed" },
+				// Digital & Contemporary
+				{ text: "Digital Painting", value: "create this as a polished digital painting with smooth color blending and crisp details" },
+				{ text: "Concept Art", value: "visualize this as professional concept art for a film or game, with dramatic lighting and atmospheric perspective" },
+				{ text: "Hyperrealism", value: "render this with hyperrealistic detail that exceeds photography, where every texture and reflection is perfectly captured" },
+				{ text: "Photorealism", value: "create an ultra-realistic photograph with perfect lighting, incredible detail and photographic qualities" },
+				{ text: "Low Poly", value: "transform this into a low-poly 3D rendering with geometric faces and clean edges" },
 
-					// Cultural & Regional
-					{ text: "Ukiyo-e", value: "ukiyo-e style, Japanese woodblock prints, flat areas of color, detailed patterns, subjects from history and mythology" },
-					{ text: "Graffiti", value: "graffiti, urban, vibrant colors, bold lines, highly detailed" },
-					{ text: "Folk Art", value: "folk art, traditional, cultural, vibrant colors, highly detailed, handcrafted" },
+				// Cultural & Regional
+				{ text: "Ukiyo-e", value: "depict this as a Japanese Ukiyo-e woodblock print with flat color areas, bold outlines, and traditional subjects like Hokusai" },
+				{ text: "Graffiti", value: "spray this as vibrant street art with bold colors, dynamic lettering, and urban energy" },
+				{ text: "Folk Art", value: "illustrate this with folk art charm, using decorative patterns, flat perspectives, and cultural symbolism" },
 
-					// Visual Media Styles
-					{ text: "Anthro", value: "anthropomorphic character, humanoid with animal traits, detailed fur texture, expressive features, natural pose, seamless hybrid anatomy, realistic animal features, high detail on face and body, balanced human and animal elements" },
-					{ text: "Anime", value: "anime:1.3, line drawing, asian influence, vibrant colors, cel shading, large expressive eyes, detailed hair, dynamic poses" },
-					{ text: "Manga", value: "manga style, Japanese comics, black and white, unique character designs, detailed backgrounds, highly detailed" },
-					{ text: "Cartoon", value: "2D, cartoon, flat, vibrant, drawn, animation, illustration, exaggerated features, expressive poses, whimsical" },
-					{ text: "Pixel Art", value: "pixel art, low-res, blocky, digital, 8-bit, highly detailed" },
-					{ text: "Comic Book", value: "comic style, muted colors, illustration, cartoon, soothing tones, low saturation" },
-					{ text: "Character Cartoon", value: "cartoon character illustration, bold black outlines, vibrant colors, cel shading, dynamic composition, expressive features, comic book style typography, glossy finish" },
-					{ text: "Pop Surreal", value: "pop surrealism, bold colors, cartoon realism, symbolic imagery, dreamlike elements, commercial illustration style, vibrant typography, striking color contrasts" },
-					{ text: "Lowbrow Art", value: "lowbrow art style, underground comix, irreverent humor, bold colors, pop surrealism, detailed illustration, exaggerated characters, street art influence, cartoon realism" },
-					{ text: "Fantasy Realism", value: "fantasy character illustration, detailed rendering, dramatic lighting, realistic textures, fantasy creature, magical atmosphere, fiery background, hyperdetailed, digital painting technique" },					
-					{ text: "Illustrated Logo", value: "commercial illustration, brand mascot, bold typography, clean outlines, vibrant color palette, professional product art, dynamic composition, marketing illustration style" },					
+				// Visual Media Styles
+				{ text: "Anthro", value: "design this with anthropomorphic characters, blending human and animal traits into natural, expressive figures" },
+				{ text: "Anime", value: "draw this in anime style with expressive large eyes, colorful hair, and dynamic poses typical of Japanese animation" },
+				{ text: "Manga", value: "illustrate this as a manga page with strong black linework, dynamic action, and expressive character designs" },
+				{ text: "Cartoon", value: "render this as a playful cartoon with exaggerated features, bold outlines, and vibrant colors" },
+				{ text: "Pixel Art", value: "create this as nostalgic pixel art with limited color palette and blocky aesthetic reminiscent of retro games" },
+				{ text: "Comic Book", value: "illustrate this as a comic book panel with bold outlines, dynamic composition, and narrative clarity" },
+				{ text: "Character Cartoon", value: "design this as a professional cartoon character with distinctive silhouette, expressive features, and memorable design" },
+				{ text: "Pop Surreal", value: "blend this with pop surrealism, mixing cartoon elements with dreamlike imagery and symbolic meaning" },
+				{ text: "Lowbrow Art", value: "create this in lowbrow art style with underground aesthetic, pop culture references, and irreverent humor" },
+				{ text: "Fantasy Realism", value: "imagine this through fantasy realism, where impossible elements are rendered with photographic detail and dramatic lighting" },
+				{ text: "Illustrated Logo", value: "design this as a professional illustrated logo with clean lines, distinctive silhouette, and commercial appeal" },
 
-					// Specialized Themes
-					{ text: "Fantasy Art", value: "fantasy art, imaginative, vibrant colors, mythical creatures, detailed, epic, magical, dynamic, mythical, highly detailed" },
-					{ text: "Sci-Fi", value: "sci-fi, futuristic, imaginative, detailed, highly detailed" },
-					{ text: "Gothic", value: "gothic art, dark, dramatic, detailed, religious themes, intricate, medieval, somber, highly detailed, ornate" },
-					{ text: "Steampunk", value: "steampunk, Victorian era, mechanical, detailed, gears, brass, leather, intricate, retro-futuristic" },
-					{ text: "Cyberpunk", value: "cyberpunk, futuristic, neon colors, dark atmosphere, highly detailed, neon lights, urban, dystopian, high-tech" },
+				// Specialized Themes
+				{ text: "Fantasy Art", value: "envision this as epic fantasy art with magical elements, heroic composition, and otherworldly atmosphere" },
+				{ text: "Sci-Fi", value: "visualize this as science fiction concept art with futuristic technology, alien environments, and advanced machinery" },
+				{ text: "Gothic", value: "portray this with Gothic atmosphere, featuring ornate architecture, dramatic shadows, and a sense of melancholy" },
+				{ text: "Steampunk", value: "reimagine this with steampunk aesthetics, featuring brass machinery, Victorian style, and retrofuturistic steam-powered technology" },
+				{ text: "Cyberpunk", value: "visualize this in a cyberpunk world with neon lights cutting through rain-slicked streets, high tech and low life aesthetic" },
 
-					// Contemporary Aesthetics
-					{ text: "Vaporwave", value: "vaporwave, 80s aesthetic, neon colors, glitch art, nostalgic, surreal, detailed, retro" },
-					{ text: "Retrowave", value: "retrowave, 80s aesthetic, neon colors, vibrant, highly detailed" },
-					{ text: "Glitch Art", value: "glitch art, digital distortion, abstract, vibrant colors, highly detailed" },
-					{ text: "Psychedelic", value: "psychedelic art, vibrant colors, abstract, trippy, highly detailed, imaginative" },
-					{ text: "Nature Art", value: "nature art, natural elements, organic, detailed, highly detailed" },
+				// Contemporary Aesthetics
+				{ text: "Vaporwave", value: "create this in vaporwave style with retro computing aesthetics, pastel pink and blue colors, and nostalgic 80s and 90s elements" },
+				{ text: "Retrowave", value: "style this with retrowave aesthetics, featuring neon grids, sunset gradients, and 80s synthwave vibes" },
+				{ text: "Glitch Art", value: "distort this with digital glitch effects, broken pixels, and visual artifacts that create a sense of digital decay" },
+				{ text: "Psychedelic", value: "transform this with psychedelic patterns, swirling colors, and mind-bending visual effects that distort reality" },
+				{ text: "Nature Art", value: "compose this with natural elements, organic forms, and botanical details integrated harmoniously" },
 
-					// Commercial & Design
-					{ text: "Luxury", value: "luxury design, premium, gold accents, high-end, sophisticated, elegant typography" },
-					{ text: "Corporate", value: "corporate style, professional, clean lines, business-like, corporate identity, structured" },
-					{ text: "Vintage", value: "vintage, nostalgic, detailed, classic, aged texture, retro elements" },
-					{ text: "Minimalist Design", value: "minimalist design, clean, elegant, simple, modern, ample negative space" },
-					{ text: "Illustrated", value: "hand-drawn illustration, artistic, detailed artwork, creative, unique illustration" },
+				// Commercial & Design
+				{ text: "Luxury", value: "present this with luxury brand aesthetics, featuring premium materials, elegant typography, and sophisticated restraint" },
+				{ text: "Corporate", value: "design this with professional corporate identity, using clean typography, structured layout, and business-appropriate color scheme" },
+				{ text: "Vintage", value: "age this with vintage charm, featuring retro typography, weathered textures, and nostalgic color palettes" },
+				{ text: "Minimalist Design", value: "simplify this with minimalist design principles, using essential elements only, clean typography, and generous white space" },
+				{ text: "Illustrated", value: "craft this as a hand-drawn illustration with personal artistic style, unique linework, and organic imperfections" },
 
-					// Specialized Commercial
-					{ text: "Product Photography", value: "product photography style, sharp details, clean background, professional lighting, commercial" },
-					{ text: "Fashion", value: "fashion photography style, stylish, glamorous, editorial, vibrant, expressive, detailed" },
-					{ text: "Architectural", value: "architectural photography style, symmetrical, detailed, geometric, grand, structured, atmospheric" },
-					{ text: "Food Photography", value: "food photography style, appetizing, detailed, colorful, styled, culinary art" },
-					{ text: "Cinematic", value: "cinematic look:1.4, soothing tones, insane details, intricate details, low contrast, soft cinematic light, exposure blend, hdr" }
-				];
+				// Specialized Commercial
+				{ text: "Product Photography", value: "show this as professional product photography with perfect lighting against a clean backdrop" },
+				{ text: "Fashion", value: "capture this as editorial fashion photography with dramatic poses, stylized lighting, and high-end atmosphere" },
+				{ text: "Architectural", value: "photograph this as architectural imagery with perfect symmetry, dramatic perspective, and attention to structural details" },
+				{ text: "Food Photography", value: "present this as mouth-watering food photography with perfect styling, soft lighting, and appetizing colors" },
+				{ text: "Cinematic", value: "frame this as a cinematic scene with widescreen composition, atmospheric lighting, and narrative focus" }
+			];
                 
 				// Check if styles array is empty
 				if (styles.length === 0) {
