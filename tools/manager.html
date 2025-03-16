@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seeds Banked - ᵗʰᵉ Rev™</title>
+    <style>
+        :root {
+            --cannabis-green: #2D5E32;
+            --cannabis-light-green: #68A357;
+            --cannabis-dark-green: #1A3C20;
+            --cannabis-brown: #604020;
+            --cannabis-cream: #F8F6E9;
+            --cannabis-purple: #5D4A7E;
+            --count-bg: rgba(93, 74, 126, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--cannabis-cream);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--cannabis-dark-green), var(--cannabis-green));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .header-center {
+            flex: 2;
+            text-align: center;
+        }
+        
+        .header-right {
+            flex: 1;
+            text-align: right;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        .user-profile img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background-color: white;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        
+        .tab-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: var(--cannabis-light-green);
+        }
+        
+        .tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-weight: 600;
+            border: none;
+            transition: background-color 0.3s;
+            font-size: 1rem;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .tab.active {
+            background-color: var(--cannabis-dark-green);
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content {
+            padding: 2rem;
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* View Seeds Tab Content */
+        .search-container {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .search-btn {
+            background-color: var(--cannabis-green);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-btn {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--cannabis-purple);
+            color: white;
+        }
+        
+        .seed-list {
+            list-style: none;
+        }
+        
+        .seed-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .seed-item:last-child {
+            border-bottom: none;
+        }
+        
+        .seed-name {
+            font-weight: 600;
+            color: var(--cannabis-dark-green);
+        }
+        
+        .seed-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .seed-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .seed-count {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--cannabis-purple);
+            margin-bottom: 0.3rem;
+            background-color: var(--count-bg);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+        }
+        
+        .seed-breeder {
+            background-color: var(--cannabis-light-green);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .run-mark {
+            display: inline-block;
+            color: var(--cannabis-purple);
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+        
+        /* Add/Edit Seeds Tab Content */
+        .seed-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / span 2;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--cannabis-dark-green);
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .seed-actions {
+            grid-column: 1 / span 2;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        /* Button Styles */
+        button {
+            background-color: var(--cannabis-green);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--cannabis-dark-green);
+        }
+        
+        button.secondary {
+            background-color: #6c757d;
+        }
+        
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        button.danger {
+            background-color: #dc3545;
+        }
+        
+        button.danger:hover {
+            background-color: #c82333;
+        }
+        
+        /* User Management Tab */
+        .user-selection {
+            margin-bottom: 2rem;
+        }
+        
+        .user-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .user-card {
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem;
+            min-width: 200px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .user-card.active {
+            border: 2px solid var(--cannabis-purple);
+        }
+        
+        .user-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .user-card-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .user-card-name {
+            font-weight: 600;
+            color: var(--cannabis-dark-green);
+        }
+        
+        .user-card-count {
+            background-color: var(--count-bg);
+            color: var(--cannabis-purple);
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+        
+        /* Loading */
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .loader:after {
+            content: " ";
+            display: block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 6px solid var(--cannabis-green);
+            border-color: var(--cannabis-green) transparent var(--cannabis-green) transparent;
+            animation: loader 1.2s linear infinite;
+        }
+        
+        @keyframes loader {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Messages */
+        .error-message {
+            color: #d32f2f;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .placeholder-message {
+            padding: 2rem;
+            text-align: center;
+            color: #666;
+        }
+        
+        .placeholder-message h3 {
+            color: var(--cannabis-dark-green);
+            margin-bottom: 1rem;
+        }
+        
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        /* Edit/Delete Actions */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .edit-btn, .delete-btn {
+            background-color: transparent;
+            border: none;
+            padding: 0.3rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .edit-btn:hover {
+            color: var(--cannabis-green);
+        }
+        
+        .delete-btn:hover {
+            color: #dc3545;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                padding: 0.75rem;
+            }
+            
+            .seed-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .seed-info {
+                align-items: flex-start;
+                margin-top: 0.5rem;
+            }
+            
+            .seed-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-group.full-width {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <!-- Empty for now, could add a logo -->
+        </div>
+        <div class="header-center">
+            <div class="subtitle">Seeds Banked - ᵗʰᵉ Rev™</div>
+        </div>
+        <div class="header-right">
+            <div class="user-profile">
+                <img id="user-image" src="https://via.placeholder.com/36" alt="User">
+                <span id="user-name">Sign In</span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Auth Container - Shown only when not logged in -->
+        <div id="auth-container" class="tab-container" style="display: none;">
+            <div class="placeholder-message">
+                <h3>Welcome to Seed Collection Manager</h3>
+                <p>Please sign in with your Google account to manage your seed collection.</p>
+                <button id="signin-button" style="margin-top: 1rem;">Sign in with Google</button>
+            </div>
+        </div>
+        
+        <!-- Main Container - Shown only when logged in -->
+        <div id="main-container" class="tab-container" style="display: none;">
+            <div class="tabs">
+                <button class="tab active" data-tab="view-seeds">View Seeds</button>
+                <button class="tab" data-tab="add-edit-seeds">Add/Edit Seeds</button>
+                <button class="tab" data-tab="user-collections">User Collections</button>
+            </div>
+            
+            <!-- View Seeds Tab -->
+            <div id="view-seeds" class="tab-content active">
+                <div class="search-container">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search seeds by name, breeder, etc.">
+                    <button id="search-btn" class="search-btn">Search</button>
+                </div>
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="reg">REG</button>
+                    <button class="filter-btn" data-filter="fem">FEM</button>
+                    <button class="filter-btn" data-filter="auto">AUTO</button>
+                    <button class="filter-btn" data-filter="photo">PHOTO</button>
+                    <button class="filter-btn" data-filter="fast">FAST</button>
+                </div>
+                <div id="seed-content" class="seed-content">
+                    <div class="loader"></div>
+                </div>
+            </div>
+            
+            <!-- Add/Edit Seeds Tab -->
+            <div id="add-edit-seeds" class="tab-content">
+                <div id="form-messages"></div>
+                
+                <form id="seed-form" class="seed-form">
+                    <input type="hidden" id="seed-id" name="seed-id">
+                    
+                    <div class="form-group">
+                        <label for="strain">Strain Name*</label>
+                        <input type="text" id="strain" name="strain" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="breeder">Breeder/Source*</label>
+                        <input type="text" id="breeder" name="breeder" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="type">Type*</label>
+                        <select id="type" name="type" required>
+                            <option value="">-- Select Type --</option>
+                            <option value="PHOTO REG">PHOTO REG</option>
+                            <option value="PHOTO FEM">PHOTO FEM</option>
+                            <option value="AUTO FEM">AUTO FEM</option>
+                            <option value="AUTO REG">AUTO REG</option>
+                            <option value="FAST PHOTO FEM">FAST PHOTO FEM</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="count">Count*</label>
+                        <input type="number" id="count" name="count" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="parent1">Parent 1</label>
+                        <input type="text" id="parent1" name="parent1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="parent2">Parent 2</label>
+                        <input type="text" id="parent2" name="parent2">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="run">Run Status</label>
+                        <select id="run" name="run">
+                            <option value="">Not Run</option>
+                            <option value="X">Run (X)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="seed-actions">
+                        <button type="button" id="reset-form-btn" class="secondary">Reset</button>
+                        <button type="submit" id="save-seed-btn">Save Seed</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- User Collections Tab -->
+            <div id="user-collections" class="tab-content">
+                <div class="user-selection">
+                    <h3>Available Collections</h3>
+                    <p>Select a user to view their seed collection.</p>
+                    <div id="user-list" class="user-list">
+                        <div class="loader"></div>
+                    </div>
+                </div>
+                
+                <div id="selected-user-content" style="display: none;">
+                    <h3>Selected Collection: <span id="selected-user-name"></span></h3>
+                    <div class="search-container">
+                        <input type="text" id="user-search-input" class="search-input" placeholder="Search this collection">
+                        <button id="user-search-btn" class="search-btn">Search</button>
+                    </div>
+                    <div id="user-seed-content" class="seed-content">
+                        <div class="loader"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        &copy; 2025 StrainNavigator.com | Collaborative Seed Collection Tracker
+    </footer>
+    
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+    
+    <script>
+        // Configuration
+
+        const CLIENT_ID = '1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com';  // Replace with your Google Client ID
+        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
+        const DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4", "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"];
+        
+        // Master spreadsheet ID (contains user registry)
+        const MASTER_SHEET_ID = '1A7kFjfw6cjmQQOwz-5liWVGgFK0K5lwS8AfIZ_Zthbg';
+        
+        // Global variables
+        let userProfile = null;
+        let userSheetId = null;
+        let currentTab = 'view-seeds';
+        let seedsData = [];
+        let editingSeedIndex = -1;
+        let userRegistry = [];
+        let selectedUserSheetId = null;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the Google API client
+            initGoogleAPIClient();
+            
+            // Set up tab switching
+            setupTabs();
+            
+            // Set up form handling
+            setupFormHandling();
+        });
+        
+        function initGoogleAPIClient() {
+            gapi.load('client:auth2', initClient);
+        }
+        
+		function initClient() {
+			gapi.client.init({
+				clientId: CLIENT_ID,
+				discoveryDocs: DISCOVERY_DOCS,
+				scope: SCOPES
+			}).then(function() {
+				// Rest of your code remains the same
+				gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+				updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+				document.getElementById('signin-button').onclick = handleAuthClick;
+			}, function(error) {
+				console.error('Error initializing Google API client:', error);
+			});
+		}
+        
+        function updateSigninStatus(isSignedIn) {
+            if (isSignedIn) {
+                // User is signed in
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('main-container').style.display = 'block';
+                
+                // Load user profile
+                loadUserProfile().then(() => {
+                    // Get or create user's spreadsheet
+                    getUserSpreadsheet().then(() => {
+                        // Load user's seeds data
+                        loadUserSeeds();
+                        // Load user registry (for the User Collections tab)
+                        loadUserRegistry();
+                    });
+                });
+            } else {
+                // User is signed out
+                document.getElementById('auth-container').style.display = 'block';
+                document.getElementById('main-container').style.display = 'none';
+                document.getElementById('user-name').textContent = 'Sign In';
+                document.getElementById('user-image').src = 'https://via.placeholder.com/36';
+            }
+        }
+        
+        function handleAuthClick() {
+            gapi.auth2.getAuthInstance().signIn();
+        }
+        
+        function loadUserProfile() {
+            return gapi.client.request({
+                'path': 'https://www.googleapis.com/oauth2/v2/userinfo',
+                'method': 'GET'
+            }).then(function(response) {
+                userProfile = response.result;
+                document.getElementById('user-name').textContent = userProfile.name;
+                document.getElementById('user-image').src = userProfile.picture;
+                return userProfile;
+            }, function(error) {
+                console.error('Error loading user profile:', error);
+            });
+        }
+        
+        function getUserSpreadsheet() {
+            // First, check if the user already has a spreadsheet in the registry
+            return checkUserInRegistry().then(registeredSheetId => {
+                if (registeredSheetId) {
+                    // User already has a spreadsheet
+                    userSheetId = registeredSheetId;
+                    return userSheetId;
+                } else {
+                    // Create a new spreadsheet for the user
+                    return createUserSpreadsheet().then(newSheetId => {
+                        // Register the new spreadsheet in the master registry
+                        return registerUserSpreadsheet(newSheetId).then(() => {
+                            userSheetId = newSheetId;
+                            return userSheetId;
+                        });
+                    });
+                }
+            });
+        }
+        
+        function checkUserInRegistry() {
+            return gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: MASTER_SHEET_ID,
+                range: 'UserRegistry!A:C'  // Assuming columns are: UserId, UserName, SheetId
+            }).then(function(response) {
+                const values = response.result.values || [];
+                
+                // Skip header row if present
+                const startIndex = values[0] && values[0][0] === 'UserId' ? 1 : 0;
+                
+                for (let i = startIndex; i < values.length; i++) {
+                    if (values[i][0] === userProfile.id) {
+                        // User found in registry
+                        return values[i][2];  // Return the SheetId
+                    }
+                }
+                
+                // User not found in registry
+                return null;
+            }, function(error) {
+                console.error('Error checking user in registry:', error);
+                // If we can't access the registry, we might need to create it
+                if (error.status === 404) {
+                    return createUserRegistry().then(() => null);
+                }
+                return null;
+            });
+        }
+        
+        function createUserRegistry() {
+            // Create a sheet for user registry if it doesn't exist
+            return gapi.client.sheets.spreadsheets.batchUpdate({
+                spreadsheetId: MASTER_SHEET_ID,
+                resource: {
+                    requests: [
+                        {
+                            addSheet: {
+                                properties: {
+                                    title: 'UserRegistry',
+                                    gridProperties: {
+                                        rowCount: 1000,
+                                        columnCount: 3
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }).then(function() {
+                // Add header row
+                return gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: MASTER_SHEET_ID,
+                    range: 'UserRegistry!A1:C1',
+                    valueInputOption: 'RAW',
+                    resource: {
+                        values: [['UserId', 'UserName', 'SheetId']]
+                    }
+                });
+            }, function(error) {
+                console.error('Error creating user registry:', error);
+            });
+        }
+        
+        function createUserSpreadsheet() {
+            // Create a new spreadsheet
+            return gapi.client.sheets.spreadsheets.create({
+                resource: {
+                    properties: {
+                        title: `Seed Collection - ${userProfile.name}`,
+                    },
+                    sheets: [
+                        {
+                            properties: {
+                                title: 'Seeds',
+                                gridProperties: {
+                                    rowCount: 1000,
+                                    columnCount: 10
+                                }
+                            }
+                        }
+                    ]
+                }
+            }).then(function(response) {
+                const spreadsheetId = response.result.spreadsheetId;
+                
+                // Add the header row
+                return gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: spreadsheetId,
+                    range: 'Seeds!A1:G1',
+                    valueInputOption: 'RAW',
+                    resource: {
+                        values: [['STRAIN', 'REG / FEM', 'BREEDER', 'COUNT', 'PARENT1', 'PARENT2', 'RUN']]
+                    }
+                }).then(() => spreadsheetId);
+            }, function(error) {
+                console.error('Error creating user spreadsheet:', error);
+            });
+        }
+        
+        function registerUserSpreadsheet(sheetId) {
+            return gapi.client.sheets.spreadsheets.values.append({
+                spreadsheetId: MASTER_SHEET_ID,
+                range: 'UserRegistry!A:C',
+                valueInputOption: 'RAW',
+                resource: {
+                    values: [[userProfile.id, userProfile.name, sheetId]]
+                }
+            }).then(function() {
+                console.log('User registered successfully');
+            }, function(error) {
+                console.error('Error registering user spreadsheet:', error);
+            });
+        }
+        
+        function loadUserSeeds() {
+            if (!userSheetId) return Promise.reject('No user sheet ID');
+            
+            const contentContainer = document.getElementById('seed-content');
+            contentContainer.innerHTML = '<div class="loader"></div>';
+            
+            return gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: userSheetId,
+                range: 'Seeds!A:G'
+            }).then(function(response) {
+                const values = response.result.values || [];
+                
+                // Skip header row if present
+                const startIndex = values[0] && values[0][0] === 'STRAIN' ? 1 : 0;
+                
+                seedsData = [];
+                for (let i = startIndex; i < values.length; i++) {
+                    if (values[i].length > 0 && values[i][0]) {  // Skip empty rows
+                        seedsData.push({
+                            strain: values[i][0] || '',
+                            type: values[i][1] || '',
+                            breeder: values[i][2] || '',
+                            count: values[i][3] || '',
+                            parent1: values[i][4] || '',
+                            parent2: values[i][5] || '',
+                            run: values[i][6] || '',
+                            row: i + 1  // Store the row index for updates
+                        });
+                    }
+                }
+                
+                displayUserSeeds(seedsData);
+                return seedsData;
+            }, function(error) {
+                console.error('Error loading user seeds:', error);
+                contentContainer.innerHTML = '<div class="error-message">Error loading your seed collection. Please try again later.</div>';
+            });
+        }
+        
+        function displayUserSeeds(seeds) {
+            const contentContainer = document.getElementById('seed-content');
+            
+            if (seeds.length === 0) {
+                contentContainer.innerHTML = `
+                    <div class="placeholder-message">
+                        <h3>No seeds in your collection yet</h3>
+                        <p>Add your first seed by switching to the "Add/Edit Seeds" tab.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<ul class="seed-list">';
+            
+            seeds.forEach((seed, index) => {
+                const details = [];
+                
+                if (seed.type) details.push(`Type: ${seed.type}`);
+                if (seed.count) details.push(`Count: ${seed.count}`);
+                
+                if (seed.parent1 || seed.parent2) {
+                    let genetics = 'Genetics: ';
+                    if (seed.parent1 && seed.parent2) {
+                        genetics += `${seed.parent1} × ${seed.parent2}`;
+                    } else if (seed.parent1) {
+                        genetics += seed.parent1;
+                    } else if (seed.parent2) {
+                        genetics += seed.parent2;
+                    }
+                    details.push(genetics);
+                }
+                
+                html += `
+                    <li class="seed-item" data-index="${index}">
+                        <div>
+                            <div class="seed-name">${seed.strain} ${seed.run === 'X' ? '<span class="run-mark">✓</span>' : ''}</div>
+                            ${details.length > 0 ? `<div class="seed-details">${details.join(' • ')}</div>` : ''}
+                        </div>
+                        <div class="seed-info">
+                            <div class="seed-count">${seed.count || ''}</div>
+                            <div class="seed-breeder">${seed.breeder}</div>
+                            <div class="action-buttons">
+                                <button class="edit-btn" data-index="${index}">✏️</button>
+                                <button class="delete-btn" data-index="${index}">🗑️</button>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            });
+            
+            html += '</ul>';
+            contentContainer.innerHTML = html;
+            
+            // Add event listeners for edit and delete buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const index = parseInt(this.dataset.index);
+                    openEditForm(index);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const index = parseInt(this.dataset.index);
+                    deleteSeed(index);
+                });
+            });
+            
+            // Set up search and filter
+            setupSearchAndFilter();
+        }
+        
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                    // Remove active class from all tabs and contents
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    this.classList.add('active');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    currentTab = tabId;
+                    
+                    // If switching to user collections tab, load user registry
+                    if (tabId === 'user-collections') {
+                        loadUserRegistry();
+                    }
+                });
+            });
+        }
+        
+        function setupFormHandling() {
+            const form = document.getElementById('seed-form');
+            const resetBtn = document.getElementById('reset-form-btn');
+            
+            // Reset form
+            resetBtn.addEventListener('click', function() {
+                resetSeedForm();
+            });
+            
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const seedData = {
+                    strain: document.getElementById('strain').value,
+                    type: document.getElementById('type').value,
+                    breeder: document.getElementById('breeder').value,
+                    count: document.getElementById('count').value,
+                    parent1: document.getElementById('parent1').value,
+                    parent2: document.getElementById('parent2').value,
+                    run: document.getElementById('run').value
+                };
+                
+                if (editingSeedIndex >= 0) {
+                    // Update existing seed
+                    updateSeed(editingSeedIndex, seedData);
+                } else {
+                    // Add new seed
+                    addSeed(seedData);
+                }
+            });
+        }
+        
+        function resetSeedForm() {
+            document.getElementById('seed-form').reset();
+            document.getElementById('seed-id').value = '';
+            editingSeedIndex = -1;
+            document.getElementById('save-seed-btn').textContent = 'Save Seed';
+        }
+        
+        function openEditForm(index) {
+            const seed = seedsData[index];
+            
+            // Switch to the edit tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelector('.tab[data-tab="add-edit-seeds"]').classList.add('active');
+            document.getElementById('add-edit-seeds').classList.add('active');
+            
+            // Fill the form with seed data
+            document.getElementById('seed-id').value = seed.row;
+            document.getElementById('strain').value = seed.strain;
+            document.getElementById('type').value = seed.type;
+            document.getElementById('breeder').value = seed.breeder;
+            document.getElementById('count').value = seed.count;
+            document.getElementById('parent1').value = seed.parent1 || '';
+            document.getElementById('parent2').value = seed.parent2 || '';
+            document.getElementById('run').value = seed.run || '';
+            
+            // Update form state
+            editingSeedIndex = index;
+            document.getElementById('save-seed-btn').textContent = 'Update Seed';
+        }
+        
+        function addSeed(seedData) {
+            // Show loading
+            const formMessages = document.getElementById('form-messages');
+            formMessages.innerHTML = '<div class="loader"></div>';
+            
+            // Prepare the values to append
+            const values = [
+                [
+                    seedData.strain,
+                    seedData.type,
+                    seedData.breeder,
+                    seedData.count,
+                    seedData.parent1,
+                    seedData.parent2,
+                    seedData.run
+                ]
+            ];
+            
+            // Append to the spreadsheet
+            gapi.client.sheets.spreadsheets.values.append({
+                spreadsheetId: userSheetId,
+                range: 'Seeds!A:G',
+                valueInputOption: 'RAW',
+                resource: {
+                    values: values
+                }
+            }).then(function(response) {
+                // Show success message
+                formMessages.innerHTML = '<div class="success-message">Seed added successfully!</div>';
+                
+                // Reset the form
+                resetSeedForm();
+                
+                // Reload the seeds
+                loadUserSeeds();
+                
+                // Clear success message after 3 seconds
+                setTimeout(() => {
+                    formMessages.innerHTML = '';
+                }, 3000);
+            }, function(error) {
+                console.error('Error adding seed:', error);
+                formMessages.innerHTML = '<div class="error-message">Error adding seed. Please try again.</div>';
+            });
+        }
+        
+        function updateSeed(index, seedData) {
+            // Show loading
+            const formMessages = document.getElementById('form-messages');
+            formMessages.innerHTML = '<div class="loader"></div>';
+            
+            const seed = seedsData[index];
+            const rowIndex = seed.row;
+            
+            // Prepare the values to update
+            const values = [
+                [
+                    seedData.strain,
+                    seedData.type,
+                    seedData.breeder,
+                    seedData.count,
+                    seedData.parent1,
+                    seedData.parent2,
+                    seedData.run
+                ]
+            ];
+            
+            // Update the spreadsheet
+            gapi.client.sheets.spreadsheets.values.update({
+                spreadsheetId: userSheetId,
+                range: `Seeds!A${rowIndex}:G${rowIndex}`,
+                valueInputOption: 'RAW',
+                resource: {
+                    values: values
+                }
+            }).then(function(response) {
+                // Show success message
+                formMessages.innerHTML = '<div class="success-message">Seed updated successfully!</div>';
+                
+                // Reset the form
+                resetSeedForm();
+                
+                // Reload the seeds
+                loadUserSeeds();
+                
+                // Clear success message after 3 seconds
+                setTimeout(() => {
+                    formMessages.innerHTML = '';
+                }, 3000);
+            }, function(error) {
+                console.error('Error updating seed:', error);
+                formMessages.innerHTML = '<div class="error-message">Error updating seed. Please try again.</div>';
+            });
+        }
+        
+        function deleteSeed(index) {
+            if (!confirm('Are you sure you want to delete this seed?')) {
+                return;
+            }
+            
+            const seed = seedsData[index];
+            const rowIndex = seed.row;
+            
+            // Delete the row (by clearing its contents)
+            gapi.client.sheets.spreadsheets.values.clear({
+                spreadsheetId: userSheetId,
+                range: `Seeds!A${rowIndex}:G${rowIndex}`
+            }).then(function(response) {
+                // Reload the seeds
+                loadUserSeeds();
+            }, function(error) {
+                console.error('Error deleting seed:', error);
+                alert('Error deleting seed. Please try again.');
+            });
+        }
+        
+        function setupSearchAndFilter() {
+            // Search functionality
+            const searchBtn = document.getElementById('search-btn');
+            const searchInput = document.getElementById('search-input');
+            
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+                    filterSeeds(filter);
+                });
+            });
+        }
+        
+        function performSearch() {
+            const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+            
+            document.querySelectorAll('.seed-item').forEach(item => {
+                if (searchTerm === '') {
+                    item.style.display = '';
+                } else {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(searchTerm) ? '' : 'none';
+                }
+            });
+        }
+        
+        function filterSeeds(filter) {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            
+            // Filter seeds
+            document.querySelectorAll('.seed-item').forEach(item => {
+                const index = parseInt(item.dataset.index);
+                const seed = seedsData[index];
+                
+                if (filter === 'all') {
+                    item.style.display = '';
+                } else {
+                    const seedType = seed.type.toLowerCase();
+                    item.style.display = seedType.includes(filter.toLowerCase()) ? '' : 'none';
+                }
+            });
+        }
+        
+        function loadUserRegistry() {
+            const userListContainer = document.getElementById('user-list');
+            userListContainer.innerHTML = '<div class="loader"></div>';
+            
+            return gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: MASTER_SHEET_ID,
+                range: 'UserRegistry!A:C'
+            }).then(function(response) {
+                const values = response.result.values || [];
+                
+                // Skip header row if present
+                const startIndex = values[0] && values[0][0] === 'UserId' ? 1 : 0;
+                
+                userRegistry = [];
+                for (let i = startIndex; i < values.length; i++) {
+                    if (values[i].length >= 3 && values[i][0]) {  // Skip empty rows
+                        userRegistry.push({
+                            userId: values[i][0],
+                            userName: values[i][1],
+                            sheetId: values[i][2]
+                        });
+                    }
+                }
+                
+                displayUserRegistry(userRegistry);
+                return userRegistry;
+            }, function(error) {
+                console.error('Error loading user registry:', error);
+                userListContainer.innerHTML = '<div class="error-message">Error loading user registry. Please try again later.</div>';
+            });
+        }
+        
+        function displayUserRegistry(users) {
+            const userListContainer = document.getElementById('user-list');
+            
+            if (users.length === 0) {
+                userListContainer.innerHTML = '<p>No users have created collections yet.</p>';
+                return;
+            }
+            
+            let html = '';
+            
+            users.forEach(user => {
+                // Mark the current user's card
+                const isCurrentUser = user.userId === userProfile.id;
+                const activeClass = selectedUserSheetId === user.sheetId ? 'active' : '';
+                
+                html += `
+                    <div class="user-card ${activeClass}" data-sheet-id="${user.sheetId}" data-user-name="${user.userName}">
+                        <div class="user-card-header">
+                            <img src="https://via.placeholder.com/40" alt="${user.userName}">
+                            <div class="user-card-name">${user.userName} ${isCurrentUser ? '(You)' : ''}</div>
+                        </div>
+                        <div class="user-card-count">View Collection</div>
+                    </div>
+                `;
+            });
+            
+            userListContainer.innerHTML = html;
+            
+            // Add event listeners to user cards
+            document.querySelectorAll('.user-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const sheetId = this.dataset.sheetId;
+                    const userName = this.dataset.userName;
+                    
+                    // Update selected card
+                    document.querySelectorAll('.user-card').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Load the selected user's seeds
+                    selectedUserSheetId = sheetId;
+                    document.getElementById('selected-user-name').textContent = userName;
+                    document.getElementById('selected-user-content').style.display = 'block';
+                    
+                    loadSelectedUserSeeds(sheetId);
+                });
+            });
+        }
+        
+        function loadSelectedUserSeeds(sheetId) {
+            const contentContainer = document.getElementById('user-seed-content');
+            contentContainer.innerHTML = '<div class="loader"></div>';
+            
+            return gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: sheetId,
+                range: 'Seeds!A:G'
+            }).then(function(response) {
+                const values = response.result.values || [];
+                
+                // Skip header row if present
+                const startIndex = values[0] && values[0][0] === 'STRAIN' ? 1 : 0;
+                
+                const selectedUserSeeds = [];
+                for (let i = startIndex; i < values.length; i++) {
+                    if (values[i].length > 0 && values[i][0]) {  // Skip empty rows
+                        selectedUserSeeds.push({
+                            strain: values[i][0] || '',
+                            type: values[i][1] || '',
+                            breeder: values[i][2] || '',
+                            count: values[i][3] || '',
+                            parent1: values[i][4] || '',
+                            parent2: values[i][5] || '',
+                            run: values[i][6] || ''
+                        });
+                    }
+                }
+                
+                displaySelectedUserSeeds(selectedUserSeeds);
+                return selectedUserSeeds;
+            }, function(error) {
+                console.error('Error loading selected user seeds:', error);
+                contentContainer.innerHTML = '<div class="error-message">Error loading this collection. Please try again later.</div>';
+            });
+        }
+        
+        function displaySelectedUserSeeds(seeds) {
+            const contentContainer = document.getElementById('user-seed-content');
+            
+            if (seeds.length === 0) {
+                contentContainer.innerHTML = '<p>No seeds in this collection yet.</p>';
+                return;
+            }
+            
+            let html = '<ul class="seed-list">';
+            
+            seeds.forEach((seed) => {
+                const details = [];
+                
+                if (seed.type) details.push(`Type: ${seed.type}`);
+                if (seed.count) details.push(`Count: ${seed.count}`);
+                
+                if (seed.parent1 || seed.parent2) {
+                    let genetics = 'Genetics: ';
+                    if (seed.parent1 && seed.parent2) {
+                        genetics += `${seed.parent1} × ${seed.parent2}`;
+                    } else if (seed.parent1) {
+                        genetics += seed.parent1;
+                    } else if (seed.parent2) {
+                        genetics += seed.parent2;
+                    }
+                    details.push(genetics);
+                }
+                
+                html += `
+                    <li class="seed-item">
+                        <div>
+                            <div class="seed-name">${seed.strain} ${seed.run === 'X' ? '<span class="run-mark">✓</span>' : ''}</div>
+                            ${details.length > 0 ? `<div class="seed-details">${details.join(' • ')}</div>` : ''}
+                        </div>
+                        <div class="seed-info">
+                            <div class="seed-count">${seed.count || ''}</div>
+                            <div class="seed-breeder">${seed.breeder}</div>
+                        </div>
+                    </li>
+                `;
+            });
+            
+            html += '</ul>';
+            contentContainer.innerHTML = html;
+            
+            // Set up search for this collection
+            setupSelectedUserSearch();
+        }
+        
+        function setupSelectedUserSearch() {
+            const searchBtn = document.getElementById('user-search-btn');
+            const searchInput = document.getElementById('user-search-input');
+            
+            searchBtn.addEventListener('click', performSelectedUserSearch);
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    performSelectedUserSearch();
+                }
+            });
+        }
+        
+        function performSelectedUserSearch() {
+            const searchTerm = document.getElementById('user-search-input').value.trim().toLowerCase();
+            
+            document.querySelectorAll('#user-seed-content .seed-item').forEach(item => {
+                if (searchTerm === '') {
+                    item.style.display = '';
+                } else {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(searchTerm) ? '' : 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
