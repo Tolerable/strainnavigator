@@ -4,7 +4,332 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seeds Banked - ᵗʰᵉ Rev™</title>
-    <!-- Keep your existing CSS -->
+    <style>
+        :root {
+            --cannabis-green: #2D5E32;
+            --cannabis-light-green: #68A357;
+            --cannabis-dark-green: #1A3C20;
+            --cannabis-brown: #604020;
+            --cannabis-cream: #F8F6E9;
+            --cannabis-purple: #5D4A7E;
+            --count-bg: rgba(93, 74, 126, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--cannabis-cream);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--cannabis-dark-green), var(--cannabis-green));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        
+        .tab-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: var(--cannabis-light-green);
+        }
+        
+        .tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            background-color: transparent;
+            color: white;
+            font-weight: 600;
+            border: none;
+            transition: background-color 0.3s;
+            font-size: 1rem;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .tab.active {
+            background-color: var(--cannabis-dark-green);
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content {
+            padding: 2rem;
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .sheet-content {
+            margin-top: 1rem;
+        }
+        
+        .seed-list {
+            list-style: none;
+        }
+        
+        .seed-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .seed-item:last-child {
+            border-bottom: none;
+        }
+        
+        .seed-name {
+            font-weight: 600;
+            color: var(--cannabis-dark-green);
+        }
+        
+        .seed-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .seed-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .seed-count {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--cannabis-purple);
+            margin-bottom: 0.3rem;
+            background-color: var(--count-bg);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+        }
+        
+        .seed-breeder {
+            background-color: var(--cannabis-light-green);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .run-mark {
+            display: inline-block;
+            color: var(--cannabis-purple);
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+        
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .loader:after {
+            content: " ";
+            display: block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 6px solid var(--cannabis-green);
+            border-color: var(--cannabis-green) transparent var(--cannabis-green) transparent;
+            animation: loader 1.2s linear infinite;
+        }
+        
+        @keyframes loader {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .error-message {
+            color: #d32f2f;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .add-sheet {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .add-sheet h2 {
+            margin-bottom: 1rem;
+            color: var(--cannabis-dark-green);
+        }
+        
+        .placeholder-message {
+            padding: 2rem;
+            text-align: center;
+            color: #666;
+        }
+        
+        .placeholder-message h3 {
+            color: var(--cannabis-dark-green);
+            margin-bottom: 1rem;
+        }
+        
+        .placeholder-message ol {
+            text-align: left;
+            max-width: 500px;
+            margin: 1rem auto;
+            padding-left: 2rem;
+        }
+        
+        .placeholder-message ol li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .search-container {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .search-btn {
+            background-color: var(--cannabis-green);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-btn {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn.active {
+            background-color: var(--cannabis-purple);
+            color: white;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: var(--cannabis-green);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--cannabis-dark-green);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                padding: 0.75rem;
+            }
+            
+            .seed-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .seed-breeder {
+                margin-top: 0.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
