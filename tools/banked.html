@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seeds Banked - ᵗʰᵉ Rev™</title>
     <style>
+        /* Consolidated variables */
         :root {
-            --cannabis-green: #2D5E32;
-            --cannabis-light-green: #68A357;
-            --cannabis-dark-green: #1A3C20;
-            --cannabis-brown: #604020;
-            --cannabis-cream: #F8F6E9;
-            --cannabis-purple: #5D4A7E;
+            --primary: #2D5E32;
+            --primary-light: #68A357;
+            --primary-dark: #1A3C20;
+            --accent: #5D4A7E;
+            --background: #F8F6E9;
+            --text: #333;
+            --text-light: #666;
+            --border: #eee;
             --count-bg: rgba(93, 74, 126, 0.1);
         }
         
@@ -23,22 +26,17 @@
         }
         
         body {
-            background-color: var(--cannabis-cream);
-            color: #333;
+            background-color: var(--background);
+            color: var(--text);
             line-height: 1.6;
         }
         
         header {
-            background: linear-gradient(135deg, var(--cannabis-dark-green), var(--cannabis-green));
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
             color: white;
             padding: 1.5rem;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
         }
         
         .subtitle {
@@ -60,178 +58,14 @@
             overflow: hidden;
         }
         
-        .tabs {
-            display: flex;
-            background-color: var(--cannabis-light-green);
-        }
-        
-        .tab {
-            padding: 1rem 1.5rem;
-            cursor: pointer;
-            background-color: transparent;
-            color: white;
-            font-weight: 600;
-            border: none;
-            transition: background-color 0.3s;
-            font-size: 1rem;
-            flex: 1;
-            text-align: center;
-        }
-        
-        .tab.active {
-            background-color: var(--cannabis-dark-green);
-        }
-        
-        .tab:hover:not(.active) {
-            background-color: rgba(0, 0, 0, 0.1);
-        }
-        
-        .tab-content {
-            padding: 2rem;
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .sheet-content {
-            margin-top: 1rem;
-        }
-        
-        .seed-list {
-            list-style: none;
-        }
-        
-        .seed-item {
-            padding: 1rem;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .seed-item:last-child {
-            border-bottom: none;
-        }
-        
-        .seed-name {
-            font-weight: 600;
-            color: var(--cannabis-dark-green);
-        }
-        
-        .seed-details {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .seed-info {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-        
-        .seed-count {
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: var(--cannabis-purple);
-            margin-bottom: 0.3rem;
-            background-color: var(--count-bg);
-            padding: 0.2rem 0.6rem;
-            border-radius: 4px;
-        }
-        
-        .seed-breeder {
-            background-color: var(--cannabis-light-green);
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-        
-        .run-mark {
-            display: inline-block;
-            color: var(--cannabis-purple);
-            font-weight: bold;
-            margin-left: 0.5rem;
-        }
-        
-        .loader {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 200px;
-        }
-        
-        .loader:after {
-            content: " ";
-            display: block;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 6px solid var(--cannabis-green);
-            border-color: var(--cannabis-green) transparent var(--cannabis-green) transparent;
-            animation: loader 1.2s linear infinite;
-        }
-        
-        @keyframes loader {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-        
-        .error-message {
-            color: #d32f2f;
-            text-align: center;
-            padding: 2rem;
-        }
-        
-        .add-sheet {
-            margin-top: 2rem;
+        .content-section {
             padding: 1.5rem;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-        }
-        
-        .add-sheet h2 {
-            margin-bottom: 1rem;
-            color: var(--cannabis-dark-green);
-        }
-        
-        .placeholder-message {
-            padding: 2rem;
-            text-align: center;
-            color: #666;
-        }
-        
-        .placeholder-message h3 {
-            color: var(--cannabis-dark-green);
-            margin-bottom: 1rem;
-        }
-        
-        .placeholder-message ol {
-            text-align: left;
-            max-width: 500px;
-            margin: 1rem auto;
-            padding-left: 2rem;
-        }
-        
-        .placeholder-message ol li {
-            margin-bottom: 0.5rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1rem;
         }
         
         .search-container {
-            margin-bottom: 1.5rem;
             display: flex;
             gap: 1rem;
+            margin-bottom: 1.5rem;
         }
         
         .search-input {
@@ -240,16 +74,6 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 1rem;
-        }
-        
-        .search-btn {
-            background-color: var(--cannabis-green);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
         }
         
         .filters {
@@ -269,55 +93,123 @@
         }
         
         .filter-btn.active {
-            background-color: var(--cannabis-purple);
+            background-color: var(--accent);
             color: white;
         }
         
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-        
         button {
-            background-color: var(--cannabis-green);
+            background-color: var(--primary);
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 1rem;
             font-weight: 600;
             transition: background-color 0.3s;
         }
         
         button:hover {
-            background-color: var(--cannabis-dark-green);
+            background-color: var(--primary-dark);
+        }
+        
+        .seed-list {
+            list-style: none;
+        }
+        
+        .seed-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .seed-item:last-child {
+            border-bottom: none;
+        }
+        
+        .seed-name {
+            font-weight: 600;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+        }
+        
+        .seed-details {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .seed-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .seed-count {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--accent);
+            background-color: var(--count-bg);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            margin-bottom: 0.3rem;
+        }
+        
+        .seed-breeder {
+            background-color: var(--primary-light);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .run-mark {
+            color: var(--accent);
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+        
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .loader:after {
+            content: " ";
+            display: block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 6px solid var(--primary);
+            border-color: var(--primary) transparent var(--primary) transparent;
+            animation: loader 1.2s linear infinite;
+        }
+        
+        @keyframes loader {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            color: #d32f2f;
+            text-align: center;
+            padding: 2rem;
         }
         
         footer {
             text-align: center;
             padding: 2rem;
             margin-top: 2rem;
-            color: #666;
+            color: var(--text-light);
             font-size: 0.9rem;
         }
         
         @media (max-width: 768px) {
-            .tabs {
+            .search-container {
                 flex-direction: column;
-            }
-            
-            .tab {
-                padding: 0.75rem;
             }
             
             .seed-item {
@@ -325,7 +217,8 @@
                 align-items: flex-start;
             }
             
-            .seed-breeder {
+            .seed-info {
+                align-items: flex-start;
                 margin-top: 0.5rem;
             }
         }
@@ -340,7 +233,7 @@
         <div class="tab-container">
             <div class="content-section">
                 <div class="search-container">
-                    <input type="text" id="search-input" placeholder="Search seeds by name, breeder, etc.">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search seeds by name, breeder, etc.">
                     <button id="search-btn">Search</button>
                 </div>
                 <div class="filters">
@@ -350,6 +243,8 @@
                     <button class="filter-btn" data-filter="auto">AUTO</button>
                     <button class="filter-btn" data-filter="photo">PHOTO</button>
                     <button class="filter-btn" data-filter="fast">FAST</button>
+                    <button class="filter-btn" data-filter="limited">LIMITED</button>
+                    <button class="filter-btn" data-filter="rare">RARE</button>
                 </div>
                 <div id="seed-content" class="seed-content">
                     <div class="loader"></div>
@@ -406,7 +301,7 @@
                     });
             }
             
-            // CSV parser remains the same
+            // Parse CSV data
             function parseCSV(csv) {
                 const lines = csv.split('\n');
                 const headers = lines[0].split(',').map(header => header.trim());
@@ -450,19 +345,19 @@
                     // Extract key properties if they exist
                     const seedName = seed.STRAIN || seed.Strain || seed.Name || seed.strain || seed.name || 'Unnamed Seed';
                     const breeder = seed.BREEDER || seed.Breeder || seed.breeder || 'Unknown Breeder';
-                    const seedType = seed['REG / FEM'] || seed.Type || '';
+                    const seedType = seed['REG / FEM'] || seed.Type || seed.type || '';
                     const count = seed.COUNT || seed.Count || seed.count || '';
                     const run = seed.RUN || '';
+                    const status = seed.STATUS || seed.Status || seed.status || '';
                     
                     let details = [];
                     
                     // Add specific details we know about
-                    if (seedType) details.push(`Type: ${seedType}`);
-                    if (count) details.push(`Count: ${count}`);
+                    if (seedType) details.push(seedType);
                     
                     // Add parent genetics if available
-                    const parent1 = seed.PARENT1 || '';
-                    const parent2 = seed.PARENT2 || '';
+                    const parent1 = seed.PARENT1 || seed.parent1 || '';
+                    const parent2 = seed.PARENT2 || seed.parent2 || '';
                     
                     if (parent1 || parent2) {
                         let genetics = 'Genetics: ';
@@ -482,19 +377,21 @@
                              'BREEDER', 'Breeder', 'breeder', 
                              'REG / FEM', 'Type', 'type',
                              'COUNT', 'Count', 'count',
-                             'PARENT1', 'PARENT2', 'RUN'].includes(key) && seed[key]) {
+                             'PARENT1', 'PARENT2', 'parent1', 'parent2',
+                             'RUN', 'STATUS', 'Status', 'status'].includes(key) && seed[key]) {
                             details.push(`${key}: ${seed[key]}`);
                         }
                     });
                     
+                    // Build HTML for the seed item
                     html += `
-                        <li class="seed-item">
+                        <li class="seed-item" data-type="${seedType}" data-status="${status}">
                             <div>
                                 <div class="seed-name">${seedName} ${run === 'X' ? '<span class="run-mark">✓</span>' : ''}</div>
                                 ${details.length > 0 ? `<div class="seed-details">${details.join(' • ')}</div>` : ''}
                             </div>
                             <div class="seed-info">
-                                <div class="seed-count">${count || ''}</div>
+                                <div class="seed-count">${count}</div>
                                 <div class="seed-breeder">${breeder}</div>
                             </div>
                         </li>
@@ -535,13 +432,16 @@
                 });
                 
                 seedItems.forEach(item => {
-                    const seedDetails = item.querySelector('.seed-details');
-                    
                     if (filter === 'all') {
                         item.style.display = '';
-                    } else if (seedDetails) {
-                        const seedType = seedDetails.textContent.toLowerCase();
-                        if (seedType.includes(filter.toLowerCase())) {
+                    } else {
+                        const itemType = item.dataset.type.toLowerCase();
+                        const itemStatus = item.dataset.status.toLowerCase();
+                        const itemText = item.textContent.toLowerCase();
+                        
+                        if (itemType.includes(filter.toLowerCase()) || 
+                            itemStatus === filter.toLowerCase() || 
+                            itemText.includes(filter.toLowerCase())) {
                             item.style.display = '';
                         } else {
                             item.style.display = 'none';
