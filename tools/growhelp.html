@@ -856,6 +856,30 @@
 		  }
 		});
 
+		function getReadableText(htmlContent) {
+			// Create a temporary div to parse the HTML
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = htmlContent;
+			
+			// Get text content, preserving paragraph structure
+			let text = '';
+			const paragraphs = tempDiv.querySelectorAll('p');
+			
+			if (paragraphs.length) {
+				// If we have paragraphs, use them (up to first 3-4)
+				const maxParagraphs = Math.min(paragraphs.length, 3);
+				for (let i = 0; i < maxParagraphs; i++) {
+					text += paragraphs[i].textContent + ' ';
+				}
+			} else {
+				// Otherwise just get the raw text
+				text = tempDiv.textContent;
+			}
+			
+			// Clean up the text
+			return text.trim();
+		}
+
 		function sendMessageFromInitialState() {
 			let inputField = document.querySelector('.initial-state .message-input');
 			let userMessage = inputField.value.trim();
@@ -962,6 +986,7 @@
 				}
 
 				const data = await response.json();
+				console.log("Audio generation response:", data);
 				
 				// Extract the audio URL from the response
 				if (data.choices && 
@@ -1357,30 +1382,6 @@
 			};
 			
 			reader.readAsDataURL(file);
-		}
-
-		function getReadableText(htmlContent) {
-			// Create a temporary div to parse the HTML
-			const tempDiv = document.createElement('div');
-			tempDiv.innerHTML = htmlContent;
-			
-			// Get text content, preserving paragraph structure
-			let text = '';
-			const paragraphs = tempDiv.querySelectorAll('p');
-			
-			if (paragraphs.length) {
-				// If we have paragraphs, use them (up to first 3-4)
-				const maxParagraphs = Math.min(paragraphs.length, 3);
-				for (let i = 0; i < maxParagraphs; i++) {
-					text += paragraphs[i].textContent + ' ';
-				}
-			} else {
-				// Otherwise just get the raw text
-				text = tempDiv.textContent;
-			}
-			
-			// Clean up the text
-			return text.trim();
 		}
 
 		// Send Question to API
