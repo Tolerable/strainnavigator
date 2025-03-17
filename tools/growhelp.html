@@ -546,16 +546,50 @@
 		}
 
 		/* Audio player styles */
-		.audio-player {
-			margin-top: 10px;
+		.audio-container {
+			margin-top: 15px;
 			width: 100%;
 			max-width: 300px;
+			position: relative;
+		}
+
+		.audio-player {
+			width: 100%;
+			height: 36px;
 			opacity: 0.8;
 			transition: opacity 0.2s;
+			border-radius: 18px;
+			background: rgba(76, 175, 80, 0.1);
 		}
 
 		.audio-player:hover {
 			opacity: 1;
+		}
+
+		.audio-loading {
+			font-size: 0.8rem;
+			color: var(--text-secondary);
+			margin-bottom: 5px;
+			font-style: italic;
+		}
+
+		.voice-indicator {
+			font-size: 0.8rem;
+			color: var(--accent-color);
+			margin-top: 10px;
+			display: flex;
+			align-items: center;
+			gap: 5px;
+		}
+
+		.voice-indicator:before {
+			content: '';
+			display: inline-block;
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			background-color: var(--accent-color);
+			animation: pulse 1.5s infinite;
 		}
 		
         @keyframes pulse {
@@ -859,19 +893,51 @@
 
 		async function generateAudio(text) {
 			try {
-				// First, we need to create a prompt that instructs the AI to read verbatim
-				const instructionPrefix = "READ THIS TEXT VERBATIM WITHOUT ANY COMMENTARY OR RESPONSE: ";
-				const textToRead = instructionPrefix + text;
-				const encodedText = encodeURIComponent(textToRead);
-				const voice = 'nova';
+				// Create a more direct prompt, no need for verbatim instruction
+				const encodedText = encodeURIComponent(text);
+				const voice = 'nova'; // or alloy, echo, etc.
 				
-				const url = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=${voice}`;
+				// Use streaming=false to get the full audio at once
+				const url = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=${voice}&streaming=false`;
 				console.log("Generating audio with URL:", url);
 				return url;
 			} catch (error) {
 				console.error("Audio generation error:", error);
 				return null;
 			}
+		}
+
+		function createAudioPlayer(audioUrl) {
+			// Create container for better control
+			const audioContainer = document.createElement('div');
+			audioContainer.className = 'audio-container';
+			
+			// Create the audio element
+			const audioPlayer = document.createElement('audio');
+			audioPlayer.controls = true;
+			audioPlayer.className = 'audio-player';
+			audioPlayer.src = audioUrl;
+			audioPlayer.preload = 'auto'; // Ensure it preloads
+			
+			// Add a loading indicator
+			const loadingIndicator = document.createElement('div');
+			loadingIndicator.className = 'audio-loading';
+			loadingIndicator.textContent = 'Preparing audio...';
+			
+			audioContainer.appendChild(loadingIndicator);
+			audioContainer.appendChild(audioPlayer);
+			
+			// Hide loading when audio is ready
+			audioPlayer.addEventListener('canplaythrough', () => {
+				loadingIndicator.style.display = 'none';
+			});
+			
+			// Handle errors better
+			audioPlayer.addEventListener('error', () => {
+				loadingIndicator.textContent = 'Audio failed to load';
+			});
+			
+			return audioContainer;
 		}
 
 		// Load voice preference from localStorage
@@ -1139,28 +1205,47 @@
 			
 			// Add audio player if voice is enabled
 			if (voiceEnabled) {
-			  // Extract pure text content without markdown formatting
-			  let textContent = content.replace(/\[IMAGE(_SQUARE|_LANDSCAPE|_PORTRAIT)?:.*?\]/g, '');
-			  
-			  // Get first 2-3 sentences for voice output to keep it brief
-			  let sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
-			  let voiceText = sentences.slice(0, 2).join('. ') + '.';
-			  
-			  if (voiceText.length > 0) {
-				const audioUrl = await generateAudio(voiceText);
-				if (audioUrl) {
-				  const audioPlayer = document.createElement('audio');
-				  audioPlayer.controls = true;
-				  audioPlayer.className = 'audio-player';
-				  audioPlayer.src = audioUrl;
-				  
-				  // Add the audio player to the message
-				  message.appendChild(audioPlayer);
-				  
-				  // Auto-play if enabled
-				  audioPlayer.play().catch(e => console.log('Auto-play prevented:', e));
-				}
-			  }
+				// Extract text content without markdown or image commands
+				let textContent = content
+					.replace(/\[IMAGE(_SQUARE|_LANDSCAPE|_PORTRAIT)?:.*?\]/g, '')
+					.replace(/\!\[.*?\]\(.*?\)/g, '') // Remove markdown images
+					.replace(/\[(.*?)\]\(.*?\)/g, '$1') // Replace markdown links with just the text
+					.replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
+					.replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
+					.replace(/\`\`\`[\s\S]*?\`\`\`/g, 'Code block removed for voice') // Remove code blocks
+					.replace(/\`(.*?)\`/g, '$1'); // Remove inline code
+				
+				// Get first 3-4 significant sentences for voice output (more complete response)
+				let sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 5);
+				
+				// Create a more meaningful voice text including a greeting and key points
+				let voiceText = sentences.slice(0, 4).join('. ');
+				
+				// Add voice marker to show user we're generating voice
+				const voiceMarker = document.createElement('div');
+				voiceMarker.className = 'voice-indicator';
+				voiceMarker.innerHTML = '<span>Generating voice...</span>';
+				message.appendChild(voiceMarker);
+				
+				// Generate audio asynchronously
+				generateAudio(voiceText).then(audioUrl => {
+					if (audioUrl) {
+						// Replace marker with actual audio player
+						voiceMarker.remove();
+						const audioContainer = createAudioPlayer(audioUrl);
+						message.appendChild(audioContainer);
+						
+						// Auto-play after a small delay to ensure loading
+						setTimeout(() => {
+							const player = audioContainer.querySelector('audio');
+							if (player) {
+								player.play().catch(e => console.log('Auto-play prevented:', e));
+							}
+						}, 500);
+					} else {
+						voiceMarker.innerHTML = '<span>Voice generation failed</span>';
+					}
+				});
 			}
 		  } else {
 			// For user messages, just escape HTML
