@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script src="https://accounts.google.com/gsi/client" async defer></script>
-	<script src="https://accounts.google.com/gsi/client"></script> 
     <title>Seeds Banked - ᵗʰᵉ Rev™</title>
     <style>
         :root {
@@ -507,7 +506,10 @@
 				<p>Please sign in with your Google account to manage your seed collection.</p>
 				<div id="g_id_onload"
 					 data-client_id="1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com"
-					 data-callback="handleCredentialResponse">
+					 data-callback="handleCredentialResponse"
+					 data-context="signin"
+					 data-ux_mode="popup"
+					 data-scope="email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file">
 				</div>
 				<div class="g_id_signin"
 					 data-type="standard"
@@ -685,6 +687,28 @@
 				loadUserRegistry();
 			});
 		};
+
+		async function debugFetchWithAuth(url, options = {}) {
+			console.log(`DEBUG: Fetching ${url}`);
+			try {
+				const response = await fetchWithAuth(url, options);
+				
+				// Clone the response so we can both log it and return it
+				const clonedResponse = response.clone();
+				
+				try {
+					const data = await clonedResponse.json();
+					console.log('DEBUG: Response data:', data);
+				} catch (e) {
+					console.log('DEBUG: Response is not JSON:', await clonedResponse.text());
+				}
+				
+				return response;
+			} catch (error) {
+				console.error('DEBUG: Fetch error:', error);
+				throw error;
+			}
+		}
 		
 		function parseJwtResponse(token) {
 			const base64Url = token.split('.')[1];
@@ -784,7 +808,9 @@
 		
 		async function createUserSpreadsheet() {
 			try {
-				// Create a new spreadsheet
+				console.log('Creating new spreadsheet...');
+				
+				// First create the spreadsheet
 				const response = await fetchWithAuth('https://sheets.googleapis.com/v4/spreadsheets', {
 					method: 'POST',
 					body: JSON.stringify({
@@ -804,15 +830,54 @@
 				});
 				
 				const data = await response.json();
+				console.log('Created spreadsheet:', data);
 				const spreadsheetId = data.spreadsheetId;
 				
+				if (!spreadsheetId) {
+					console.error('Failed to get spreadsheetId from response');
+					return null;
+				}
+				
+				console.log('Setting spreadsheet permissions...');
+				
+				// Now make it accessible to others (this requires Drive API)
+				try {
+					const permissionResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${spreadsheetId}/permissions`, {
+						method: 'POST',
+						headers: {
+							'Authorization': `Bearer ${userToken}`,
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							role: 'reader',
+							type: 'anyone'
+						})
+					});
+					
+					if (!permissionResponse.ok) {
+						console.warn('Could not set spreadsheet permissions:', await permissionResponse.text());
+					} else {
+						console.log('Spreadsheet permissions set successfully');
+					}
+				} catch (permError) {
+					console.warn('Error setting permissions:', permError);
+					// Continue anyway since this isn't critical
+				}
+				
 				// Add the header row
-				await fetchWithAuth(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Seeds!A1:G1?valueInputOption=RAW`, {
+				console.log('Adding header row...');
+				const headerResponse = await fetchWithAuth(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Seeds!A1:G1?valueInputOption=RAW`, {
 					method: 'PUT',
 					body: JSON.stringify({
 						values: [['STRAIN', 'REG / FEM', 'BREEDER', 'COUNT', 'PARENT1', 'PARENT2', 'RUN']]
 					})
 				});
+				
+				if (!headerResponse.ok) {
+					console.error('Failed to add header row:', await headerResponse.text());
+				} else {
+					console.log('Header row added successfully');
+				}
 				
 				return spreadsheetId;
 			} catch (error) {
@@ -837,14 +902,43 @@
 		}
 		
 		async function loadUserSeeds() {
-			if (!userSheetId) return;
+			if (!userSheetId) {
+				console.error('No userSheetId available');
+				return;
+			}
 			
 			const contentContainer = document.getElementById('seed-content');
 			contentContainer.innerHTML = '<div class="loader"></div>';
 			
 			try {
+				console.log('Loading seeds from spreadsheet:', userSheetId);
+				
+				// First verify we can access the spreadsheet
+				const testResponse = await fetchWithAuth(`https://sheets.googleapis.com/v4/spreadsheets/${userSheetId}?fields=properties.title`);
+				
+				if (!testResponse.ok) {
+					const errorText = await testResponse.text();
+					console.error('Cannot access spreadsheet:', errorText);
+					contentContainer.innerHTML = `<div class="error-message">Error accessing your seed collection. Details: ${errorText}</div>`;
+					return;
+				}
+				
+				const testData = await testResponse.json();
+				console.log('Verified access to spreadsheet:', testData.properties.title);
+				
+				// Now get the values
 				const response = await fetchWithAuth(`https://sheets.googleapis.com/v4/spreadsheets/${userSheetId}/values/Seeds!A:G`);
+				
+				if (!response.ok) {
+					const errorText = await response.text();
+					console.error('Error fetching seed data:', errorText);
+					contentContainer.innerHTML = `<div class="error-message">Error loading seed data. Details: ${errorText}</div>`;
+					return;
+				}
+				
 				const data = await response.json();
+				console.log('Received seed data:', data);
+				
 				const values = data.values || [];
 				
 				// Skip header row if present
@@ -852,7 +946,7 @@
 				
 				seedsData = [];
 				for (let i = startIndex; i < values.length; i++) {
-					if (values[i].length > 0 && values[i][0]) {  // Skip empty rows
+					if (values[i] && values[i].length > 0 && values[i][0]) {  // Skip empty rows
 						seedsData.push({
 							strain: values[i][0] || '',
 							type: values[i][1] || '',
@@ -866,10 +960,11 @@
 					}
 				}
 				
+				console.log('Processed seed data:', seedsData);
 				displayUserSeeds(seedsData);
 			} catch (error) {
-				console.error('Error loading user seeds:', error);
-				contentContainer.innerHTML = '<div class="error-message">Error loading your seed collection. Please try again later.</div>';
+				console.error('Exception in loadUserSeeds:', error);
+				contentContainer.innerHTML = `<div class="error-message">Error loading your seed collection: ${error.message}</div>`;
 			}
 		}
 		
