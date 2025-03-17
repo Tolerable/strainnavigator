@@ -507,9 +507,9 @@
 				<div id="g_id_onload"
 					 data-client_id="1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com"
 					 data-callback="handleCredentialResponse"
-					 data-context="signin"
+					 data-auto_prompt="false"
 					 data-ux_mode="popup"
-					 data-scope="email profile https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file">
+					 data-itp_support="true">
 				</div>
 				<div class="g_id_signin"
 					 data-type="standard"
@@ -517,7 +517,7 @@
 					 data-theme="outline"
 					 data-text="sign_in_with"
 					 data-shape="rectangular"
-					 data-logo_alignment="left">
+					 data-logo_alignment="center">
 				</div>
 			</div>
 		</div>
@@ -641,7 +641,7 @@
         &copy; 2025 StrainNavigator.com | Collaborative Seed Collection Tracker
     </footer>      
     <script>
-	document.addEventListener('DOMContentLoaded', function() {
+
 		// Configuration
 		const MASTER_SHEET_ID = '1A7kFjfw6cjmQQOwz-5liWVGgFK0K5lwS8AfIZ_Zthbg';
 		
@@ -655,38 +655,196 @@
 		let userRegistry = [];
 		let selectedUserSheetId = null;
 		
+	document.addEventListener('DOMContentLoaded', function() {
+
+		// Check if we're returning from OAuth
+		if (window.location.hash.includes('access_token=')) {
+			const params = new URLSearchParams(window.location.hash.substring(1));
+			userToken = params.get('access_token');
+			console.log('Received access token from redirect');
+			
+			// Clear the hash
+			window.history.replaceState({}, document.title, window.location.pathname);
+			
+			// If we were waiting for authorization, continue the flow
+			if (localStorage.getItem('waitingForAuth') === 'true') {
+				localStorage.removeItem('waitingForAuth');
+				// Continue with the user flow
+				afterAuthorization();
+			}
+		}
+	
 		// Initialize the UI
 		setupTabs();
 		setupFormHandling();
 
 		// Set up Google Sign-In - IMPORTANT: This exposes the handler to window scope
-		window.handleCredentialResponse = function(response) {
-			// Get the token
+		window.handleCredentialResponse = async function(response) {
+			console.log('Sign-in response received:', response);
+			
+			// Get the token - we need to extract the right type of token
 			userToken = response.credential;
 			
-			// Decode the JWT to get user info
-			const payload = parseJwtResponse(userToken);
-			userProfile = {
-				id: payload.sub,
-				name: payload.name,
-				email: payload.email,
-				picture: payload.picture
-			};
-			
-			// Update UI
-			document.getElementById('auth-container').style.display = 'none';
-			document.getElementById('main-container').style.display = 'block';
-			document.getElementById('user-name').textContent = userProfile.name;
-			document.getElementById('user-image').src = userProfile.picture;
-			
-			// Get or create user's spreadsheet
-			getUserSpreadsheet().then(() => {
-				// Load user's seeds data
-				loadUserSeeds();
-				// Load user registry
-				loadUserRegistry();
-			});
+			try {
+				// Decode the JWT to get user info
+				const payload = parseJwtResponse(userToken);
+				userProfile = {
+					id: payload.sub,
+					name: payload.name,
+					email: payload.email,
+					picture: payload.picture
+				};
+				
+				console.log('User profile:', userProfile);
+				
+				// Update UI
+				document.getElementById('auth-container').style.display = 'none';
+				document.getElementById('main-container').style.display = 'block';
+				document.getElementById('user-name').textContent = userProfile.name;
+				document.getElementById('user-image').src = userProfile.picture;
+				
+				// Get access token for API calls via token exchange
+				await exchangeToken();
+				
+				// Now proceed with spreadsheet operations
+				await getUserSpreadsheet();
+				await loadUserSeeds();
+				await loadUserRegistry();
+			} catch (error) {
+				console.error('Error processing sign-in:', error);
+				alert('There was an error signing in. Please try again.');
+			}
 		};
+
+		// Function to continue after authorization
+		async function afterAuthorization() {
+			try {
+				// Get user profile information
+				const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+					headers: {
+						'Authorization': `Bearer ${userToken}`
+					}
+				});
+				
+				if (!response.ok) {
+					throw new Error('Failed to get user profile');
+				}
+				
+				const userData = await response.json();
+				userProfile = {
+					id: userData.sub,
+					name: userData.name,
+					email: userData.email,
+					picture: userData.picture
+				};
+				
+				// Update UI
+				document.getElementById('auth-container').style.display = 'none';
+				document.getElementById('main-container').style.display = 'block';
+				document.getElementById('user-name').textContent = userProfile.name;
+				document.getElementById('user-image').src = userProfile.picture;
+				
+				// Proceed with spreadsheet operations
+				await getUserSpreadsheet();
+				await loadUserSeeds();
+				await loadUserRegistry();
+			} catch (error) {
+				console.error('Error processing authorization:', error);
+				alert('There was an error authorizing. Please try again.');
+			}
+		}
+
+		async function exchangeToken() {
+			try {
+				// We need to use the token server to exchange the ID token for an access token
+				// This requires a server component - for now, we'll use the Google OAuth 2.0 Playground
+				// In production, you'd implement a token exchange server
+				
+				// For testing purposes, we'll ask the user to authorize directly
+				const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com&redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&response_type=token&scope=https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file&prompt=consent`;
+				
+				console.log('Opening authorization window...');
+				const authWindow = window.open(authUrl, 'auth', 'width=600,height=600');
+				
+				// Monitor for the redirect with token
+				const checkToken = setInterval(() => {
+					try {
+						// Check if we can access the window (if it's on our domain)
+						if (authWindow.location.href.includes('#access_token=')) {
+							clearInterval(checkToken);
+							const params = new URLSearchParams(authWindow.location.hash.substring(1));
+							userToken = params.get('access_token');
+							authWindow.close();
+							console.log('Received access token');
+						}
+					} catch (e) {
+						// Can't access location yet, window is probably on another domain
+					}
+				}, 500);
+				
+				// Add a timeout
+				setTimeout(() => {
+					clearInterval(checkToken);
+					if (authWindow && !authWindow.closed) {
+						authWindow.close();
+					}
+				}, 120000); // 2 minute timeout
+			} catch (error) {
+				console.error('Error exchanging token:', error);
+				// Fall back to using the ID token and hope it works
+				console.log('Using ID token as fallback');
+			}
+		}
+
+		async function directAuthorization() {
+			return new Promise((resolve, reject) => {
+				// Create a simple form for direct authorization
+				const authForm = document.createElement('div');
+				authForm.style.position = 'fixed';
+				authForm.style.top = '50%';
+				authForm.style.left = '50%';
+				authForm.style.transform = 'translate(-50%, -50%)';
+				authForm.style.background = 'white';
+				authForm.style.padding = '20px';
+				authForm.style.borderRadius = '8px';
+				authForm.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+				authForm.style.zIndex = '9999';
+				
+				authForm.innerHTML = `
+					<h3 style="margin-bottom: 20px;">API Authorization Required</h3>
+					<p>To manage your seed collection, please authorize this app to access your Google Sheets.</p>
+					<div style="display: flex; justify-content: space-between; margin-top: 20px;">
+						<button id="auth-cancel" style="padding: 8px 16px; background: #ddd; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+						<button id="auth-proceed" style="padding: 8px 16px; background: #4285F4; color: white; border: none; border-radius: 4px; cursor: pointer;">Authorize</button>
+					</div>
+				`;
+				
+				document.body.appendChild(authForm);
+				
+				// Add event listeners
+				document.getElementById('auth-cancel').addEventListener('click', () => {
+					document.body.removeChild(authForm);
+					reject(new Error('Authorization cancelled'));
+				});
+				
+				document.getElementById('auth-proceed').addEventListener('click', () => {
+					document.body.removeChild(authForm);
+					
+					// Open the OAuth authorization page
+					const scopes = encodeURIComponent('https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file');
+					const clientId = '1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com';
+					const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+					
+					const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scopes}`;
+					
+					// Store that we're waiting for authorization
+					localStorage.setItem('waitingForAuth', 'true');
+					
+					// Open the authorization window
+					window.location.href = authUrl;
+				});
+			});
+		}
 
 		async function debugFetchWithAuth(url, options = {}) {
 			console.log(`DEBUG: Fetching ${url}`);
@@ -968,16 +1126,30 @@
 			}
 		}
 		
-		// Helper function to make authenticated API calls
 		async function fetchWithAuth(url, options = {}) {
+			if (!userToken) {
+				console.error('No auth token available');
+				throw new Error('Authentication required');
+			}
+			
 			if (!options.headers) {
 				options.headers = {};
 			}
 			
+			// The token we get from Google Sign-In is already an ID token, 
+			// but for API access we need to specify it's a Bearer token
 			options.headers['Authorization'] = `Bearer ${userToken}`;
 			options.headers['Content-Type'] = 'application/json';
 			
-			return fetch(url, options);
+			console.log(`Fetching ${url} with auth`);
+			const response = await fetch(url, options);
+			
+			if (!response.ok) {
+				// Log the error details
+				console.error(`API error (${response.status}):`, await response.text());
+			}
+			
+			return response;
 		}
 
 		// The rest of your display and interaction functions remain the same
