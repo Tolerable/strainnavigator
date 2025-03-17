@@ -482,6 +482,81 @@
 		.image-loading {
 		  opacity: 0.5;
 		}
+
+		/* Voice toggle switch styles */
+		.voice-toggle-container {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			color: var(--text-secondary);
+		}
+
+		.switch {
+			position: relative;
+			display: inline-block;
+			width: 46px;
+			height: 24px;
+		}
+
+		.switch input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+
+		.slider {
+			position: absolute;
+			cursor: pointer;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background-color: var(--secondary-color);
+			transition: .4s;
+			border: 1px solid var(--text-secondary);
+		}
+
+		.slider:before {
+			position: absolute;
+			content: "";
+			height: 16px;
+			width: 16px;
+			left: 3px;
+			bottom: 3px;
+			background-color: var(--text-secondary);
+			transition: .4s;
+		}
+
+		input:checked + .slider {
+			background-color: var(--accent-color);
+			border-color: var(--accent-color);
+		}
+
+		input:checked + .slider:before {
+			background-color: white;
+			transform: translateX(22px);
+		}
+
+		.slider.round {
+			border-radius: 34px;
+		}
+
+		.slider.round:before {
+			border-radius: 50%;
+		}
+
+		/* Audio player styles */
+		.audio-player {
+			margin-top: 10px;
+			width: 100%;
+			max-width: 300px;
+			opacity: 0.8;
+			transition: opacity 0.2s;
+		}
+
+		.audio-player:hover {
+			opacity: 1;
+		}
 		
         @keyframes pulse {
             0%, 100% {
@@ -542,7 +617,18 @@
     </style>
 </head>
 <body>
-	
+	<header>
+		<div class="logo-container">
+			<a href="/" class="home-link">StrainNavigator</a>
+		</div>
+		<div class="voice-toggle-container">
+			<span>Voice</span>
+			<label class="switch">
+				<input type="checkbox" id="voice-toggle">
+				<span class="slider round"></span>
+			</label>
+		</div>
+	</header>	
     <div class="conversation-container" id="conversation-container">
         <div class="initial-state" id="initial-state">    			
             <div>
@@ -620,6 +706,7 @@
 		let conversationHistory = [];
 		let currentImageData = null;
 		let imagePreviewElement = null;
+		let voiceEnabled = false;
 		
 		// State management
 		let state = {
@@ -768,6 +855,38 @@
 		  
 		  const encodedPrompt = encodeURIComponent(prompt);
 		  return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&nologo=true&enhance=true&private=true&seed=${randomSeed}`;
+		}
+
+		async function generateAudio(text) {
+			try {
+				// First, we need to create a prompt that instructs the AI to read verbatim
+				const instructionPrefix = "READ THIS TEXT VERBATIM WITHOUT ANY COMMENTARY OR RESPONSE: ";
+				const textToRead = instructionPrefix + text;
+				const encodedText = encodeURIComponent(textToRead);
+				const voice = 'nova';
+				
+				const url = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=${voice}`;
+				console.log("Generating audio with URL:", url);
+				return url;
+			} catch (error) {
+				console.error("Audio generation error:", error);
+				return null;
+			}
+		}
+
+		// Load voice preference from localStorage
+		function loadVoicePreference() {
+			const savedPreference = localStorage.getItem('voiceEnabled');
+			if (savedPreference !== null) {
+				voiceEnabled = savedPreference === 'true';
+				document.getElementById('voice-toggle').checked = voiceEnabled;
+			}
+		}
+
+		// Save voice preference to localStorage
+		function saveVoicePreference(enabled) {
+			localStorage.setItem('voiceEnabled', enabled);
+			voiceEnabled = enabled;
 		}
 
 		function setupInitialStatePaste() {
@@ -965,7 +1084,7 @@
 		}
 
 		// Add Message to Conversation
-		function addMessage(content, role) {
+		async function addMessage(content, role) {
 		  const message = document.createElement('div');
 		  message.classList.add('message', role);
 		  
@@ -1017,6 +1136,32 @@
 			
 			// Apply markdown parsing
 			message.innerHTML = marked.parse(trimmedContent, { renderer });
+			
+			// Add audio player if voice is enabled
+			if (voiceEnabled) {
+			  // Extract pure text content without markdown formatting
+			  let textContent = content.replace(/\[IMAGE(_SQUARE|_LANDSCAPE|_PORTRAIT)?:.*?\]/g, '');
+			  
+			  // Get first 2-3 sentences for voice output to keep it brief
+			  let sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
+			  let voiceText = sentences.slice(0, 2).join('. ') + '.';
+			  
+			  if (voiceText.length > 0) {
+				const audioUrl = await generateAudio(voiceText);
+				if (audioUrl) {
+				  const audioPlayer = document.createElement('audio');
+				  audioPlayer.controls = true;
+				  audioPlayer.className = 'audio-player';
+				  audioPlayer.src = audioUrl;
+				  
+				  // Add the audio player to the message
+				  message.appendChild(audioPlayer);
+				  
+				  // Auto-play if enabled
+				  audioPlayer.play().catch(e => console.log('Auto-play prevented:', e));
+				}
+			  }
+			}
 		  } else {
 			// For user messages, just escape HTML
 			message.textContent = content;
@@ -1269,6 +1414,40 @@
 		});
 
 		document.getElementById('initial-file-input').addEventListener('change', handleInitialFileSelect);
+
+		// Set up voice toggle
+		document.addEventListener('DOMContentLoaded', function() {
+			const voiceToggle = document.getElementById('voice-toggle');
+			
+			// Load saved preference
+			loadVoicePreference();
+			
+			// Update system prompt based on voice state
+			if (voiceEnabled) {
+				state.systemPrompt += " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.";
+			}
+			
+			// Handle toggle changes
+			voiceToggle.addEventListener('change', function() {
+				saveVoicePreference(this.checked);
+				
+				// Update system prompt when toggle changes
+				if (this.checked) {
+					// Voice mode ON - shorter, more conversational
+					state.systemPrompt = state.systemPrompt.replace(
+						" When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
+						""
+					);
+					state.systemPrompt += " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.";
+				} else {
+					// Voice mode OFF - normal responses
+					state.systemPrompt = state.systemPrompt.replace(
+						" When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
+						""
+					);
+				}
+			});
+		});
 		
     </script>
 </body>
