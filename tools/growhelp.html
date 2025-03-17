@@ -934,36 +934,34 @@
 		}
 
 		async function generateAudio(text) {
-			try {
-				// Function calling doesn't return a URL directly for TTS
-				// We need to use the direct endpoint instead
-				const encodedText = encodeURIComponent(text);
-				const url = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=nova&streaming=false`;
-				return url;
-			} catch (error) {
-				console.error("Audio generation error:", error);
-				return null;
-			}
+		  try {
+			// Create a direct instruction to read verbatim
+			const instructionPrefix = "READ THIS TEXT VERBATIM WITHOUT ANY COMMENTARY OR RESPONSE: ";
+			const textToRead = instructionPrefix + text;
+			const encodedText = encodeURIComponent(textToRead);
+			const url = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=nova`;
+			return url;
+		  } catch (error) {
+			console.error("Audio generation error:", error);
+			return null;
+		  }
 		}
 
+		// Function to play audio directly
 		async function generateAndPlayAudio(text) {
-			try {
-				// Encode the text for the URL
-				const encodedText = encodeURIComponent(text);
-				
-				// Create the direct URL to the audio API
-				const url = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=nova`;
-				
-				// Create and play audio directly - no streaming
-				const audio = new Audio(url);
-				
-				// Play the audio
-				await audio.play();
-				return true;
-			} catch (error) {
-				console.error("Audio playback error:", error);
-				return false;
-			}
+		  try {
+			// Get the audio URL
+			const audioUrl = await generateAudio(text);
+			if (!audioUrl) return false;
+			
+			// Create and play audio directly
+			const audio = new Audio(audioUrl);
+			await audio.play();
+			return true;
+		  } catch (error) {
+			console.error("Audio playback error:", error);
+			return false;
+		  }
 		}
 
 		function createAudioPlayer(audioUrl) {
