@@ -953,8 +953,22 @@
 				voiceMarker.className = 'voice-indicator';
 				voiceMarker.innerHTML = '<span>Generating voice...</span>';
 				
-				// Setup audio context
-				let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+				// Fix: Create AudioContext in a way that works across browsers
+				let audioContext;
+				try {
+					// Modern way that works in most browsers
+					audioContext = new (window.AudioContext || window.webkitAudioContext)();
+				} catch (e) {
+					console.error("AudioContext creation failed, falling back to simple audio");
+					// Fallback to simple audio URL
+					const encodedText = encodeURIComponent(text);
+					const audioUrl = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=nova`;
+					
+					const audio = new Audio(audioUrl);
+					audio.play();
+					return true;
+				}
+				
 				let isAudioContextActive = true;
 				let activeAudioSources = [];
 				let playbackTimeOffset = 0;
@@ -1072,7 +1086,17 @@
 				return true;
 			} catch (error) {
 				console.error("Audio streaming error:", error);
-				return false;
+				// Simple fallback if streaming fails
+				try {
+					const encodedText = encodeURIComponent(text);
+					const audioUrl = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=nova`;
+					const audio = new Audio(audioUrl);
+					audio.play();
+					return true;
+				} catch (e) {
+					console.error("Fallback audio also failed:", e);
+					return false;
+				}
 			} finally {
 				// Clean up
 				if (audioContext && isAudioContextActive) {
