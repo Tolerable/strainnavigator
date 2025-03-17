@@ -1305,6 +1305,10 @@
 				// Just render the message without audio
 				message.innerHTML = marked.parse(trimmedContent, { renderer });
 			}
+		  } else {
+			// For user messages, just escape HTML
+			message.textContent = content;
+		  }
 		  
 		  conversationContainer.appendChild(message);
 		  conversationContainer.scrollTop = conversationContainer.scrollHeight;
