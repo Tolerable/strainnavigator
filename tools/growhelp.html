@@ -861,51 +861,17 @@
 			const tempDiv = document.createElement('div');
 			tempDiv.innerHTML = htmlContent;
 			
-			// Remove the signature part if it exists
+			// Get the full text content
+			let text = tempDiv.textContent;
+			
+			// Only remove the signature at the very end
 			const signatureText = "StrainNavigator Grow Guide";
-			
-			// Get paragraphs and list items
-			const paragraphs = tempDiv.querySelectorAll('p');
-			const listItems = tempDiv.querySelectorAll('li');
-			
-			let text = '';
-			
-			// Process paragraphs (up to first 3-4)
-			if (paragraphs.length) {
-				const maxParagraphs = Math.min(paragraphs.length, 3);
-				for (let i = 0; i < maxParagraphs; i++) {
-					// Skip paragraph if it contains the signature
-					if (!paragraphs[i].textContent.includes(signatureText)) {
-						text += paragraphs[i].textContent + ' ';
-					}
-				}
+			const signatureIndex = text.lastIndexOf(signatureText);
+			if (signatureIndex !== -1) {
+				text = text.substring(0, signatureIndex).trim();
 			}
 			
-			// Process list items (all of them, or up to a reasonable number)
-			if (listItems.length) {
-				// Add a brief pause before starting the list
-				text += '. ';
-				
-				const maxItems = Math.min(listItems.length, 10); // Limit to 10 items max
-				for (let i = 0; i < maxItems; i++) {
-					if (!listItems[i].textContent.includes(signatureText)) {
-						// Add the item number for ordered lists
-						text += `Item ${i+1}. ${listItems[i].textContent}. `;
-					}
-				}
-			}
-			
-			// If we didn't get anything from paragraphs or lists, fall back to full text
-			if (!text) {
-				text = tempDiv.textContent;
-				const signatureIndex = text.lastIndexOf(signatureText);
-				if (signatureIndex !== -1) {
-					text = text.substring(0, signatureIndex).trim();
-				}
-			}
-			
-			// Clean up the text
-			return text.trim();
+			return text;
 		}
 
 		function sendMessageFromInitialState() {
