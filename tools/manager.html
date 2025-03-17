@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://accounts.google.com/gsi/client" async defer></script>
     <title>Seeds Banked - ᵗʰᵉ Rev™</title>
     <style>
         :root {
@@ -499,13 +500,24 @@
     
     <div class="container">
         <!-- Auth Container - Shown only when not logged in -->
-        <div id="auth-container" class="tab-container" style="display: none;">
-            <div class="placeholder-message">
-                <h3>Welcome to Seed Collection Manager</h3>
-                <p>Please sign in with your Google account to manage your seed collection.</p>
-                <button id="signin-button" style="margin-top: 1rem;">Sign in with Google</button>
-            </div>
-        </div>
+		<div id="auth-container" class="tab-container" style="display: block;">
+			<div class="placeholder-message">
+				<h3>Welcome to Seed Collection Manager</h3>
+				<p>Please sign in with your Google account to manage your seed collection.</p>
+				<div id="g_id_onload"
+					 data-client_id="1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com"
+					 data-callback="handleCredentialResponse">
+				</div>
+				<div class="g_id_signin"
+					 data-type="standard"
+					 data-size="large"
+					 data-theme="outline"
+					 data-text="sign_in_with"
+					 data-shape="rectangular"
+					 data-logo_alignment="left">
+				</div>
+			</div>
+		</div>
         
         <!-- Main Container - Shown only when logged in -->
         <div id="main-container" class="tab-container" style="display: none;">
@@ -644,25 +656,12 @@
 		let userRegistry = [];
 		let selectedUserSheetId = null;
 		
-		// Initialize Google Sign-in
-		window.onload = function() {
-			google.accounts.id.initialize({
-				client_id: "1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com",
-				callback: handleCredentialResponse
-			});
-			google.accounts.id.renderButton(
-				document.getElementById("signin-button"),
-				{ theme: "outline", size: "large" }
-			);
-			
-			// Setup tabs
-			setupTabs();
-			
-			// Setup form handling
-			setupFormHandling();
-		};
-		
-		function handleCredentialResponse(response) {
+		// Initialize the UI
+		setupTabs();
+		setupFormHandling();
+
+		// Set up Google Sign-In - IMPORTANT: This exposes the handler to window scope
+		window.handleCredentialResponse = function(response) {
 			// Get the token
 			userToken = response.credential;
 			
@@ -688,7 +687,7 @@
 				// Load user registry
 				loadUserRegistry();
 			});
-		}
+		};
 		
 		function parseJwtResponse(token) {
 			const base64Url = token.split('.')[1];
