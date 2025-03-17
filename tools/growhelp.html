@@ -824,10 +824,11 @@
 
 		// Event listener for the send button in the initial state
 		document.querySelector('.initial-state .send-button').addEventListener('click', sendMessageFromInitialState);
-		document.querySelector('.initial-state .message-input').addEventListener('paste', handlePaste);
-		
-		imageUploadButton.addEventListener('click', () => {
-			fileInput.click();
+		document.querySelector('.initial-state .message-input').addEventListener('keydown', function(event) {
+			if (event.key === 'Enter') {
+				event.preventDefault();
+				sendMessageFromInitialState();
+			}
 		});
 
 		fileInput.addEventListener('change', handleFileSelect);
@@ -854,6 +855,23 @@
 			img.src = newImageUrl;
 		  }
 		});
+
+		function sendMessageFromInitialState() {
+			let inputField = document.querySelector('.initial-state .message-input');
+			let userMessage = inputField.value.trim();
+			
+			// If there's no text but there is an image, use a default prompt
+			if (userMessage === "" && !currentImageData) return; // Prevent empty messages with no image
+			
+			// Hide initial state & show chat UI
+			switchToAssistantMode();
+			
+			// Clear input field
+			inputField.value = "";
+			
+			// Send the message
+			sendQuestion(userMessage);
+		}
 
 		// Function to generate an image with specified ratio using Pollinations API
 		function generateImage(prompt, type = "standard") {
@@ -1135,24 +1153,6 @@
 			// Insert before input container
 			questionInput.insertBefore(imagePreviewElement, messageInput);
 		}
-
-		function sendMessageFromInitialState() {
-			let inputField = document.querySelector('.initial-state .message-input');
-			let userMessage = inputField.value.trim();
-			
-			// If there's no text but there is an image, use a default prompt
-			if (userMessage === "" && !currentImageData) return; // Prevent empty messages with no image
-			
-			// Hide initial state & show chat UI
-			switchToAssistantMode();
-			
-			// Clear input field
-			inputField.value = "";
-			
-			// Use the existing sendQuestion function for API communication
-			sendQuestion(userMessage);
-		}
-
 
 		// Switch to Assistant Mode
 		function switchToAssistantMode() {
