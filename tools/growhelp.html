@@ -893,14 +893,75 @@
 
 		async function generateAudio(text) {
 			try {
-				// Create a more direct prompt, no need for verbatim instruction
-				const encodedText = encodeURIComponent(text);
-				const voice = 'nova'; // or alloy, echo, etc.
+				const response = await fetch('https://text.pollinations.ai/openai', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						model: 'openai',
+						messages: [
+							{ 
+								role: 'user', 
+								content: `Convert this text to speech: ${text}`
+							}
+						],
+						tools: [
+							{
+								type: "function",
+								function: {
+									name: "text_to_speech",
+									description: "Converts text to speech audio",
+									parameters: {
+										type: "object",
+										properties: {
+											text: {
+												type: "string",
+												description: "The text to convert to speech"
+											},
+											voice: {
+												type: "string",
+												enum: ["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
+												description: "The voice to use for the audio"
+											}
+										},
+										required: ["text"]
+									}
+								}
+							}
+						],
+						tool_choice: {
+							type: "function",
+							function: {
+								name: "text_to_speech"
+							}
+						}
+					})
+				});
+
+				if (!response.ok) {
+					throw new Error('Audio generation request failed');
+				}
+
+				const data = await response.json();
 				
-				// Use streaming=false to get the full audio at once
-				const url = `https://text.pollinations.ai/${encodedText}?model=openai-audio&voice=${voice}&streaming=false`;
-				console.log("Generating audio with URL:", url);
-				return url;
+				// Extract the audio URL from the response
+				if (data.choices && 
+					data.choices[0] && 
+					data.choices[0].message && 
+					data.choices[0].message.tool_calls && 
+					data.choices[0].message.tool_calls.length > 0) {
+					
+					const toolCall = data.choices[0].message.tool_calls[0];
+					if (toolCall.function && toolCall.function.name === "text_to_speech") {
+						const args = JSON.parse(toolCall.function.arguments);
+						
+						// The URL should be in the response
+						return args.url || null;
+					}
+				}
+				
+				return null;
 			} catch (error) {
 				console.error("Audio generation error:", error);
 				return null;
@@ -1205,52 +1266,45 @@
 			
 			// Add audio player if voice is enabled
 			if (voiceEnabled) {
-				// Extract text content without markdown or image commands
-				let textContent = content
-					.replace(/\[IMAGE(_SQUARE|_LANDSCAPE|_PORTRAIT)?:.*?\]/g, '')
-					.replace(/\!\[.*?\]\(.*?\)/g, '') // Remove markdown images
-					.replace(/\[(.*?)\]\(.*?\)/g, '$1') // Replace markdown links with just the text
-					.replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
-					.replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
-					.replace(/\`\`\`[\s\S]*?\`\`\`/g, 'Code block removed for voice') // Remove code blocks
-					.replace(/\`(.*?)\`/g, '$1'); // Remove inline code
+				// First render the message with markdown
+				message.innerHTML = marked.parse(trimmedContent, { renderer });
 				
-				// Get first 3-4 significant sentences for voice output (more complete response)
-				let sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 5);
+				// Now extract readable text from the actual rendered HTML
+				let readableText = getReadableText(message.innerHTML);
 				
-				// Create a more meaningful voice text including a greeting and key points
-				let voiceText = sentences.slice(0, 4).join('. ');
+				// Limit to a reasonable length (first 3-4 sentences)
+				let sentences = readableText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 5);
+				let voiceText = sentences.slice(0, 4).join(' ');
 				
-				// Add voice marker to show user we're generating voice
+				// Add voice marker
 				const voiceMarker = document.createElement('div');
 				voiceMarker.className = 'voice-indicator';
 				voiceMarker.innerHTML = '<span>Generating voice...</span>';
 				message.appendChild(voiceMarker);
 				
-				// Generate audio asynchronously
+				// Generate audio for exactly what's displayed
 				generateAudio(voiceText).then(audioUrl => {
 					if (audioUrl) {
-						// Replace marker with actual audio player
 						voiceMarker.remove();
-						const audioContainer = createAudioPlayer(audioUrl);
-						message.appendChild(audioContainer);
+						const audioPlayer = document.createElement('audio');
+						audioPlayer.controls = true;
+						audioPlayer.className = 'audio-player';
+						audioPlayer.src = audioUrl;
 						
-						// Auto-play after a small delay to ensure loading
+						message.appendChild(audioPlayer);
+						
+						// Auto-play after a small delay
 						setTimeout(() => {
-							const player = audioContainer.querySelector('audio');
-							if (player) {
-								player.play().catch(e => console.log('Auto-play prevented:', e));
-							}
+							audioPlayer.play().catch(e => console.log('Auto-play prevented:', e));
 						}, 500);
 					} else {
 						voiceMarker.innerHTML = '<span>Voice generation failed</span>';
 					}
 				});
+			} else {
+				// Just render the message without audio
+				message.innerHTML = marked.parse(trimmedContent, { renderer });
 			}
-		  } else {
-			// For user messages, just escape HTML
-			message.textContent = content;
-		  }
 		  
 		  conversationContainer.appendChild(message);
 		  conversationContainer.scrollTop = conversationContainer.scrollHeight;
@@ -1299,6 +1353,30 @@
 			};
 			
 			reader.readAsDataURL(file);
+		}
+
+		function getReadableText(htmlContent) {
+			// Create a temporary div to parse the HTML
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = htmlContent;
+			
+			// Get text content, preserving paragraph structure
+			let text = '';
+			const paragraphs = tempDiv.querySelectorAll('p');
+			
+			if (paragraphs.length) {
+				// If we have paragraphs, use them (up to first 3-4)
+				const maxParagraphs = Math.min(paragraphs.length, 3);
+				for (let i = 0; i < maxParagraphs; i++) {
+					text += paragraphs[i].textContent + ' ';
+				}
+			} else {
+				// Otherwise just get the raw text
+				text = tempDiv.textContent;
+			}
+			
+			// Clean up the text
+			return text.trim();
 		}
 
 		// Send Question to API
