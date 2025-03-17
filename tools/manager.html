@@ -508,8 +508,7 @@
 					 data-client_id="1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com"
 					 data-callback="handleCredentialResponse"
 					 data-auto_prompt="false"
-					 data-ux_mode="popup"
-					 data-itp_support="true">
+					 data-prompt_parent_id="g_id_onload">
 				</div>
 				<div class="g_id_signin"
 					 data-type="standard"
@@ -658,19 +657,52 @@
 	document.addEventListener('DOMContentLoaded', function() {
 
 		// Check if we're returning from OAuth
-		if (window.location.hash.includes('access_token=')) {
+		if (window.location.hash && window.location.hash.includes('access_token=')) {
+			console.log('Detected access token in URL hash');
+			
+			// Extract token from URL
 			const params = new URLSearchParams(window.location.hash.substring(1));
 			userToken = params.get('access_token');
-			console.log('Received access token from redirect');
+			console.log('Access token obtained from redirect');
 			
 			// Clear the hash
 			window.history.replaceState({}, document.title, window.location.pathname);
 			
-			// If we were waiting for authorization, continue the flow
+			// Check if we were waiting for authorization
 			if (localStorage.getItem('waitingForAuth') === 'true') {
+				console.log('Resuming from authorization redirect');
+				
+				// Restore user profile from localStorage
+				userProfile = {
+					name: localStorage.getItem('userName') || 'User',
+					email: localStorage.getItem('userEmail') || '',
+					picture: localStorage.getItem('userPicture') || '',
+					id: localStorage.getItem('userEmail') || ''  // Use email as ID
+				};
+				
+				// Clear stored data
 				localStorage.removeItem('waitingForAuth');
-				// Continue with the user flow
-				afterAuthorization();
+				localStorage.removeItem('userName');
+				localStorage.removeItem('userEmail');
+				localStorage.removeItem('userPicture');
+				
+				// Update UI
+				document.getElementById('auth-container').style.display = 'none';
+				document.getElementById('main-container').style.display = 'block';
+				document.getElementById('user-name').textContent = userProfile.name;
+				document.getElementById('user-image').src = userProfile.picture || 'https://via.placeholder.com/36';
+				
+				// Continue with spreadsheet operations
+				setTimeout(async () => {
+					try {
+						await getUserSpreadsheet();
+						await loadUserSeeds();
+						await loadUserRegistry();
+					} catch (error) {
+						console.error('Error initializing after redirect:', error);
+						alert('There was an error setting up your seed collection. Please try again.');
+					}
+				}, 500);
 			}
 		}
 	
@@ -756,43 +788,62 @@
 
 		async function exchangeToken() {
 			try {
-				// We need to use the token server to exchange the ID token for an access token
-				// This requires a server component - for now, we'll use the Google OAuth 2.0 Playground
-				// In production, you'd implement a token exchange server
+				// Show a user-friendly message about needing additional permissions
+				const authForm = document.createElement('div');
+				authForm.style.position = 'fixed';
+				authForm.style.top = '50%';
+				authForm.style.left = '50%';
+				authForm.style.transform = 'translate(-50%, -50%)';
+				authForm.style.background = 'white';
+				authForm.style.padding = '20px';
+				authForm.style.borderRadius = '8px';
+				authForm.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+				authForm.style.zIndex = '9999';
+				authForm.style.maxWidth = '400px';
 				
-				// For testing purposes, we'll ask the user to authorize directly
-				const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com&redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}&response_type=token&scope=https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file&prompt=consent`;
+				authForm.innerHTML = `
+					<h3 style="margin-bottom: 20px; color: #2D5E32;">Additional Permissions Required</h3>
+					<p style="margin-bottom: 15px;">To manage your seed collection, we need permission to access your Google Sheets.</p>
+					<div style="display: flex; justify-content: space-between; margin-top: 20px;">
+						<button id="auth-cancel" style="padding: 8px 16px; background: #ddd; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+						<button id="auth-proceed" style="padding: 8px 16px; background: #2D5E32; color: white; border: none; border-radius: 4px; cursor: pointer;">Authorize</button>
+					</div>
+				`;
 				
-				console.log('Opening authorization window...');
-				const authWindow = window.open(authUrl, 'auth', 'width=600,height=600');
+				document.body.appendChild(authForm);
 				
-				// Monitor for the redirect with token
-				const checkToken = setInterval(() => {
-					try {
-						// Check if we can access the window (if it's on our domain)
-						if (authWindow.location.href.includes('#access_token=')) {
-							clearInterval(checkToken);
-							const params = new URLSearchParams(authWindow.location.hash.substring(1));
-							userToken = params.get('access_token');
-							authWindow.close();
-							console.log('Received access token');
-						}
-					} catch (e) {
-						// Can't access location yet, window is probably on another domain
-					}
-				}, 500);
-				
-				// Add a timeout
-				setTimeout(() => {
-					clearInterval(checkToken);
-					if (authWindow && !authWindow.closed) {
-						authWindow.close();
-					}
-				}, 120000); // 2 minute timeout
+				return new Promise((resolve, reject) => {
+					// Add event listeners
+					document.getElementById('auth-cancel').addEventListener('click', () => {
+						document.body.removeChild(authForm);
+						reject(new Error('Authorization cancelled'));
+					});
+					
+					document.getElementById('auth-proceed').addEventListener('click', () => {
+						document.body.removeChild(authForm);
+						
+						// Create OAuth URL - we'll redirect the user directly
+						const scopes = encodeURIComponent('https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file');
+						const clientId = '1084684082826-tm0q6a2n0akgft065ie5irgth1fogo7c.apps.googleusercontent.com';
+						const redirectUri = encodeURIComponent(window.location.href.split('#')[0]); // Ensure no hash
+						
+						const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scopes}&prompt=consent`;
+						
+						console.log('Redirecting to authorization URL:', authUrl);
+						
+						// Save state so we know to resume after redirect
+						localStorage.setItem('waitingForAuth', 'true');
+						localStorage.setItem('userEmail', userProfile?.email || '');
+						localStorage.setItem('userName', userProfile?.name || '');
+						localStorage.setItem('userPicture', userProfile?.picture || '');
+						
+						// Redirect to Google auth
+						window.location.href = authUrl;
+					});
+				});
 			} catch (error) {
-				console.error('Error exchanging token:', error);
-				// Fall back to using the ID token and hope it works
-				console.log('Using ID token as fallback');
+				console.error('Error during token exchange:', error);
+				throw error;
 			}
 		}
 
