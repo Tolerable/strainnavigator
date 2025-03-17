@@ -591,6 +591,32 @@
 			background-color: var(--accent-color);
 			animation: pulse 1.5s infinite;
 		}
+
+		.replay-audio-btn {
+		  position: absolute;
+		  right: -40px;
+		  bottom: 10px;
+		  background: var(--accent-color);
+		  border: none;
+		  border-radius: 50%;
+		  width: 32px;
+		  height: 32px;
+		  display: flex;
+		  align-items: center;
+		  justify-content: center;
+		  cursor: pointer;
+		  opacity: 0.8;
+		  transition: opacity 0.2s;
+		  color: white;
+		}
+
+		.replay-audio-btn:hover {
+		  opacity: 1;
+		}
+
+		.message.assistant {
+		  position: relative; /* Needed for absolute positioning of child elements */
+		}
 		
         @keyframes pulse {
             0%, 100% {
@@ -857,21 +883,23 @@
 		});
 
 		function getReadableText(htmlContent) {
-			// Create a temporary div to parse the HTML
-			const tempDiv = document.createElement('div');
-			tempDiv.innerHTML = htmlContent;
-			
-			// Get the full text content
-			let text = tempDiv.textContent;
-			
-			// Only remove the signature at the very end
-			const signatureText = "StrainNavigator Grow Guide";
-			const signatureIndex = text.lastIndexOf(signatureText);
-			if (signatureIndex !== -1) {
-				text = text.substring(0, signatureIndex).trim();
-			}
-			
-			return text;
+		  const tempDiv = document.createElement('div');
+		  tempDiv.innerHTML = htmlContent;
+		  
+		  // Get full text content
+		  let text = tempDiv.textContent;
+		  
+		  // Remove emojis which can cause TTS to choke
+		  text = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu, '');
+		  
+		  // Remove signature
+		  const signatureText = "StrainNavigator Grow Guide";
+		  const signatureIndex = text.lastIndexOf(signatureText);
+		  if (signatureIndex !== -1) {
+			text = text.substring(0, signatureIndex).trim();
+		  }
+		  
+		  return text;
 		}
 
 		function sendMessageFromInitialState() {
@@ -1238,30 +1266,38 @@
 			
 			// Add audio player if voice is enabled
 			if (voiceEnabled) {
-				// Now extract readable text from the actual rendered HTML
-				let readableText = getReadableText(message.innerHTML);
-				
-				// Limit to a reasonable length (first 3-4 sentences)
-				let sentences = readableText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 5);
-				let voiceText = sentences.slice(0, 4).join(' ');
-				
-				// Add voice marker
-				const voiceMarker = document.createElement('div');
-				voiceMarker.className = 'voice-indicator';
-				voiceMarker.innerHTML = '<span>Preparing voice...</span>';
-				message.appendChild(voiceMarker);
-				
-				// Use the streaming audio function directly
-				generateAndPlayAudio(voiceText).then(success => {
-					if (success) {
-						voiceMarker.remove(); // Remove when done playing
-					} else {
-						voiceMarker.innerHTML = '<span>Voice generation failed</span>';
-					}
-				});
+			  // Now extract readable text from the actual rendered HTML
+			  let readableText = getReadableText(message.innerHTML);
+			  
+			  // Add replay button
+			  const replayButton = document.createElement('button');
+			  replayButton.className = 'replay-audio-btn';
+			  replayButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+			  replayButton.setAttribute('data-text', readableText);
+			  replayButton.onclick = function() {
+				generateAndPlayAudio(this.getAttribute('data-text'));
+			  };
+			  
+			  // Add button to message
+			  message.appendChild(replayButton);
+			  
+			  // Add voice marker
+			  const voiceMarker = document.createElement('div');
+			  voiceMarker.className = 'voice-indicator';
+			  voiceMarker.innerHTML = '<span>Preparing voice...</span>';
+			  message.appendChild(voiceMarker);
+			  
+			  // Use the streaming audio function directly
+			  generateAndPlayAudio(readableText).then(success => {
+				if (success) {
+				  voiceMarker.remove(); // Remove when done playing
+				} else {
+				  voiceMarker.innerHTML = '<span>Voice generation failed</span>';
+				}
+			  });
 			} else {
-				// Just render the message without audio
-				message.innerHTML = marked.parse(trimmedContent, { renderer });
+			  // Just render the message without audio
+			  message.innerHTML = marked.parse(trimmedContent, { renderer });
 			}
 		  } else {
 			// For user messages, just escape HTML
