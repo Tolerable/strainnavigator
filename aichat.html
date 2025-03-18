@@ -775,9 +775,10 @@
 		async function speakText(text) {
 		  if (!ttsEnabled) return;
 		  
-		  // Cancel any currently playing speech
-		  if (synthesis.speaking) {
-			synthesis.cancel();
+		  // Stop any currently playing audio
+		  if (currentlyPlayingAudio) {
+			currentlyPlayingAudio.pause();
+			currentlyPlayingAudio = null;
 		  }
 		  
 		  try {
@@ -793,47 +794,25 @@
 			// Apply word substitutions
 			cleanText = applySubstitutions(cleanText);
 			
-			// Get the audio URL 
+			// Get the audio URL from pollinations.ai
 			const audioUrl = await generateAudio(cleanText);
 			if (!audioUrl) return;
 			
-			// Create an audio element to play it
+			// Create and play audio element
 			const audio = new Audio(audioUrl);
 			
-			// Play it
+			// Store reference to current audio
+			currentlyPlayingAudio = audio;
+			
+			// Play the audio
 			await audio.play();
 			
+			// Clear reference when audio finishes
+			audio.onended = function() {
+			  currentlyPlayingAudio = null;
+			};
 		  } catch (error) {
 			console.error("Failed to generate or play audio:", error);
-			// Fall back to browser's speech synthesis if pollinations API fails
-			fallbackToSynthesis(text);
-		  }
-		}
-
-		function fallbackToSynthesis(text) {
-		  try {
-			let cleanText = text
-			  .replace(/\*/g, '')
-			  .replace(/\n/g, ' ')
-			  .replace(/\s+/g, ' ')
-			  .trim();
-			  
-			const sentences = cleanText.split(/([.!?])\s+/);
-			
-			sentences.forEach((sentence, index) => {
-			  if (sentence.trim()) {
-				const utterance = new SpeechSynthesisUtterance(applySubstitutions(sentence));
-				utterance.voice = synthesis.getVoices().find(voice => voice.name === currentVoice);
-				
-				setTimeout(() => {
-				  if (ttsEnabled) {
-					synthesis.speak(utterance);
-				  }
-				}, index * 100);
-			  }
-			});
-		  } catch (error) {
-			console.error("Fallback synthesis failed:", error);
 		  }
 		}
 
