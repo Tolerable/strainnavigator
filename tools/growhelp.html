@@ -591,6 +591,36 @@
 			background-color: var(--accent-color);
 			animation: pulse 1.5s infinite;
 		}
+
+		.voice-control-container {
+		  margin-top: 10px;
+		  display: flex;
+		  align-items: center;
+		  gap: 10px;
+		}
+
+		.voice-replay-button {
+		  display: inline-flex;
+		  align-items: center;
+		  gap: 5px;
+		  background: var(--accent-color);
+		  color: white;
+		  border: none;
+		  border-radius: 16px;
+		  padding: 5px 10px;
+		  font-size: 12px;
+		  cursor: pointer;
+		  transition: background-color 0.2s;
+		}
+
+		.voice-replay-button:hover {
+		  background: #3e8e41;
+		}
+
+		.voice-replay-button svg {
+		  width: 14px;
+		  height: 14px;
+		}
 		
         @keyframes pulse {
             0%, 100% {
@@ -1284,30 +1314,59 @@
 			
 			// Add audio player if voice is enabled
 			if (voiceEnabled) {
-				// Now extract readable text from the actual rendered HTML
-				let readableText = getReadableText(message.innerHTML);
-				
-				// Limit to a reasonable length (first 3-4 sentences)
-				let sentences = readableText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 5);
-				let voiceText = sentences.slice(0, 4).join(' ');
-				
-				// Add voice marker
-				const voiceMarker = document.createElement('div');
-				voiceMarker.className = 'voice-indicator';
-				voiceMarker.innerHTML = '<span>Preparing voice...</span>';
-				message.appendChild(voiceMarker);
-				
-				// Use the streaming audio function directly
-				generateAndPlayAudio(voiceText).then(success => {
-					if (success) {
-						voiceMarker.remove(); // Remove when done playing
-					} else {
-						voiceMarker.innerHTML = '<span>Voice generation failed</span>';
+			  // Now extract readable text from the actual rendered HTML
+			  let readableText = getReadableText(message.innerHTML);
+			  
+			  // Limit to a reasonable length (first 3-4 sentences)
+			  let sentences = readableText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 5);
+			  let voiceText = sentences.slice(0, 4).join(' ');
+			  
+			  // Create a container for the voice controls
+			  const voiceControlContainer = document.createElement('div');
+			  voiceControlContainer.className = 'voice-control-container';
+			  
+			  // Add voice marker
+			  const voiceMarker = document.createElement('div');
+			  voiceMarker.className = 'voice-indicator';
+			  voiceMarker.innerHTML = '<span>Preparing voice...</span>';
+			  
+			  // Create replay button (initially hidden)
+			  const replayButton = document.createElement('button');
+			  replayButton.className = 'voice-replay-button';
+			  replayButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Replay';
+			  replayButton.style.display = 'none';
+			  
+			  // Add elements to container
+			  voiceControlContainer.appendChild(voiceMarker);
+			  voiceControlContainer.appendChild(replayButton);
+			  message.appendChild(voiceControlContainer);
+			  
+			  // Use the streaming audio function
+			  generateAndPlayAudio(voiceText).then(audioUrl => {
+				if (audioUrl) {
+				  // Remove loading indicator
+				  voiceMarker.remove();
+				  
+				  // Show replay button
+				  replayButton.style.display = 'inline-flex';
+				  
+				  // Set up replay button functionality
+				  replayButton.onclick = function() {
+					// Stop any currently playing audio
+					if (currentlyPlayingAudio) {
+					  currentlyPlayingAudio.pause();
+					  currentlyPlayingAudio.currentTime = 0;
 					}
-				});
-			} else {
-				// Just render the message without audio
-				message.innerHTML = marked.parse(trimmedContent, { renderer });
+					
+					// Play this message's audio
+					const audio = new Audio(audioUrl);
+					currentlyPlayingAudio = audio;
+					audio.play();
+				  };
+				} else {
+				  voiceMarker.innerHTML = '<span>Voice generation failed</span>';
+				}
+			  });
 			}
 		  } else {
 			// For user messages, just escape HTML
