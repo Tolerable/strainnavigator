@@ -592,6 +592,41 @@
 			animation: pulse 1.5s infinite;
 		}
 		
+		/* Audio replay button styles */
+		.audio-replay-btn {
+		  display: flex;
+		  align-items: center;
+		  justify-content: center;
+		  position: absolute;
+		  bottom: -12px;
+		  right: 10px;
+		  width: 24px;
+		  height: 24px;
+		  background: var(--accent-color);
+		  border-radius: 50%;
+		  border: none;
+		  cursor: pointer;
+		  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+		  transition: all 0.2s ease;
+		  opacity: 0.8;
+		  z-index: 5;
+		}
+
+		.audio-replay-btn:hover {
+		  transform: scale(1.1);
+		  opacity: 1;
+		}
+
+		.audio-replay-btn svg {
+		  width: 14px;
+		  height: 14px;
+		  color: white;
+		}
+
+		.message.assistant {
+		  position: relative; /* Ensure the position is relative for absolute positioning of the button */
+		}	
+		
         @keyframes pulse {
             0%, 100% {
                 transform: scale(0.8);
@@ -1282,33 +1317,58 @@
 			// Apply markdown parsing
 			message.innerHTML = marked.parse(trimmedContent, { renderer });
 			
+			// Extract readable text from the actual rendered HTML for audio
+			let readableText = getReadableText(message.innerHTML);
+			
+			// Limit to a reasonable length (first 3-4 sentences)
+			let sentences = readableText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 5);
+			let voiceText = sentences.slice(0, 4).join(' ');
+			
+			// Store the text for replay purposes
+			message.dataset.voiceText = voiceText;
+			
 			// Add audio player if voice is enabled
 			if (voiceEnabled) {
-				// Now extract readable text from the actual rendered HTML
-				let readableText = getReadableText(message.innerHTML);
-				
-				// Limit to a reasonable length (first 3-4 sentences)
-				let sentences = readableText.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 5);
-				let voiceText = sentences.slice(0, 4).join(' ');
-				
-				// Add voice marker
-				const voiceMarker = document.createElement('div');
-				voiceMarker.className = 'voice-indicator';
-				voiceMarker.innerHTML = '<span>Preparing voice...</span>';
-				message.appendChild(voiceMarker);
-				
-				// Use the streaming audio function directly
-				generateAndPlayAudio(voiceText).then(success => {
-					if (success) {
-						voiceMarker.remove(); // Remove when done playing
-					} else {
-						voiceMarker.innerHTML = '<span>Voice generation failed</span>';
-					}
-				});
-			} else {
-				// Just render the message without audio
-				message.innerHTML = marked.parse(trimmedContent, { renderer });
+			  // Add voice marker
+			  const voiceMarker = document.createElement('div');
+			  voiceMarker.className = 'voice-indicator';
+			  voiceMarker.innerHTML = '<span>Preparing voice...</span>';
+			  message.appendChild(voiceMarker);
+			  
+			  // Use the streaming audio function directly
+			  generateAndPlayAudio(voiceText).then(success => {
+				if (success) {
+				  voiceMarker.remove(); // Remove when done playing
+				} else {
+				  voiceMarker.innerHTML = '<span>Voice generation failed</span>';
+				}
+			  });
 			}
+			
+			// Always add the replay button regardless of voice being enabled
+			// It will be styled to show only when appropriate
+			const replayButton = document.createElement('button');
+			replayButton.className = 'audio-replay-btn';
+			replayButton.title = 'Replay audio';
+			replayButton.style.display = voiceEnabled ? 'flex' : 'none'; // Only show when voice is enabled
+			replayButton.innerHTML = `
+			  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<polygon points="5 3 19 12 5 21 5 3"></polygon>
+			  </svg>
+			`;
+			replayButton.onclick = function() {
+			  // Stop any currently playing audio
+			  if (currentlyPlayingAudio) {
+				currentlyPlayingAudio.pause();
+				currentlyPlayingAudio.currentTime = 0;
+				currentlyPlayingAudio = null;
+			  }
+			  
+			  // Play this message's audio
+			  generateAndPlayAudio(message.dataset.voiceText);
+			};
+			
+			message.appendChild(replayButton);
 		  } else {
 			// For user messages, just escape HTML
 			message.textContent = content;
@@ -1564,43 +1624,48 @@
 
 		// Set up voice toggle
 		document.addEventListener('DOMContentLoaded', function() {
-			const voiceToggle = document.getElementById('voice-toggle');
+		  const voiceToggle = document.getElementById('voice-toggle');
+		  
+		  // Load saved preference
+		  loadVoicePreference();
+		  
+		  // Update system prompt based on voice state
+		  if (voiceEnabled) {
+			state.systemPrompt += " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.";
+		  }
+		  
+		  // Handle toggle changes
+		  voiceToggle.addEventListener('change', function() {
+			saveVoicePreference(this.checked);
 			
-			// Load saved preference
-			loadVoicePreference();
-			
-			// Update system prompt based on voice state
-			if (voiceEnabled) {
-				state.systemPrompt += " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.";
+			// Stop audio playback when toggled off
+			if (!this.checked && currentlyPlayingAudio) {
+			  currentlyPlayingAudio.pause();
+			  currentlyPlayingAudio.currentTime = 0;
+			  currentlyPlayingAudio = null;
 			}
 			
-			// Handle toggle changes
-			voiceToggle.addEventListener('change', function() {
-				saveVoicePreference(this.checked);
-				
-				// Stop audio playback when toggled off
-				if (!this.checked && currentlyPlayingAudio) {
-					currentlyPlayingAudio.pause();
-					currentlyPlayingAudio.currentTime = 0;
-					currentlyPlayingAudio = null;
-				}
-				
-				// Update system prompt when toggle changes
-				if (this.checked) {
-					// Voice mode ON - shorter, more conversational
-					state.systemPrompt = state.systemPrompt.replace(
-						" When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
-						""
-					);
-					state.systemPrompt += " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.";
-				} else {
-					// Voice mode OFF - normal responses
-					state.systemPrompt = state.systemPrompt.replace(
-						" When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
-						""
-					);
-				}
+			// Update visibility of all replay buttons
+			document.querySelectorAll('.audio-replay-btn').forEach(btn => {
+			  btn.style.display = this.checked ? 'flex' : 'none';
 			});
+			
+			// Update system prompt when toggle changes
+			if (this.checked) {
+			  // Voice mode ON - shorter, more conversational
+			  state.systemPrompt = state.systemPrompt.replace(
+				" When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
+				""
+			  );
+			  state.systemPrompt += " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.";
+			} else {
+			  // Voice mode OFF - normal responses
+			  state.systemPrompt = state.systemPrompt.replace(
+				" When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
+				""
+			  );
+			}
+		  });
 		});
 		
     </script>
