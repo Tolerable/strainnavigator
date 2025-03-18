@@ -741,6 +741,7 @@
 		let currentImageData = null;
 		let imagePreviewElement = null;
 		let voiceEnabled = false;
+		let currentlyPlayingAudio = null;
 		
 		// State management
 		let state = {
@@ -984,10 +985,21 @@
 			
 			// Create and play audio directly
 			const audio = new Audio(audioUrl);
+			
+			// Store reference to current audio
+			currentlyPlayingAudio = audio;
+			
 			await audio.play();
+			
+			// Clear reference when audio finishes naturally
+			audio.onended = function() {
+			  currentlyPlayingAudio = null;
+			};
+			
 			return true;
 		  } catch (error) {
 			console.error("Audio playback error:", error);
+			currentlyPlayingAudio = null;
 			return false;
 		  }
 		}
@@ -1566,6 +1578,13 @@
 			voiceToggle.addEventListener('change', function() {
 				saveVoicePreference(this.checked);
 				
+				// Stop audio playback when toggled off
+				if (!this.checked && currentlyPlayingAudio) {
+					currentlyPlayingAudio.pause();
+					currentlyPlayingAudio.currentTime = 0;
+					currentlyPlayingAudio = null;
+				}
+				
 				// Update system prompt when toggle changes
 				if (this.checked) {
 					// Voice mode ON - shorter, more conversational
@@ -1582,7 +1601,6 @@
 					);
 				}
 			});
-		});
 		
     </script>
 </body>
