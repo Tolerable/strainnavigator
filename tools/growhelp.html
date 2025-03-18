@@ -767,6 +767,7 @@
 		let currentImageData = null;
 		let imagePreviewElement = null;
 		let voiceEnabled = false;
+		let currentAudio = null;
 		
 		// State management
 		let state = {
@@ -972,16 +973,30 @@
 		// Function to play audio directly
 		async function generateAndPlayAudio(text) {
 		  try {
+			// Stop any currently playing audio
+			if (currentAudio) {
+			  currentAudio.pause();
+			  currentAudio = null;
+			}
+			
 			// Get the audio URL
 			const audioUrl = await generateAudio(text);
 			if (!audioUrl) return false;
 			
 			// Create and play audio directly
 			const audio = new Audio(audioUrl);
+			currentAudio = audio;
+			
+			// Add an event for when audio finishes playing
+			audio.onended = function() {
+			  currentAudio = null;
+			};
+			
 			await audio.play();
 			return true;
 		  } catch (error) {
 			console.error("Audio playback error:", error);
+			currentAudio = null;
 			return false;
 		  }
 		}
@@ -1566,23 +1581,47 @@
 			
 			// Handle toggle changes
 			voiceToggle.addEventListener('change', function() {
-				saveVoicePreference(this.checked);
+			  saveVoicePreference(this.checked);
+			  
+			  // Stop any currently playing audio when toggled off
+			  if (!this.checked) {
+				// Find and stop any currently playing audio elements
+				const audioElements = document.querySelectorAll('audio');
+				audioElements.forEach(audio => {
+				  audio.pause();
+				  audio.currentTime = 0;
+				});
 				
-				// Update system prompt when toggle changes
-				if (this.checked) {
-					// Voice mode ON - shorter, more conversational
-					state.systemPrompt = state.systemPrompt.replace(
-						" When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
-						""
-					);
-					state.systemPrompt += " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.";
-				} else {
-					// Voice mode OFF - normal responses
-					state.systemPrompt = state.systemPrompt.replace(
-						" When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
-						""
-					);
-				}
+				// Hide all replay buttons and voice indicators
+				document.querySelectorAll('.replay-audio-btn').forEach(btn => {
+				  btn.style.display = 'none';
+				});
+				
+				document.querySelectorAll('.voice-indicator').forEach(indicator => {
+				  indicator.remove();
+				});
+			  } else {
+				// Show replay buttons when voice is toggled on
+				document.querySelectorAll('.replay-audio-btn').forEach(btn => {
+				  btn.style.display = 'flex';
+				});
+			  }
+			  
+			  // Update system prompt when toggle changes
+			  if (this.checked) {
+				// Voice mode ON - shorter, more conversational
+				state.systemPrompt = state.systemPrompt.replace(
+				  " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
+				  ""
+				);
+				state.systemPrompt += " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.";
+			  } else {
+				// Voice mode OFF - normal responses
+				state.systemPrompt = state.systemPrompt.replace(
+				  " When voice mode is ON, keep responses shorter and more conversational, limiting to 2-3 sentences for the main points.",
+				  ""
+				);
+			  }
 			});
 		});
 		
