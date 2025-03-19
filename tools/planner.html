@@ -148,21 +148,6 @@
             font-size: 12px;
         }
 
-		.node-traits {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 4px;
-			margin-bottom: 6px;
-		}
-
-		.strain-trait {
-			padding: 2px 6px;
-			border-radius: 3px;
-			font-size: 11px;
-			font-weight: 500;
-			color: white;
-		}
-
 		.strain-trait.photo {
 			background-color: #4db6ac;
 		}
@@ -238,31 +223,59 @@
             height: 2000px;
         }
         
-        .breeding-node {
-            position: absolute;
-            border-radius: 6px;
-            min-width: 160px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            cursor: grab;
-            user-select: none;
-            z-index: 10;
-            background-color: #f8f8f8;
-            color: #333;
-            transition: transform 0.3s ease;
-        }
+		/* Node styling for ComfyUI-like appearance */
+		.breeding-node {
+			background-color: #333333;
+			border-radius: 6px;
+			min-width: 160px;
+			box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+			user-select: none;
+			position: absolute;
+			z-index: 10;
+			border: 1px solid #444;
+			color: #fff;
+		}
+
+		.strain-node {
+			border-left: 3px solid #FFB74D;
+		}
+
+		.cross-node {
+			border-left: 3px solid #9C27B0;
+		}
+
+		.node-header {
+			background-color: #222;
+			border-bottom: 1px solid #444;
+			padding: 8px 10px;
+			font-weight: 600;
+			border-radius: 6px 6px 0 0;
+			display: flex;
+			justify-content: space-between;
+		}
+
+		.node-content {
+			padding: 10px;
+		}
+
+		.node-traits {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 5px;
+			margin-bottom: 8px;
+		}
+
+		.strain-trait {
+			padding: 2px 6px;
+			border-radius: 3px;
+			font-size: 11px;
+			font-weight: 500;
+			color: white;
+		}
+
         
         .breeding-node.selected {
             box-shadow: 0 0 0 3px #ffeb3b;
-        }
-        
-        .node-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background-color: #e0e0e0;
-            border-radius: 6px 6px 0 0;
-            position: relative;
         }
         
         .node-name {
@@ -292,10 +305,6 @@
             background-color: rgba(0, 0, 0, 0.2);
         }
         
-        .node-content {
-            padding: 10px;
-        }
-        
         .node-type {
             font-size: 12px;
             color: #666;
@@ -317,31 +326,67 @@
 			border-radius: 0 0 6px 6px;
 		}
 
+		/* Connection ports styling */
+		.connection-input {
+			display: flex;
+			justify-content: center;
+			position: absolute;
+			width: 100%;
+			top: -10px;
+		}
+
+		.connection-outputs {
+			display: flex;
+			justify-content: space-around;
+			padding: 5px 0;
+			margin-top: 5px;
+			border-top: 1px solid #444;
+		}
+
+		.connection-output {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding: 0 10px;
+		}
+
+		.connection-label {
+			font-size: 12px;
+			margin-bottom: 3px;
+			color: #bbb;
+		}
+
 		.connection-point {
-			width: 16px;
-			height: 16px;
+			width: 14px;
+			height: 14px;
 			border-radius: 50%;
 			cursor: pointer;
 			border: 2px solid #fff;
-			transition: transform 0.2s, box-shadow 0.2s;
+			position: relative;
+		}
+
+		.connection-point-input {
+			background-color: #4CAF50;
+			top: -5px;
 		}
 
 		.connection-point-female {
-			background-color: #e091b9; /* Bright pink for female */
+			background-color: #E91E63;
 		}
 
 		.connection-point-male {
-			background-color: #91b7e0; /* Bright blue for male */
+			background-color: #2196F3;
 		}
 
 		.connection-point:hover {
-			transform: scale(1.3);
+			transform: scale(1.2);
 			box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 		}
 
+		/* Connection line styling */
 		.connector {
 			stroke-linecap: round;
-			filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+			filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
 		}
         
         /* Node types */
@@ -640,15 +685,19 @@
             
             <div class="breeding-canvas" id="breeding-canvas">
                 <!-- SVG for connections -->
-                <svg class="connection-svg" id="connection-svg">
-                    <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                            refX="10" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="#b39ddb" />
-                        </marker>
-                    </defs>
-                    <g id="connections-group"></g>
-                </svg>
+				<svg class="connection-svg" id="connection-svg">
+					<defs>
+						<marker id="arrow-female" viewBox="0 0 10 10" refX="8" refY="5" 
+								markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+							<path d="M 0 0 L 10 5 L 0 10 z" fill="#E91E63"/>
+						</marker>
+						<marker id="arrow-male" viewBox="0 0 10 10" refX="8" refY="5" 
+								markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+							<path d="M 0 0 L 10 5 L 0 10 z" fill="#2196F3"/>
+						</marker>
+					</defs>
+					<g id="connections-group"></g>
+				</svg>
                 <!-- Nodes will be added here -->
             </div>
             
@@ -1167,27 +1216,26 @@
 				// Parse traits - a strain can have multiple traits
 				const traits = {
 					growthType: type.toLowerCase().includes('auto') ? 'AUTO' : 
-								type.toLowerCase().includes('photo') ? 'PHOTO' : '',
+							   type.toLowerCase().includes('photo') ? 'PHOTO' : '',
 					sexType: type.toLowerCase().includes('reg') ? 'REG' : 
 							type.toLowerCase().includes('fem') ? 'FEM' : '',
 					floweringType: type.toLowerCase().includes('fast') ? 'FAST' : ''
 				};
 				
 				// Determine node class
-				let nodeClass = 'breeding-node';
+				let nodeClass = 'breeding-node strain-node';
 				
 				// Create node element
 				const node = document.createElement('div');
 				node.id = nodeId;
 				node.className = nodeClass;
 				node.dataset.name = strainName;
-				node.dataset.type = type;
 				node.dataset.growthType = traits.growthType;
 				node.dataset.sexType = traits.sexType;
 				node.dataset.floweringType = traits.floweringType;
 				
 				// Set the starting position
-				const x = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 80;
+				const x = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 100;
 				const y = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
 				
 				node.style.left = `${x}px`;
@@ -1216,9 +1264,18 @@
 							</div>
 						` : ''}
 					</div>
-					<div class="connection-points">
-						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
-						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
+					<div class="connection-input">
+						<div class="connection-point connection-point-input" data-node="${nodeId}" data-role="input" title="Input"></div>
+					</div>
+					<div class="connection-outputs">
+						<div class="connection-output female">
+							<div class="connection-label">♀</div>
+							<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
+						</div>
+						<div class="connection-output male">
+							<div class="connection-label">♂</div>
+							<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
+						</div>
 					</div>
 				`;
 				
@@ -1226,7 +1283,7 @@
 				node.addEventListener('mousedown', startDraggingNode);
 				
 				// Setup connection points
-				node.querySelectorAll('.connection-point').forEach(point => {
+				node.querySelectorAll('.connection-point-female, .connection-point-male').forEach(point => {
 					point.addEventListener('mousedown', startConnecting);
 				});
 				
@@ -1245,7 +1302,6 @@
 				nodes.push({
 					id: nodeId,
 					name: strainName,
-					type: type,
 					growthType: traits.growthType,
 					sexType: traits.sexType,
 					floweringType: traits.floweringType,
@@ -1749,22 +1805,23 @@
 					return;
 				}
 				
-				// Set color based on role (female/male connection)
+				// Set color based on role
 				const connectionColor = role === 'female' ? '#e091b9' : '#91b7e0';
-				const lineWidth = 3; // Thicker lines
 				
-				// Create SVG line for connection
-				const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-				line.id = connectionId;
-				line.classList.add('connector');
-				line.setAttribute('stroke', connectionColor);
-				line.setAttribute('stroke-width', lineWidth);
-				line.setAttribute('data-source', sourceId);
-				line.setAttribute('data-target', targetId);
-				line.setAttribute('data-role', role);
+				// Create SVG path for connection - we'll use a straight line with directional arrow
+				const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+				path.id = connectionId;
+				path.classList.add('connector');
+				path.setAttribute('stroke', connectionColor);
+				path.setAttribute('stroke-width', '3');
+				path.setAttribute('fill', 'none');
+				path.setAttribute('marker-end', 'url(#arrow-' + role + ')');
+				path.setAttribute('data-source', sourceId);
+				path.setAttribute('data-target', targetId);
+				path.setAttribute('data-role', role);
 				
 				// Add to SVG
-				connectionsGroup.appendChild(line);
+				connectionsGroup.appendChild(path);
 				
 				// Add to connections array
 				connections.push({
@@ -1775,7 +1832,7 @@
 					color: connectionColor
 				});
 				
-				// Immediately update connection
+				// Update connection immediately
 				updateConnection(connectionId);
 			}
 
@@ -1786,8 +1843,8 @@
 					
 				if (!connection) return;
 				
-				const line = document.getElementById(connection.id);
-				if (!line) return;
+				const path = document.getElementById(connection.id);
+				if (!path) return;
 				
 				const sourceNode = document.getElementById(connection.source);
 				const targetNode = document.getElementById(connection.target);
@@ -1802,9 +1859,8 @@
 				const sourcePointClass = connection.role === 'female' ? 'connection-point-female' : 'connection-point-male';
 				const sourcePoint = sourceNode.querySelector(`.${sourcePointClass}`);
 				
-				// For the target, we need to get the opposite role's connection point
-				const targetPointClass = connection.role === 'female' ? 'connection-point-male' : 'connection-point-female';
-				const targetPoint = targetNode.querySelector(`.${targetPointClass}`);
+				// For the target, we connect to the input at the top
+				const targetPoint = targetNode.querySelector('.connection-point-input');
 				
 				if (!sourcePoint || !targetPoint) return;
 				
@@ -1818,11 +1874,21 @@
 				const endX = targetRect.left + targetRect.width/2 - canvasRect.left;
 				const endY = targetRect.top + targetRect.height/2 - canvasRect.top;
 				
-				// Update line position
-				line.setAttribute('x1', startX);
-				line.setAttribute('y1', startY);
-				line.setAttribute('x2', endX);
-				line.setAttribute('y2', endY);
+				// Create a path with a slight curve - more like ComfyUI
+				// We'll calculate control points to make a nice curve
+				const dx = endX - startX;
+				const dy = endY - startY;
+				const distance = Math.sqrt(dx * dx + dy * dy);
+				
+				// Control points for the curve - about 30% along the path
+				const controlPoint1X = startX + dx * 0.3;
+				const controlPoint1Y = startY + dy * 0.1;
+				const controlPoint2X = startX + dx * 0.7;
+				const controlPoint2Y = startY + dy * 0.9;
+				
+				// Create the cubic bezier curve path
+				const pathD = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
+				path.setAttribute('d', pathD);
 			}
 
 			function updateAllConnections() {
