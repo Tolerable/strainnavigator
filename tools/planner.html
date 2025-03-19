@@ -387,6 +387,37 @@
             stroke: #673ab7;
             stroke-width: 3;
         }
+
+		.type-selection {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+		}
+
+		.type-group {
+			display: flex;
+			flex-direction: column;
+			gap: 5px;
+		}
+
+		.type-group > div {
+			display: flex;
+			gap: 15px;
+		}
+
+		.type-group label {
+			display: flex;
+			align-items: center;
+			gap: 5px;
+			cursor: pointer;
+			color: #ddd;
+		}
+
+		.type-group input[type="radio"],
+		.type-group input[type="checkbox"] {
+			margin: 0;
+			cursor: pointer;
+		}
         
         /* Modal styles */
         .modal {
@@ -410,16 +441,17 @@
             pointer-events: auto;
         }
         
-        .modal-content {
-            background-color: #333;
-            border-radius: 8px;
-            width: 400px;
-            max-width: 90vw;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #444;
-        }
+		.modal-content {
+			background-color: #333;
+			border-radius: 8px;
+			width: 350px; /* Reduced from 400px */
+			max-width: 90vw;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+			display: flex;
+			flex-direction: column;
+			border: 1px solid #444;
+			overflow: hidden; /* Ensure content doesn't overflow */
+		}
         
         .modal-header {
             padding: 15px;
@@ -428,12 +460,13 @@
             color: #fff;
         }
         
-        .modal-body {
-            padding: 15px;
-            max-height: 70vh;
-            overflow-y: auto;
-            color: #ddd;
-        }
+		.modal-body {
+			padding: 15px;
+			max-height: 70vh;
+			overflow-y: auto;
+			color: #ddd;
+			box-sizing: border-box; /* Ensure padding is included in size calculation */
+		}
         
         .modal-footer {
             padding: 15px;
@@ -480,14 +513,16 @@
             color: #ccc;
         }
         
-        .form-input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #555;
-            background-color: #222;
-            color: #fff;
-            border-radius: 4px;
-        }
+		.form-input {
+			width: 100%;
+			padding: 8px;
+			border: 1px solid #555;
+			background-color: #222;
+			color: #fff;
+			border-radius: 4px;
+			box-sizing: border-box; /* Ensure padding is included in width */
+			max-width: 100%; /* Ensure it doesn't exceed container */
+		}
         
         .form-input:focus {
             border-color: #5d4a7e;
@@ -608,40 +643,33 @@
         </div>
     </div>
     
-    <!-- Name Cross Modal -->
-    <div class="modal" id="name-cross-modal">
-        <div class="modal-content">
-            <div class="modal-header">Name Your Cross</div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Parents</label>
-                    <div id="cross-parents" style="color: #aaa;"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Default Name</label>
-                    <div id="default-cross-name" style="color: #fff;"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Custom Name (optional)</label>
-                    <input type="text" class="form-input" id="custom-cross-name" placeholder="Enter a custom name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Type</label>
-                    <select class="form-input" id="cross-type">
-                        <option value="reg">REG</option>
-                        <option value="fem">FEM</option>
-                        <option value="auto">AUTO</option>
-                        <option value="photo">PHOTO</option>
-                        <option value="fast">FAST</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-cross-btn">Cancel</button>
-                <button class="btn btn-primary" id="create-cross-btn">Create Cross</button>
-            </div>
-        </div>
-    </div>
+	<!-- Name Cross Modal -->
+	<div class="modal" id="name-cross-modal">
+		<div class="modal-content">
+			<div class="modal-header">Name Your Cross</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label class="form-label">Parents</label>
+					<div id="cross-parents" style="color: #aaa;"></div>
+				</div>
+				<div class="form-group">
+					<label class="form-label">Default Name</label>
+					<div id="default-cross-name" style="color: #fff;"></div>
+				</div>
+				<div class="form-group">
+					<label class="form-label">Custom Name (optional)</label>
+					<input type="text" class="form-input" id="custom-cross-name" placeholder="Enter a custom name">
+				</div>
+				<div class="form-group" id="cross-type-container">
+					<!-- Type selection will be inserted here -->
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary" id="cancel-cross-btn">Cancel</button>
+				<button class="btn btn-primary" id="create-cross-btn">Create Cross</button>
+			</div>
+		</div>
+	</div>
     
     <!-- Save/Load Modals -->
     <div class="modal" id="save-diagram-modal">
@@ -1191,36 +1219,11 @@
 				// Get data from form
 				const customName = customCrossName.value.trim();
 				const finalName = customName || pendingCrossData.defaultName;
-				const selectedType = crossType.value; // This is just one type selection
 				
-				// Here we need to determine all type traits based on parents
-				const femaleNode = nodes.find(n => n.id === pendingCrossData.femaleId);
-				const maleNode = nodes.find(n => n.id === pendingCrossData.maleId);
-				
-				if (!femaleNode || !maleNode) {
-					hideModal(nameCrossModal);
-					pendingCrossData = null;
-					return;
-				}
-				
-				// Calculate proper types for the cross:
-				// For growth type: If either parent is AUTO, cross is AUTO, otherwise PHOTO
-				const growthType = 
-					femaleNode.growthType === 'AUTO' || maleNode.growthType === 'AUTO' ? 'AUTO' : 'PHOTO';
-				
-				// For sex type: Use the selected type
-				const sexType = selectedType.toUpperCase();
-				
-				// For flowering type: If either parent is FAST, cross can be FAST
-				const floweringType = 
-					femaleNode.floweringType === 'FAST' || maleNode.floweringType === 'FAST' ? 'FAST' : '';
-				
-				// Combine types for cross
-				let crossType = '';
-				if (growthType) crossType += growthType + ' ';
-				if (sexType) crossType += sexType + ' ';
-				if (floweringType) crossType += floweringType;
-				crossType = crossType.trim();
+				// Get selected types from radio buttons and checkboxes
+				const growthType = document.querySelector('input[name="growth-type"]:checked')?.value || 'PHOTO';
+				const seedType = document.querySelector('input[name="seed-type"]:checked')?.value || 'REG';
+				const floweringType = document.querySelector('input[name="flowering-type"]:checked') ? 'FAST' : '';
 				
 				// Create cross data
 				const crossData = {
@@ -1229,9 +1232,8 @@
 					parent1Name: pendingCrossData.femaleName,
 					parent2Name: pendingCrossData.maleName,
 					name: finalName,
-					type: crossType,
 					growthType: growthType,
-					sexType: sexType,
+					sexType: seedType,
 					floweringType: floweringType
 				};
 				
@@ -1243,7 +1245,7 @@
 				customCrossName.value = '';
 				pendingCrossData = null;
 				
-				// Make sure connections are visible
+				// Force update all connections to ensure visibility
 				setTimeout(() => {
 					connections.forEach(conn => {
 						updateConnection(conn.source, conn.target);
@@ -1650,26 +1652,43 @@
 				const defaultName = `${femaleNode.name} × ${maleNode.name}`;
 				defaultCrossName.textContent = defaultName;
 				
-				// Set sex type options (only offer REG/FEM choice in dropdown)
-				// Empty and repopulate cross type dropdown
-				crossType.innerHTML = '';
+				// Replace the single dropdown with properly categorized trait selections
+				const typeSelectionHTML = `
+					<div class="type-selection">
+						<div class="type-group">
+							<label><strong>Growth Type:</strong></label>
+							<div>
+								<label><input type="radio" name="growth-type" value="AUTO" ${femaleNode.growthType === 'AUTO' || maleNode.growthType === 'AUTO' ? 'checked' : ''}> AUTO</label>
+								<label><input type="radio" name="growth-type" value="PHOTO" ${(femaleNode.growthType === 'PHOTO' || !femaleNode.growthType) && (maleNode.growthType === 'PHOTO' || !maleNode.growthType) ? 'checked' : ''}> PHOTO</label>
+							</div>
+						</div>
+						
+						<div class="type-group">
+							<label><strong>Seed Type:</strong></label>
+							<div>
+								<label><input type="radio" name="seed-type" value="REG" ${!(femaleNode.sexType === 'FEM' || maleNode.sexType === 'FEM') ? 'checked' : ''}> REG</label>
+								<label><input type="radio" name="seed-type" value="FEM" ${femaleNode.sexType === 'FEM' || maleNode.sexType === 'FEM' ? 'checked' : ''}> FEM</label>
+							</div>
+						</div>
+						
+						<div class="type-group">
+							<label><strong>Flowering Type:</strong></label>
+							<div>
+								<label><input type="checkbox" name="flowering-type" value="FAST" ${femaleNode.floweringType === 'FAST' || maleNode.floweringType === 'FAST' ? 'checked' : ''}> FAST</label>
+							</div>
+						</div>
+					</div>
+				`;
 				
-				// Only offer REG/FEM in dropdown
-				const regOption = document.createElement('option');
-				regOption.value = 'reg';
-				regOption.textContent = 'REG';
-				crossType.appendChild(regOption);
-				
-				const femOption = document.createElement('option');
-				femOption.value = 'fem';
-				femOption.textContent = 'FEM';
-				crossType.appendChild(femOption);
-				
-				// Select appropriate default based on parents
-				if (femaleNode.sexType === 'FEM' || maleNode.sexType === 'FEM') {
-					crossType.value = 'fem';
+				// Replace the dropdown with our new interface
+				const typeSelectContainer = document.getElementById('cross-type-container');
+				if (!typeSelectContainer) {
+					// If the container doesn't exist yet, create a hidden element to replace
+					const crossTypeInput = document.getElementById('cross-type');
+					const parentElement = crossTypeInput.parentElement;
+					parentElement.innerHTML = typeSelectionHTML;
 				} else {
-					crossType.value = 'reg';
+					typeSelectContainer.innerHTML = typeSelectionHTML;
 				}
 				
 				// Store data for cross creation
