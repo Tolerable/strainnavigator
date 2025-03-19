@@ -147,6 +147,41 @@
             border-radius: 12px;
             font-size: 12px;
         }
+
+		.node-traits {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 4px;
+			margin-bottom: 6px;
+		}
+
+		.strain-trait {
+			padding: 2px 6px;
+			border-radius: 3px;
+			font-size: 11px;
+			font-weight: 500;
+			color: white;
+		}
+
+		.strain-trait.photo {
+			background-color: #4db6ac;
+		}
+
+		.strain-trait.auto {
+			background-color: #ffb74d;
+		}
+
+		.strain-trait.reg {
+			background-color: #9575cd;
+		}
+
+		.strain-trait.fem {
+			background-color: #f06292;
+		}
+
+		.strain-trait.fast {
+			background-color: #4fc3f7;
+		}
         
         .canvas-container {
             flex: 1;
@@ -1053,19 +1088,17 @@
 				const parent1 = strain.PARENT1 || strain.parent1 || '';
 				const parent2 = strain.PARENT2 || strain.parent2 || '';
 				
-				// Determine node type classes
+				// Parse traits - a strain can have multiple traits
+				const traits = {
+					growthType: type.toLowerCase().includes('auto') ? 'AUTO' : 
+								type.toLowerCase().includes('photo') ? 'PHOTO' : '',
+					sexType: type.toLowerCase().includes('reg') ? 'REG' : 
+							type.toLowerCase().includes('fem') ? 'FEM' : '',
+					floweringType: type.toLowerCase().includes('fast') ? 'FAST' : ''
+				};
+				
+				// Determine node class
 				let nodeClass = 'breeding-node';
-				
-				// Parse growth type (AUTO/PHOTO)
-				if (type.toLowerCase().includes('auto')) nodeClass += ' auto';
-				if (type.toLowerCase().includes('photo')) nodeClass += ' photo';
-				
-				// Parse sex type (REG/FEM)
-				if (type.toLowerCase().includes('reg')) nodeClass += ' reg';
-				if (type.toLowerCase().includes('fem')) nodeClass += ' fem';
-				
-				// Parse flowering type (FAST)
-				if (type.toLowerCase().includes('fast')) nodeClass += ' fast';
 				
 				// Create node element
 				const node = document.createElement('div');
@@ -1073,26 +1106,22 @@
 				node.className = nodeClass;
 				node.dataset.name = strainName;
 				node.dataset.type = type;
+				node.dataset.growthType = traits.growthType;
+				node.dataset.sexType = traits.sexType;
+				node.dataset.floweringType = traits.floweringType;
 				
-				// Type indicators
-				let growthType = '';
-				let sexType = '';
-				let floweringType = '';
-				
-				if (type.toLowerCase().includes('auto')) growthType = '<span>AUTO</span>';
-				if (type.toLowerCase().includes('photo')) growthType = '<span>PHOTO</span>';
-				
-				if (type.toLowerCase().includes('reg')) sexType = '<span>REG</span>';
-				if (type.toLowerCase().includes('fem')) sexType = '<span>FEM</span>';
-				
-				if (type.toLowerCase().includes('fast')) floweringType = '<span>FAST</span>';
-				
-				// Set the starting position near center of visible area
+				// Set the starting position
 				const x = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 80;
 				const y = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
 				
 				node.style.left = `${x}px`;
 				node.style.top = `${y}px`;
+				
+				// Create trait tags HTML
+				let traitsHTML = '';
+				if (traits.growthType) traitsHTML += `<span class="strain-trait ${traits.growthType.toLowerCase()}">${traits.growthType}</span>`;
+				if (traits.sexType) traitsHTML += `<span class="strain-trait ${traits.sexType.toLowerCase()}">${traits.sexType}</span>`;
+				if (traits.floweringType) traitsHTML += `<span class="strain-trait ${traits.floweringType.toLowerCase()}">${traits.floweringType}</span>`;
 				
 				node.innerHTML = `
 					<div class="node-header">
@@ -1102,11 +1131,7 @@
 						</div>
 					</div>
 					<div class="node-content">
-						<div class="node-type">
-							${growthType}
-							${sexType}
-							${floweringType}
-						</div>
+						<div class="node-traits">${traitsHTML}</div>
 						${breeder ? `<div class="node-breeder">Breeder: ${breeder}</div>` : ''}
 						${parent1 || parent2 ? `
 							<div class="node-parents">
@@ -1145,6 +1170,9 @@
 					id: nodeId,
 					name: strainName,
 					type: type,
+					growthType: traits.growthType,
+					sexType: traits.sexType,
+					floweringType: traits.floweringType,
 					origin: 'strain',
 					parent1: parent1,
 					parent2: parent2,
@@ -1157,119 +1185,198 @@
 				return nodeId;
 			}
             
-            function addCrossNodeToCanvas(crossData) {
-                nodeCounter++;
-                const nodeId = `node-${nodeCounter}`;
-                
-                // Determine node type class
-                let nodeClass = 'breeding-node cross';
-                if (crossData.type.toLowerCase().includes('reg')) nodeClass += ' reg';
-                if (crossData.type.toLowerCase().includes('fem')) nodeClass += ' fem';
-                if (crossData.type.toLowerCase().includes('auto')) nodeClass += ' auto';
-                if (crossData.type.toLowerCase().includes('photo')) nodeClass += ' photo';
-                if (crossData.type.toLowerCase().includes('fast')) nodeClass += ' fast';
-                
-                // Type indicators
-                let typeSpans = '';
-                if (crossData.type.toLowerCase().includes('reg')) typeSpans += '<span>REG</span>';
-                if (crossData.type.toLowerCase().includes('fem')) typeSpans += '<span>FEM</span>';
-                if (crossData.type.toLowerCase().includes('auto')) typeSpans += '<span>AUTO</span>';
-                if (crossData.type.toLowerCase().includes('photo')) typeSpans += '<span>PHOTO</span>';
-                if (crossData.type.toLowerCase().includes('fast')) typeSpans += '<span>FAST</span>';
-                
-                // Create node element
-                const node = document.createElement('div');
-                node.id = nodeId;
-                node.className = nodeClass;
-                node.dataset.name = crossData.name;
-                node.dataset.type = crossData.type;
-                
-                // Calculate position - center between parents, slightly below
-                const parent1El = document.getElementById(crossData.parent1);
-                const parent2El = document.getElementById(crossData.parent2);
-                
-                if (parent1El && parent2El) {
-                    const p1Left = parseInt(parent1El.style.left);
-                    const p1Top = parseInt(parent1El.style.top);
-                    const p2Left = parseInt(parent2El.style.left);
-                    const p2Top = parseInt(parent2El.style.top);
-                    
-                    const newLeft = (p1Left + p2Left) / 2;
-                    const newTop = Math.max(p1Top, p2Top) + 150;
-                    
-                    node.style.left = `${newLeft}px`;
-                    node.style.top = `${newTop}px`;
-                } else {
-                    // Fallback position if parents aren't available
-                    node.style.left = '500px';
-                    node.style.top = '300px';
-                }
-                
-                node.innerHTML = `
-                    <div class="node-header">
-                        <div class="node-name">${crossData.name}</div>
-                        <div class="node-controls">
-                            <div class="node-control" data-action="remove" title="Remove">×</div>
-                        </div>
-                    </div>
-                    <div class="node-content">
-                        <div class="node-type">${typeSpans}</div>
-                        <div class="node-parents">
-                            <div>Parent 1: ${crossData.parent1Name}</div>
-                            <div>Parent 2: ${crossData.parent2Name}</div>
-                        </div>
-                    </div>
-                    <div class="connection-points">
-                        <div class="connection-point" data-node="${nodeId}"></div>
-                    </div>
-                `;
-                
-                // Make node draggable
-                node.addEventListener('mousedown', startDraggingNode);
-                
-                // Setup connection point
-                const connectionPoint = node.querySelector('.connection-point');
-                connectionPoint.addEventListener('mousedown', startConnecting);
-                
-                // Setup remove button
-                const removeButton = node.querySelector('[data-action="remove"]');
-                removeButton.addEventListener('click', e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    removeNode(nodeId);
-                });
-                
-                // Add to canvas
-                breedingCanvas.appendChild(node);
-                
-                // Add to nodes array
-                const newNode = {
-                    id: nodeId,
-                    name: crossData.name,
-                    type: crossData.type,
-                    origin: 'cross',
-                    parent1: crossData.parent1Name,
-                    parent2: crossData.parent2Name,
-                    children: [],
-                    parents: [crossData.parent1, crossData.parent2]
-                };
-                
-                nodes.push(newNode);
-                
-                // Update parent nodes to have this as a child
-                const parent1Node = nodes.find(n => n.id === crossData.parent1);
-                const parent2Node = nodes.find(n => n.id === crossData.parent2);
-                
-                if (parent1Node) parent1Node.children.push(nodeId);
-                if (parent2Node) parent2Node.children.push(nodeId);
-                
-                // Create connections
-                addConnection(crossData.parent1, nodeId);
-                addConnection(crossData.parent2, nodeId);
-                
-                selectNode(nodeId);
-                return nodeId;
-            }
+			function createCross() {
+				if (!pendingCrossData) return;
+				
+				// Get data from form
+				const customName = customCrossName.value.trim();
+				const finalName = customName || pendingCrossData.defaultName;
+				const selectedType = crossType.value; // This is just one type selection
+				
+				// Here we need to determine all type traits based on parents
+				const femaleNode = nodes.find(n => n.id === pendingCrossData.femaleId);
+				const maleNode = nodes.find(n => n.id === pendingCrossData.maleId);
+				
+				if (!femaleNode || !maleNode) {
+					hideModal(nameCrossModal);
+					pendingCrossData = null;
+					return;
+				}
+				
+				// Calculate proper types for the cross:
+				// For growth type: If either parent is AUTO, cross is AUTO, otherwise PHOTO
+				const growthType = 
+					femaleNode.growthType === 'AUTO' || maleNode.growthType === 'AUTO' ? 'AUTO' : 'PHOTO';
+				
+				// For sex type: Use the selected type
+				const sexType = selectedType.toUpperCase();
+				
+				// For flowering type: If either parent is FAST, cross can be FAST
+				const floweringType = 
+					femaleNode.floweringType === 'FAST' || maleNode.floweringType === 'FAST' ? 'FAST' : '';
+				
+				// Combine types for cross
+				let crossType = '';
+				if (growthType) crossType += growthType + ' ';
+				if (sexType) crossType += sexType + ' ';
+				if (floweringType) crossType += floweringType;
+				crossType = crossType.trim();
+				
+				// Create cross data
+				const crossData = {
+					parent1: pendingCrossData.femaleId,
+					parent2: pendingCrossData.maleId,
+					parent1Name: pendingCrossData.femaleName,
+					parent2Name: pendingCrossData.maleName,
+					name: finalName,
+					type: crossType,
+					growthType: growthType,
+					sexType: sexType,
+					floweringType: floweringType
+				};
+				
+				// Add cross node to canvas
+				const newNodeId = addCrossNodeToCanvas(crossData);
+				
+				// Hide modal and reset
+				hideModal(nameCrossModal);
+				customCrossName.value = '';
+				pendingCrossData = null;
+				
+				// Make sure connections are visible
+				setTimeout(() => {
+					connections.forEach(conn => {
+						updateConnection(conn.source, conn.target);
+					});
+				}, 100);
+			}
+
+			function addCrossNodeToCanvas(crossData) {
+				nodeCounter++;
+				const nodeId = `node-${nodeCounter}`;
+				
+				// Create node element with proper highlighting for cross
+				const node = document.createElement('div');
+				node.id = nodeId;
+				node.className = 'breeding-node cross';
+				node.dataset.name = crossData.name;
+				node.dataset.type = crossData.type;
+				node.dataset.growthType = crossData.growthType;
+				node.dataset.sexType = crossData.sexType;
+				node.dataset.floweringType = crossData.floweringType;
+				
+				// Calculate position between parents but below
+				const parent1El = document.getElementById(crossData.parent1);
+				const parent2El = document.getElementById(crossData.parent2);
+				
+				if (parent1El && parent2El) {
+					const p1Rect = parent1El.getBoundingClientRect();
+					const p2Rect = parent2El.getBoundingClientRect();
+					
+					const p1Left = parseInt(parent1El.style.left);
+					const p1Top = parseInt(parent1El.style.top);
+					const p2Left = parseInt(parent2El.style.left);
+					const p2Top = parseInt(parent2El.style.top);
+					
+					const newLeft = Math.min(p1Left, p2Left) + Math.abs(p1Left - p2Left) / 2;
+					const newTop = Math.max(p1Top, p2Top) + 150;
+					
+					node.style.left = `${newLeft}px`;
+					node.style.top = `${newTop}px`;
+				} else {
+					// Fallback position
+					node.style.left = '500px';
+					node.style.top = '300px';
+				}
+				
+				// Create trait tags HTML
+				let traitsHTML = '';
+				if (crossData.growthType) {
+					traitsHTML += `<span class="strain-trait ${crossData.growthType.toLowerCase()}">${crossData.growthType}</span>`;
+				}
+				if (crossData.sexType) {
+					traitsHTML += `<span class="strain-trait ${crossData.sexType.toLowerCase()}">${crossData.sexType}</span>`;
+				}
+				if (crossData.floweringType) {
+					traitsHTML += `<span class="strain-trait ${crossData.floweringType.toLowerCase()}">${crossData.floweringType}</span>`;
+				}
+				
+				node.innerHTML = `
+					<div class="node-header">
+						<div class="node-name">${crossData.name}</div>
+						<div class="node-controls">
+							<div class="node-control" data-action="remove" title="Remove">×</div>
+						</div>
+					</div>
+					<div class="node-content">
+						<div class="node-traits">${traitsHTML}</div>
+						<div class="node-parents">
+							<div>Parent 1: ${crossData.parent1Name}</div>
+							<div>Parent 2: ${crossData.parent2Name}</div>
+						</div>
+					</div>
+					<div class="connection-points">
+						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
+						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
+					</div>
+				`;
+				
+				// Make node draggable
+				node.addEventListener('mousedown', startDraggingNode);
+				
+				// Setup connection points
+				node.querySelectorAll('.connection-point').forEach(point => {
+					point.addEventListener('mousedown', startConnecting);
+				});
+				
+				// Setup remove button
+				const removeButton = node.querySelector('[data-action="remove"]');
+				removeButton.addEventListener('click', e => {
+					e.preventDefault();
+					e.stopPropagation();
+					removeNode(nodeId);
+				});
+				
+				// Add to canvas
+				breedingCanvas.appendChild(node);
+				
+				// Add to nodes array
+				const newNode = {
+					id: nodeId,
+					name: crossData.name,
+					type: crossData.type,
+					growthType: crossData.growthType,
+					sexType: crossData.sexType,
+					floweringType: crossData.floweringType,
+					origin: 'cross',
+					parent1: crossData.parent1Name,
+					parent2: crossData.parent2Name,
+					children: [],
+					parents: [crossData.parent1, crossData.parent2]
+				};
+				
+				nodes.push(newNode);
+				
+				// Update parent nodes to have this as a child
+				const parent1Node = nodes.find(n => n.id === crossData.parent1);
+				const parent2Node = nodes.find(n => n.id === crossData.parent2);
+				
+				if (parent1Node) parent1Node.children.push(nodeId);
+				if (parent2Node) parent2Node.children.push(nodeId);
+				
+				// Create connections
+				addConnection(crossData.parent1, nodeId);
+				addConnection(crossData.parent2, nodeId);
+				
+				// Make sure connections are visible
+				setTimeout(() => {
+					updateConnection(crossData.parent1, nodeId);
+					updateConnection(crossData.parent2, nodeId);
+				}, 50);
+				
+				selectNode(nodeId);
+				return nodeId;
+			}
             
             function duplicateNode(nodeId) {
                 const nodeData = nodes.find(node => node.id === nodeId);
@@ -1543,22 +1650,27 @@
 				const defaultName = `${femaleNode.name} × ${maleNode.name}`;
 				defaultCrossName.textContent = defaultName;
 				
-				// Suggest type based on parent types
-				let suggestedType = 'reg';
-				const femaleType = femaleNode.type.toLowerCase();
-				const maleType = maleNode.type.toLowerCase();
+				// Set sex type options (only offer REG/FEM choice in dropdown)
+				// Empty and repopulate cross type dropdown
+				crossType.innerHTML = '';
 				
-				if (femaleType.includes('fem') || maleType.includes('fem')) {
-					suggestedType = 'fem';
+				// Only offer REG/FEM in dropdown
+				const regOption = document.createElement('option');
+				regOption.value = 'reg';
+				regOption.textContent = 'REG';
+				crossType.appendChild(regOption);
+				
+				const femOption = document.createElement('option');
+				femOption.value = 'fem';
+				femOption.textContent = 'FEM';
+				crossType.appendChild(femOption);
+				
+				// Select appropriate default based on parents
+				if (femaleNode.sexType === 'FEM' || maleNode.sexType === 'FEM') {
+					crossType.value = 'fem';
+				} else {
+					crossType.value = 'reg';
 				}
-				
-				if (femaleType.includes('auto') || maleType.includes('auto')) {
-					suggestedType = 'auto';
-				} else if (femaleType.includes('photo') || maleType.includes('photo')) {
-					suggestedType = 'photo';
-				}
-				
-				crossType.value = suggestedType;
 				
 				// Store data for cross creation
 				pendingCrossData = {
@@ -1574,38 +1686,6 @@
 				customCrossName.focus();
 			}
             
-			function createCross() {
-				if (!pendingCrossData) return;
-				
-				// Get data from form
-				const customName = customCrossName.value.trim();
-				const finalName = customName || pendingCrossData.defaultName;
-				const type = crossType.value;
-				
-				// Create cross data
-				const crossData = {
-					parent1: pendingCrossData.femaleId,
-					parent2: pendingCrossData.maleId,
-					parent1Name: pendingCrossData.femaleName,
-					parent2Name: pendingCrossData.maleName,
-					name: finalName,
-					type: type
-				};
-				
-				// Add cross node to canvas
-				const newNodeId = addCrossNodeToCanvas(crossData);
-				
-				// Hide modal and reset
-				hideModal(nameCrossModal);
-				customCrossName.value = '';
-				pendingCrossData = null;
-				
-				// Force update all connections to ensure visibility
-				connections.forEach(conn => {
-					updateConnection(conn.source, conn.target);
-				});
-			}
-            
 			function addConnection(sourceId, targetId) {
 				// Create connection id
 				const connectionId = `connection-${sourceId}-${targetId}`;
@@ -1615,25 +1695,25 @@
 					return;
 				}
 				
-				// Find source and target nodes
-				const sourceNode = nodes.find(n => n.id === sourceId);
-				const targetNode = nodes.find(n => n.id === targetId);
+				// Determine roles - let's say source is female parent by default
+				const sourceRole = 'female';
+				const targetRole = 'male';
 				
-				if (!sourceNode || !targetNode) return;
+				// Determine color based on roles
+				const connectionColor = sourceRole === 'female' ? '#e091b9' : '#91b7e0';
 				
-				// Determine color based on roles - for now we'll set female parent as source
-				const isSourceFemale = true; // This could be dynamic based on real data
-				const connectionColor = isSourceFemale ? '#e091b9' : '#91b7e0';
-				
-				// Create SVG connection
+				// Create SVG path for connection
 				const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 				path.id = connectionId;
 				path.classList.add('connector');
 				path.setAttribute('stroke', connectionColor);
-				path.setAttribute('marker-end', 'url(#arrowhead)');
+				path.setAttribute('stroke-width', '2');
+				path.setAttribute('fill', 'none');
 				path.setAttribute('data-source', sourceId);
 				path.setAttribute('data-target', targetId);
+				path.setAttribute('pointer-events', 'none'); // Make sure it doesn't interfere with clicks
 				
+				// Add to SVG
 				connectionsGroup.appendChild(path);
 				
 				// Add to connections array
@@ -1641,13 +1721,15 @@
 					id: connectionId,
 					source: sourceId,
 					target: targetId,
+					sourceRole: sourceRole,
+					targetRole: targetRole,
 					color: connectionColor
 				});
 				
-				// Update connection path immediately to ensure it's visible
-				updateConnection(sourceId, targetId);
+				// Immediately update connection path
+				setTimeout(() => updateConnection(sourceId, targetId), 50);
 			}
-            
+
 			function updateConnection(sourceId, targetId) {
 				const connectionId = `connection-${sourceId}-${targetId}`;
 				const path = document.getElementById(connectionId);
@@ -1658,19 +1740,24 @@
 				const targetNode = document.getElementById(targetId);
 				
 				if (!sourceNode || !targetNode) {
-					// If nodes don't exist, remove the connection
+					// Remove connection if nodes don't exist
 					removeConnection(connectionId);
 					return;
 				}
 				
-				// Source is typically the female (based on our connection design)
-				const sourceFemalePoint = sourceNode.querySelector('.connection-point-female');
-				const targetMalePoint = targetNode.querySelector('.connection-point-male');
+				// Find connection in array to get role info
+				const connection = connections.find(c => c.id === connectionId);
+				if (!connection) return;
 				
-				if (!sourceFemalePoint || !targetMalePoint) return;
+				// Get appropriate connection points
+				const sourcePoint = sourceNode.querySelector(`.connection-point-${connection.sourceRole || 'female'}`);
+				const targetPoint = targetNode.querySelector(`.connection-point-${connection.targetRole || 'male'}`);
 				
-				const sourceRect = sourceFemalePoint.getBoundingClientRect();
-				const targetRect = targetMalePoint.getBoundingClientRect();
+				if (!sourcePoint || !targetPoint) return;
+				
+				// Calculate positions
+				const sourceRect = sourcePoint.getBoundingClientRect();
+				const targetRect = targetPoint.getBoundingClientRect();
 				const canvasRect = breedingCanvas.getBoundingClientRect();
 				
 				const startX = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
@@ -1679,27 +1766,36 @@
 				const endX = targetRect.left + targetRect.width / 2 - canvasRect.left;
 				const endY = targetRect.top + targetRect.height / 2 - canvasRect.top;
 				
-				// Calculate path with bezier curve
+				// Calculate distance and bend of curve
 				const dx = endX - startX;
 				const dy = endY - startY;
 				const distance = Math.sqrt(dx * dx + dy * dy);
 				
-				// Adjust control points based on distance
-				const controlLen = Math.min(200, distance * 0.5);
-				const controlX1 = startX + controlLen;
-				const controlY1 = startY;
-				const controlX2 = endX - controlLen;
-				const controlY2 = endY;
+				// Use a straight line for very short distances
+				if (distance < 30) {
+					const pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+					path.setAttribute('d', pathD);
+					return;
+				}
 				
-				// Create path with cubic bezier
-				const pathD = `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`;
+				// Create a curved path - for better visibility, especially when nodes overlap
+				// Use cubic bezier curve for better control of path shape
+				const curvature = 0.4; // Higher value means more curved
+				const midX = (startX + endX) / 2;
+				const midY = (startY + endY) / 2;
+				
+				// Perpendicular offset to create curve
+				const offsetX = -dy * curvature;
+				const offsetY = dx * curvature;
+				
+				const pathD = `M ${startX} ${startY} Q ${midX + offsetX} ${midY + offsetY}, ${endX} ${endY}`;
 				path.setAttribute('d', pathD);
 				
-				// Set color based on source node (assuming female)
-				const conn = connections.find(c => c.id === connectionId);
-				if (conn) {
-					path.setAttribute('stroke', conn.color || '#b39ddb');
-				}
+				// Set color based on role
+				path.setAttribute('stroke', connection.color || '#b39ddb');
+				
+				// Add an arrowhead marker
+				path.setAttribute('marker-end', 'url(#arrowhead)');
 			}
             
             function updateConnectionsForNode(nodeId) {
@@ -1748,42 +1844,89 @@
 					const targetNode = nodes.find(n => n.id === conn.target);
 					
 					if (sourceNode && targetNode) {
-						// Target is child of source
+						// Source is parent of target
 						if (!sourceNode.children.includes(conn.target)) {
 							sourceNode.children.push(conn.target);
 						}
 						
-						// Source is parent of target
+						// Target is child of source
 						if (!targetNode.parents.includes(conn.source)) {
 							targetNode.parents.push(conn.source);
 						}
 					}
 				});
 				
-				// Find root nodes (no parents or only unknown parents)
+				// Find root nodes (no parents)
 				const rootNodes = nodes.filter(node => node.parents.length === 0);
 				
-				if (rootNodes.length === 0) {
-					// If no root nodes, use the first node as root
-					arrangeFromNode(nodes[0], 100, 100, {}, 0);
-				} else {
+				if (rootNodes.length === 0 && nodes.length > 0) {
+					// If no root nodes found but we have nodes, use first node as root
+					console.log("No root nodes found, using first node");
+					const startX = 100;
+					const startY = 100;
+					positionNode(nodes[0], startX, startY, {}, 0);
+				} else if (rootNodes.length > 0) {
 					// Arrange from each root node
-					const spacing = Math.max(300, Math.min(600, breedingCanvas.clientWidth / rootNodes.length));
-					rootNodes.forEach((root, index) => {
-						const startX = 100 + spacing * index;
-						arrangeFromNode(root, startX, 100, {}, 0);
+					console.log(`Found ${rootNodes.length} root nodes`);
+					
+					// Calculate spacing between root nodes
+					const rootSpacing = Math.max(300, 800 / Math.max(1, rootNodes.length));
+					let startX = 100;
+					
+					rootNodes.forEach(root => {
+						positionNode(root, startX, 100, {}, 0);
+						startX += rootSpacing;
 					});
 				}
 				
-				// Force update all connections
+				// Force update all connections with a slight delay
 				setTimeout(() => {
 					connections.forEach(conn => {
 						updateConnection(conn.source, conn.target);
 					});
-				}, 50);
+				}, 100);
 				
-				// Center view on the arranged tree
-				setTimeout(centerView, 100);
+				// Center view with a delay
+				setTimeout(centerView, 200);
+			}
+
+			function positionNode(node, x, y, placedNodes, level) {
+				console.log(`Positioning node ${node.id} at (${x}, ${y}), level ${level}`);
+				
+				// Skip if already placed at a deeper level
+				if (placedNodes[node.id] && placedNodes[node.id].level >= level) {
+					return;
+				}
+				
+				// Mark this node as placed
+				placedNodes[node.id] = { x, y, level };
+				
+				// Position this node
+				const nodeElement = document.getElementById(node.id);
+				if (nodeElement) {
+					nodeElement.style.left = `${x}px`;
+					nodeElement.style.top = `${y}px`;
+				}
+				
+				// If no children, we're done with this branch
+				if (!node.children || node.children.length === 0) {
+					return;
+				}
+				
+				// Calculate horizontal space for children
+				const childSpacing = 250; // Space between child nodes
+				const totalWidth = (node.children.length - 1) * childSpacing;
+				let childX = x - totalWidth / 2;
+				const childY = y + 150; // Fixed vertical spacing
+				
+				// Position each child
+				node.children.forEach(childId => {
+					const childNode = nodes.find(n => n.id === childId);
+					if (childNode) {
+						positionNode(childNode, childX, childY, placedNodes, level + 1);
+						childX += childSpacing;
+					}
+				});
 			}
 
 			function arrangeFromNode(node, x, y, placedNodes, level) {
