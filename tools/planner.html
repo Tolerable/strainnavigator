@@ -1596,48 +1596,51 @@
                 }
             }
             
-            function startDraggingNode(e) {
-                // Don't drag if clicking connection point or control
-                if (e.target.classList.contains('connection-point') || 
-                    e.target.classList.contains('node-control')) {
-                    return;
-                }
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Find the node element (could be child of node)
-                const nodeElement = e.target.closest('.breeding-node');
-                if (!nodeElement) return;
-                
-                // Select this node
-                selectNode(nodeElement.id);
-                
-                // Calculate offset within the node
-                const rect = nodeElement.getBoundingClientRect();
-                const offsetX = e.clientX - rect.left;
-                const offsetY = e.clientY - rect.top;
-                
-                function moveNode(moveEvent) {
-                    const canvasRect = breedingCanvas.getBoundingClientRect();
-                    const newLeft = moveEvent.clientX - canvasRect.left - offsetX;
-                    const newTop = moveEvent.clientY - canvasRect.top - offsetY;
-                    
-                    nodeElement.style.left = `${newLeft}px`;
-                    nodeElement.style.top = `${newTop}px`;
-                    
-                    // Update connections
-                    updateConnectionsForNode(nodeElement.id);
-                }
-                
-                function endDrag() {
-                    document.removeEventListener('mousemove', moveNode);
-                    document.removeEventListener('mouseup', endDrag);
-                }
-                
-                document.addEventListener('mousemove', moveNode);
-                document.addEventListener('mouseup', endDrag);
-            }
+			function startDraggingNode(e) {
+				// Don't drag if clicking connection point or control
+				if (e.target.classList.contains('connection-point') || 
+					e.target.classList.contains('node-control')) {
+					return;
+				}
+				
+				e.preventDefault();
+				e.stopPropagation();
+				
+				// Find the node element (could be child of node)
+				const nodeElement = e.target.closest('.breeding-node');
+				if (!nodeElement) return;
+				
+				// Select this node
+				selectNode(nodeElement.id);
+				
+				// Calculate offset within the node
+				const rect = nodeElement.getBoundingClientRect();
+				const offsetX = e.clientX - rect.left;
+				const offsetY = e.clientY - rect.top;
+				
+				function moveNode(moveEvent) {
+					const canvasRect = breedingCanvas.getBoundingClientRect();
+					const newLeft = moveEvent.clientX - canvasRect.left - offsetX;
+					const newTop = moveEvent.clientY - canvasRect.top - offsetY;
+					
+					nodeElement.style.left = `${newLeft}px`;
+					nodeElement.style.top = `${newTop}px`;
+					
+					// Update connections - this updates all connections in real-time
+					updateConnectionsForNode(nodeElement.id);
+				}
+				
+				function endDrag() {
+					document.removeEventListener('mousemove', moveNode);
+					document.removeEventListener('mouseup', endDrag);
+					
+					// Make sure connections are updated one final time
+					updateConnectionsForNode(nodeElement.id);
+				}
+				
+				document.addEventListener('mousemove', moveNode);
+				document.addEventListener('mouseup', endDrag);
+			}
             
             function selectNode(nodeId) {
                 // Deselect any currently selected node
@@ -1961,14 +1964,14 @@
 				});
 			}
             
-            function updateConnectionsForNode(nodeId) {
-                // Update all connections involving this node
-                connections.forEach(conn => {
-                    if (conn.source === nodeId || conn.target === nodeId) {
-                        updateConnection(conn.source, conn.target);
-                    }
-                });
-            }
+			function updateConnectionsForNode(nodeId) {
+				// Update all connections involving this node
+				connections.forEach(conn => {
+					if (conn.source === nodeId || conn.target === nodeId) {
+						updateConnection(conn);
+					}
+				});
+			}
             
             function removeConnectionsForNode(nodeId) {
                 // Find all connections involving this node
