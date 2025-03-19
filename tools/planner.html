@@ -4,19 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strain Breeding Planner - ᵗʰᵉ Rev™</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <style>
         :root {
             --primary: #2D5E32;
             --primary-light: #68A357;
             --primary-dark: #1A3C20;
             --accent: #5D4A7E;
-            --background: #F8F6E9;
+            --bg-color: #F8F6E9;
             --text: #333;
             --text-light: #666;
             --border: #ddd;
-            --count-bg: rgba(93, 74, 126, 0.1);
-            --female-color: #E091B9;
-            --male-color: #91B7E0;
             --auto-color: #FFB74D;
             --photo-color: #4DB6AC;
             --reg-color: #9575CD;
@@ -24,6 +22,10 @@
             --fast-color: #4FC3F7;
             --limited-color: #FFC107;
             --rare-color: #9C27B0;
+            --female-color: #E091B9;
+            --male-color: #91B7E0;
+            --node-color: #D2691E;
+            --link-color: #A0522D;
         }
         
         * {
@@ -34,7 +36,7 @@
         }
         
         body {
-            background-color: var(--background);
+            background-color: var(--bg-color);
             color: var(--text);
             line-height: 1.6;
         }
@@ -54,75 +56,83 @@
         }
         
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1rem;
+            display: flex;
+            height: calc(100vh - 60px);
+            padding: 15px;
         }
         
-        .main-layout {
-            display: grid;
-            grid-template-columns: 400px 1fr;
-            gap: 1rem;
+        .sidebar {
+            width: 320px;
+            margin-right: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         
         .panel {
             background: white;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            margin-bottom: 1rem;
+            margin-bottom: 15px;
         }
         
         .panel-header {
             background-color: var(--primary);
             color: white;
-            padding: 0.6rem 1rem;
+            padding: 10px 15px;
             font-weight: 500;
         }
         
         .panel-content {
-            padding: 1rem;
+            padding: 15px;
         }
         
-        /* Strain List Panel */
+        /* Strain List Styles */
         .search-container {
             display: flex;
-            margin-bottom: 0.8rem;
+            margin-bottom: 10px;
         }
         
-        .search-input {
+        #search-input {
             flex: 1;
-            padding: 0.5rem;
+            padding: 8px;
             border: 1px solid var(--border);
             border-radius: 4px 0 0 4px;
-            font-size: 0.9rem;
         }
         
-        .search-btn {
+        #search-btn {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 8px 15px;
             border-radius: 0 4px 4px 0;
             cursor: pointer;
         }
         
-        .filters {
+        .filter-btns {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.3rem;
-            margin-bottom: 0.8rem;
+            gap: 5px;
+            margin-bottom: 10px;
         }
         
         .filter-btn {
-            background-color: #f0f0f0;
+            background: #f0f0f0;
             border: none;
-            padding: 0.2rem 0.6rem;
-            border-radius: 3px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
             cursor: pointer;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            font-weight: 500;
         }
         
         .filter-btn.active {
@@ -130,436 +140,186 @@
             color: white;
         }
         
-        .strain-list-container {
-            height: calc(100vh - 270px);
-            overflow-y: auto;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-        }
-        
         .strain-list {
             list-style: none;
+            overflow-y: auto;
+            height: calc(100vh - 240px);
+            border: 1px solid var(--border);
         }
         
-        .strain-card {
-            padding: 0.5rem;
+        .strain-item {
+            padding: 8px 12px;
             border-bottom: 1px solid var(--border);
-            cursor: pointer;
+            cursor: grab;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background 0.15s;
         }
         
-        .strain-card:hover {
+        .strain-item:hover {
             background-color: rgba(45, 94, 50, 0.05);
         }
         
-        .strain-card.selected {
-            background-color: rgba(45, 94, 50, 0.1);
-            border-left: 3px solid var(--primary);
-        }
-        
-        .strain-info {
-            flex: 1;
+        .strain-item-drag {
+            opacity: 0.6;
         }
         
         .strain-name {
             font-weight: 500;
-            margin-bottom: 0.1rem;
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 5px;
         }
         
-        .strain-labels {
+        .strain-type {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.2rem;
-        }
-        
-        .strain-label {
-            font-size: 0.6rem;
-            padding: 0.05rem 0.3rem;
-            border-radius: 2px;
+            gap: 3px;
+            font-size: 10px;
             color: white;
-            font-weight: 500;
-            text-transform: uppercase;
         }
         
-        .label-auto { background-color: var(--auto-color); }
-        .label-photo { background-color: var(--photo-color); }
-        .label-fem { background-color: var(--fem-color); }
-        .label-reg { background-color: var(--reg-color); }
-        .label-fast { background-color: var(--fast-color); }
-        .label-limited { background-color: var(--limited-color); }
-        .label-rare { background-color: var(--rare-color); }
+        .type-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        
+        .badge-reg { background-color: var(--reg-color); }
+        .badge-fem { background-color: var(--fem-color); }
+        .badge-auto { background-color: var(--auto-color); }
+        .badge-photo { background-color: var(--photo-color); }
+        .badge-fast { background-color: var(--fast-color); }
         
         .strain-count {
-            background-color: var(--count-bg);
-            padding: 0.1rem 0.3rem;
-            border-radius: 3px;
-            font-size: 0.7rem;
-            font-weight: 500;
+            font-weight: bold;
             color: var(--accent);
-            min-width: 24px;
-            text-align: center;
-        }
-        
-        .strain-actions {
-            display: flex;
-            gap: 0.3rem;
-            margin-top: 1rem;
-        }
-        
-        .btn {
-            padding: 0.3rem 0.6rem;
-            border: none;
+            font-size: 12px;
+            background-color: rgba(93, 74, 126, 0.1);
+            padding: 2px 6px;
             border-radius: 3px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 500;
-            transition: background 0.15s;
         }
         
-        .btn-primary {
+        /* Canvas Area */
+        .canvas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .canvas-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .canvas-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
             background-color: var(--primary);
             color: white;
+            cursor: pointer;
+            font-size: 14px;
         }
         
-        .btn-primary:hover {
+        .action-btn:hover {
             background-color: var(--primary-dark);
         }
         
-        .btn-accent {
-            background-color: var(--accent);
-            color: white;
-        }
-        
-        .btn-accent:hover {
-            background-color: #4a3a66;
-        }
-        
-        /* Strain Detail Panel */
-        .strain-detail-panel {
-            margin-bottom: 1rem;
-            display: none;
-        }
-        
-        .strain-detail-panel.active {
-            display: block;
-        }
-        
-        .strain-detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        
-        .strain-detail-title {
-            font-size: 1.2rem;
-            font-weight: 500;
-            color: var(--primary-dark);
-        }
-        
-        .strain-detail-breeder {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-        
-        .strain-detail-labels {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.3rem;
-            margin-bottom: 0.8rem;
-        }
-        
-        .strain-detail-label {
-            font-size: 0.7rem;
-            padding: 0.1rem 0.5rem;
-            border-radius: 3px;
-            color: white;
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-        
-        .strain-detail-genetics {
-            margin-bottom: 0.8rem;
-            padding: 0.5rem;
-            background-color: rgba(0, 0, 0, 0.02);
-            border-radius: 4px;
-        }
-        
-        .parent-label {
-            font-size: 0.8rem;
-            color: var(--text-light);
-        }
-        
-        .parent-female {
-            color: var(--female-color);
-            font-weight: 500;
-        }
-        
-        .parent-male {
-            color: var(--male-color);
-            font-weight: 500;
-        }
-        
-        .strain-detail-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 0.8rem;
-        }
-        
-        .stat-item {
-            background-color: rgba(0, 0, 0, 0.02);
-            padding: 0.4rem;
-            border-radius: 3px;
-        }
-        
-        .stat-label {
-            font-size: 0.7rem;
-            color: var(--text-light);
-        }
-        
-        .stat-value {
-            font-weight: 500;
-        }
-        
-        /* Breeding Planner Panel */
-        .planner-controls {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .breeding-groups {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-        
-        .breeding-group {
-            background: white;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            height: fit-content;
-        }
-        
-        .breeding-group-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .breeding-group-title {
-            width: 100%;
-            padding: 0.3rem;
-            border: 1px solid transparent;
-            font-weight: 500;
-            background: transparent;
-        }
-        
-        .breeding-group-title:focus {
-            outline: none;
-            border-color: var(--border);
-            background: white;
-        }
-        
-        .breeding-group-actions {
-            display: flex;
-            gap: 0.3rem;
-        }
-        
-        .btn-sm {
-            padding: 0.2rem 0.4rem;
-            font-size: 0.7rem;
-        }
-        
-        .btn-clear {
-            background-color: #ff9800;
-            color: white;
-        }
-        
-        .btn-clear:hover {
-            background-color: #f57c00;
-        }
-        
-        .btn-remove {
-            background-color: #f44336;
-            color: white;
-        }
-        
-        .btn-remove:hover {
-            background-color: #d32f2f;
-        }
-        
-        .breeding-group-content {
-            min-height: 150px;
-            padding: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .breeding-group-content.empty {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-light);
-            font-size: 0.9rem;
-            font-style: italic;
-            border: 2px dashed #eee;
-            border-radius: 4px;
-            margin: 0.5rem;
-        }
-        
-        .strain-chip {
-            display: inline-flex;
-            align-items: center;
-            background-color: white;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 0.3rem 0.5rem;
-            margin: 0 0.3rem 0.3rem 0;
-            font-size: 0.85rem;
+        .canvas-container {
+            flex: 1;
             position: relative;
-            max-width: 100%;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background-color: #2d2d2d;
         }
         
-        .strain-chip:hover {
-            background-color: rgba(45, 94, 50, 0.05);
+        .info-panel {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+            z-index: 1000;
         }
         
-        .strain-chip-name {
-            margin-right: 0.5rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 150px;
-        }
-        
-        .strain-chip-type {
-            display: flex;
-            gap: 0.1rem;
-        }
-        
-        .chip-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        
-        .indicator-photo { background-color: var(--photo-color); }
-        .indicator-auto { background-color: var(--auto-color); }
-        .indicator-reg { background-color: var(--reg-color); }
-        .indicator-fem { background-color: var(--fem-color); }
-        .indicator-fast { background-color: var(--fast-color); }
-        
-        .strain-chip-remove {
-            color: #aaa;
-            font-size: 0.7rem;
-            margin-left: 0.3rem;
+        /* Node and Link Styles */
+        .node {
             cursor: pointer;
         }
         
-        .strain-chip-remove:hover {
-            color: #f44336;
+        .node-label {
+            font-size: 12px;
+            pointer-events: none;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
         }
         
-        .cross-results {
-            padding: 0.5rem;
+        .link {
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
         }
         
-        .cross-results-title {
-            font-weight: 500;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+        /* Drag-drop indicator */
+        .drop-indicator {
+            position: absolute;
+            border: 2px dashed var(--accent);
+            background-color: rgba(93, 74, 126, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
             color: var(--accent);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 999;
         }
         
-        .cross-item {
-            margin-bottom: 0.5rem;
-            padding: 0.5rem;
+        .drop-indicator.visible {
+            opacity: 1;
+        }
+        
+        /* Node menu */
+        .node-menu {
+            position: absolute;
+            background: white;
             border-radius: 4px;
-            font-size: 0.85rem;
-            background-color: rgba(93, 74, 126, 0.05);
-        }
-        
-        .cross-name {
-            font-weight: 500;
-        }
-        
-        .cross-compatibility {
-            font-size: 0.8rem;
-            margin-top: 0.2rem;
-        }
-        
-        .compatibility-good {
-            color: #4CAF50;
-        }
-        
-        .compatibility-warning {
-            color: #FFC107;
-        }
-        
-        .compatibility-bad {
-            color: #F44336;
-        }
-        
-        .strain-tree {
-            margin-top: 0.5rem;
-        }
-        
-        .notes-field {
-            width: 100%;
-            min-height: 60px;
-            padding: 0.5rem;
-            border: 1px solid var(--border);
-            border-radius: 0 0 6px 6px;
-            resize: vertical;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        
-        /* Tree view styling */
-        .tree-visualization {
-            margin-top: 1rem;
-            overflow-x: auto;
-            padding-bottom: 1rem;
-        }
-        
-        .tree-container {
-            min-height: 250px;
-            position: relative;
-        }
-        
-        /* Utility classes */
-        .hidden {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            padding: 5px 0;
+            z-index: 1000;
             display: none;
         }
         
-        footer {
-            text-align: center;
-            padding: 1rem;
-            margin-top: 1rem;
-            color: var(--text-light);
-            font-size: 0.8rem;
+        .node-menu.visible {
+            display: block;
         }
         
-        @media (max-width: 1000px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-            
-            .strain-list-container {
-                height: 300px;
-            }
+        .menu-item {
+            padding: 6px 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .menu-item:hover {
+            background-color: rgba(45, 94, 50, 0.1);
+        }
+        
+        .menu-divider {
+            height: 1px;
+            background-color: var(--border);
+            margin: 5px 0;
         }
     </style>
 </head>
@@ -569,138 +329,143 @@
     </header>
     
     <div class="container">
-        <div class="main-layout">
-            <!-- Left Column -->
-            <div class="left-column">
-                <!-- Strain List Panel -->
-                <div class="panel">
-                    <div class="panel-header">Strain Collection</div>
-                    <div class="panel-content">
-                        <div class="search-container">
-                            <input type="text" id="search-input" class="search-input" placeholder="Search strains...">
-                            <button id="search-btn" class="search-btn">Search</button>
-                        </div>
-                        
-                        <div class="filters">
-                            <button class="filter-btn active" data-filter="all">All</button>
-                            <button class="filter-btn" data-filter="reg">Reg</button>
-                            <button class="filter-btn" data-filter="fem">Fem</button>
-                            <button class="filter-btn" data-filter="auto">Auto</button>
-                            <button class="filter-btn" data-filter="photo">Photo</button>
-                            <button class="filter-btn" data-filter="fast">Fast</button>
-                            <button class="filter-btn" data-filter="limited">Limited</button>
-                            <button class="filter-btn" data-filter="rare">Rare</button>
-                        </div>
-                        
-                        <div class="strain-list-container">
-                            <ul id="strain-list" class="strain-list">
-                                <!-- Strains will be loaded here -->
-                                <li class="strain-card" data-id="loading">
-                                    <div class="strain-info">
-                                        <div class="strain-name">Loading strains...</div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
+        <div class="sidebar">
+            <div class="panel">
+                <div class="panel-header">Strain Collection</div>
+                <div class="panel-content">
+                    <div class="search-container">
+                        <input type="text" id="search-input" placeholder="Search strains...">
+                        <button id="search-btn">Search</button>
                     </div>
-                </div>
-                
-                <!-- Strain Detail Panel -->
-                <div id="strain-detail" class="panel strain-detail-panel">
-                    <div class="panel-header">Strain Details</div>
-                    <div class="panel-content">
-                        <div id="strain-detail-content">
-                            <!-- Strain details will be loaded here -->
-                        </div>
-                        
-                        <div class="strain-actions">
-                            <button id="add-to-group-btn" class="btn btn-primary">Add to Group</button>
-                            <button id="view-tree-btn" class="btn btn-accent">View Genetics</button>
-                        </div>
+                    
+                    <div class="filter-btns">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="reg">REG</button>
+                        <button class="filter-btn" data-filter="fem">FEM</button>
+                        <button class="filter-btn" data-filter="auto">AUTO</button>
+                        <button class="filter-btn" data-filter="photo">PHOTO</button>
+                        <button class="filter-btn" data-filter="fast">FAST</button>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Right Column -->
-            <div class="right-column">
-                <!-- Breeding Planner Panel -->
-                <div class="panel">
-                    <div class="panel-header">Breeding Planner</div>
-                    <div class="panel-content">
-                        <p>Select strains and add them to breeding groups to plan your crosses.</p>
-                        
-                        <div class="planner-controls">
-                            <button id="add-group-btn" class="btn btn-primary">+ Add Group</button>
-                            <button id="save-all-btn" class="btn btn-accent">Save All</button>
-                            <button id="load-btn" class="btn btn-accent">Load Saved</button>
-                        </div>
-                        
-                        <div id="breeding-groups" class="breeding-groups">
-                            <!-- Breeding groups will be added here -->
+                    
+                    <div class="strain-list" id="strain-list">
+                        <!-- Strains will be loaded here -->
+                        <div class="strain-item">
+                            <div>Loading strains...</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <div class="main-content">
+            <div class="canvas-header">
+                <div class="canvas-title">Breeding Diagram</div>
+                <div class="canvas-actions">
+                    <button id="new-diagram" class="action-btn">New Diagram</button>
+                    <button id="save-diagram" class="action-btn">Save Diagram</button>
+                    <button id="load-diagram" class="action-btn">Load Diagram</button>
+                </div>
+            </div>
+            
+            <div class="canvas-container" id="canvas">
+                <!-- D3 graph will be rendered here -->
+                <div class="drop-indicator" id="drop-indicator">
+                    Drop strain here to add to diagram
+                </div>
+                <div class="node-menu" id="node-menu">
+                    <div class="menu-item" data-action="details">View Details</div>
+                    <div class="menu-item" data-action="addParent">Add Parent</div>
+                    <div class="menu-item" data-action="addChild">Add Child</div>
+                    <div class="menu-divider"></div>
+                    <div class="menu-item" data-action="remove">Remove Node</div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                Drag strains from the list to create a breeding diagram. Right-click nodes for more options.
+            </div>
+        </div>
     </div>
-    
-    <footer>
-        &copy; 2025 StrainNavigator.com | Collaborative Seed Collection Tracker
-    </footer>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Config & State
+            // Configuration
             const sheetId = '1A7kFjfw6cjmQQOwz-5liWVGgFK0K5lwS8AfIZ_Zthbg';
-            let allStrains = [];
-            let selectedStrain = null;
-            let activeGroupForAdd = null;
-            let groupCounter = 0;
+            const nodeColors = {
+                default: '#D2691E',
+                female: '#E091B9',
+                male: '#91B7E0',
+                auto: '#FFB74D',
+                photo: '#4DB6AC',
+                reg: '#9575CD',
+                fem: '#F06292',
+                fast: '#4FC3F7'
+            };
             
-            // Cached Elements
+            // State
+            let allStrains = [];
+            let graph = {
+                nodes: [],
+                links: []
+            };
+            let simulation;
+            let svg;
+            let selectedNode = null;
+            let draggedStrain = null;
+            let nodeMenu = document.getElementById('node-menu');
+            
+            // Elements
+            const canvas = document.getElementById('canvas');
             const strainList = document.getElementById('strain-list');
-            const strainDetail = document.getElementById('strain-detail');
-            const strainDetailContent = document.getElementById('strain-detail-content');
-            const addToGroupBtn = document.getElementById('add-to-group-btn');
-            const viewTreeBtn = document.getElementById('view-tree-btn');
-            const breedingGroups = document.getElementById('breeding-groups');
+            const dropIndicator = document.getElementById('drop-indicator');
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
             
             // Initialize
-            init();
+            initCanvas();
+            loadStrains();
+            setupEventListeners();
             
-            function init() {
-                loadStrains();
-                setupEventListeners();
-                addBreedingGroup(); // Add first group
+            // Functions
+            function initCanvas() {
+                // Create SVG canvas for the graph
+                const width = canvas.clientWidth;
+                const height = canvas.clientHeight;
+                
+                svg = d3.select('#canvas')
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                // Add a background to capture events
+                svg.append('rect')
+                    .attr('width', width)
+                    .attr('height', height)
+                    .attr('fill', 'transparent')
+                    .on('click', clearSelection);
+                
+                // Create force simulation
+                simulation = d3.forceSimulation()
+                    .force('link', d3.forceLink().id(d => d.id).distance(150))
+                    .force('charge', d3.forceManyBody().strength(-500))
+                    .force('center', d3.forceCenter(width / 2, height / 2))
+                    .on('tick', ticked);
+                
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    const newWidth = canvas.clientWidth;
+                    const newHeight = canvas.clientHeight;
+                    
+                    svg.attr('width', newWidth)
+                        .attr('height', newHeight);
+                    
+                    simulation.force('center', d3.forceCenter(newWidth / 2, newHeight / 2));
+                    simulation.alpha(0.3).restart();
+                });
             }
             
-            function setupEventListeners() {
-                // Search
-                document.getElementById('search-btn').addEventListener('click', performSearch);
-                document.getElementById('search-input').addEventListener('keyup', function(e) {
-                    if (e.key === 'Enter') performSearch();
-                });
-                
-                // Filters
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        filterStrains(this.dataset.filter);
-                    });
-                });
-                
-                // Planner Controls
-                document.getElementById('add-group-btn').addEventListener('click', addBreedingGroup);
-                document.getElementById('save-all-btn').addEventListener('click', saveBreedingPlan);
-                document.getElementById('load-btn').addEventListener('click', loadBreedingPlan);
-                
-                // Strain Actions
-                addToGroupBtn.addEventListener('click', showGroupSelectionModal);
-                viewTreeBtn.addEventListener('click', toggleGeneticsTree);
-            }
-            
-            // Data Loading Functions
             function loadStrains() {
-                strainList.innerHTML = '<li class="strain-card"><div class="strain-info"><div class="strain-name">Loading strains...</div></div></li>';
+                strainList.innerHTML = '<div class="strain-item"><div>Loading strains...</div></div>';
                 
                 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
                 
@@ -712,10 +477,11 @@
                     .then(csv => {
                         allStrains = parseCSV(csv);
                         renderStrainList(allStrains);
+                        setupDragAndDrop();
                     })
                     .catch(error => {
                         console.error('Error loading data:', error);
-                        strainList.innerHTML = '<li class="strain-card"><div class="strain-info"><div class="strain-name">Error loading strains. Please try again.</div></div></li>';
+                        strainList.innerHTML = '<div class="strain-item"><div>Error loading strains</div></div>';
                     });
             }
             
@@ -727,7 +493,6 @@
                 for (let i = 1; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
                     
-                    // Handle CSV with potential quoted values and commas
                     const values = parseCSVLine(lines[i]);
                     
                     if (values.length < 2 || !values[0].trim()) continue;
@@ -738,7 +503,7 @@
                         entry[headers[j]] = j < values.length ? values[j].trim() : '';
                     }
                     
-                    // Add unique ID
+                    // Generate unique ID
                     entry.id = `strain-${i}`;
                     result.push(entry);
                 }
@@ -747,153 +512,414 @@
             }
             
             function parseCSVLine(line) {
-                const result = [];
-                let inQuotes = false;
+                let results = [];
                 let currentValue = '';
-                let i = 0;
+                let inQuotes = false;
                 
-                while (i < line.length) {
+                for (let i = 0; i < line.length; i++) {
                     const char = line[i];
                     
                     if (char === '"') {
                         inQuotes = !inQuotes;
                     } else if (char === ',' && !inQuotes) {
-                        result.push(currentValue);
+                        results.push(currentValue);
                         currentValue = '';
                     } else {
                         currentValue += char;
                     }
-                    
-                    i++;
                 }
                 
-                result.push(currentValue);
-                return result;
+                results.push(currentValue);
+                return results;
             }
             
-            // Rendering Functions
             function renderStrainList(strains) {
-                if (strains.length === 0) {
-                    strainList.innerHTML = '<li class="strain-card"><div class="strain-info"><div class="strain-name">No strains found</div></div></li>';
+                if (!strains.length) {
+                    strainList.innerHTML = '<div class="strain-item"><div>No strains found</div></div>';
                     return;
                 }
                 
                 strainList.innerHTML = '';
+                
                 strains.forEach(strain => {
-                    const strainName = strain.STRAIN || strain.Strain || strain.Name || strain.strain || 'Unnamed';
-                    const seedType = strain['REG / FEM'] || strain.Type || strain.type || '';
-                    const count = strain.COUNT || strain.Count || strain.count || '';
-                    const status = strain.STATUS || strain.Status || strain.status || '';
+                    const strainName = strain.STRAIN || strain.Strain || strain.Name || 'Unnamed';
+                    const count = strain.COUNT || strain.Count || '';
+                    const type = strain['REG / FEM'] || strain.Type || '';
                     
-                    // Create type labels
-                    const typeLabels = getTypeLabels(seedType, status);
-                    let labelsHTML = '';
-                    typeLabels.forEach(label => {
-                        labelsHTML += `<span class="strain-label label-${label.toLowerCase()}">${label}</span>`;
-                    });
+                    // Create type badges
+                    let badges = '';
+                    if (type.toLowerCase().includes('reg')) badges += '<span class="type-badge badge-reg">REG</span>';
+                    if (type.toLowerCase().includes('fem')) badges += '<span class="type-badge badge-fem">FEM</span>';
+                    if (type.toLowerCase().includes('auto')) badges += '<span class="type-badge badge-auto">AUTO</span>';
+                    if (type.toLowerCase().includes('photo')) badges += '<span class="type-badge badge-photo">PHOTO</span>';
+                    if (type.toLowerCase().includes('fast')) badges += '<span class="type-badge badge-fast">FAST</span>';
                     
-                    const listItem = document.createElement('li');
-                    listItem.className = 'strain-card';
-                    listItem.dataset.id = strain.id;
-                    listItem.innerHTML = `
-                        <div class="strain-info">
+                    const item = document.createElement('div');
+                    item.className = 'strain-item';
+                    item.draggable = true;
+                    item.dataset.id = strain.id;
+                    item.dataset.name = strainName;
+                    item.dataset.type = type;
+                    
+                    item.innerHTML = `
+                        <div>
                             <div class="strain-name">${strainName}</div>
-                            <div class="strain-labels">${labelsHTML}</div>
+                            <div class="strain-type">${badges}</div>
                         </div>
                         <div class="strain-count">${count}</div>
                     `;
                     
-                    listItem.addEventListener('click', () => selectStrain(strain));
-                    strainList.appendChild(listItem);
+                    strainList.appendChild(item);
                 });
             }
             
-            function renderStrainDetail(strain) {
-                const strainName = strain.STRAIN || strain.Strain || strain.Name || strain.strain || 'Unnamed';
-                const breeder = strain.BREEDER || strain.Breeder || strain.breeder || 'Unknown';
-                const seedType = strain['REG / FEM'] || strain.Type || strain.type || '';
-                const count = strain.COUNT || strain.Count || strain.count || '';
-                const status = strain.STATUS || strain.Status || strain.status || '';
-                const parent1 = strain.PARENT1 || strain.parent1 || '';
-                const parent2 = strain.PARENT2 || strain.parent2 || '';
-                
-                // Create type labels
-                const typeLabels = getTypeLabels(seedType, status);
-                let labelsHTML = '';
-                typeLabels.forEach(label => {
-                    labelsHTML += `<span class="strain-detail-label label-${label.toLowerCase()}">${label}</span>`;
+            function setupDragAndDrop() {
+                // Make strain items draggable
+                document.querySelectorAll('.strain-item').forEach(item => {
+                    item.addEventListener('dragstart', handleDragStart);
+                    item.addEventListener('dragend', handleDragEnd);
                 });
                 
-                // Create genetics section
-                let geneticsHTML = '';
-                if (parent1 || parent2) {
-                    geneticsHTML = `
-                        <div class="strain-detail-genetics">
-                            <div class="parent-label">Genetics:</div>
-                            ${parent1 ? `<div><span class="parent-female">${parent1}</span></div>` : ''}
-                            ${parent2 ? `<div><span class="parent-male">${parent2}</span></div>` : ''}
-                        </div>
-                    `;
+                // Make canvas a drop target
+                canvas.addEventListener('dragover', handleDragOver);
+                canvas.addEventListener('dragenter', handleDragEnter);
+                canvas.addEventListener('dragleave', handleDragLeave);
+                canvas.addEventListener('drop', handleDrop);
+            }
+            
+            function handleDragStart(e) {
+                this.classList.add('strain-item-drag');
+                draggedStrain = {
+                    id: this.dataset.id,
+                    name: this.dataset.name,
+                    type: this.dataset.type
+                };
+                
+                // Find the full strain data
+                const strainData = allStrains.find(s => s.id === this.dataset.id);
+                if (strainData) {
+                    draggedStrain.parent1 = strainData.PARENT1 || strainData.parent1 || '';
+                    draggedStrain.parent2 = strainData.PARENT2 || strainData.parent2 || '';
                 }
                 
-                strainDetailContent.innerHTML = `
-                    <div class="strain-detail-header">
-                        <div class="strain-detail-title">${strainName}</div>
-                    </div>
-                    <div class="strain-detail-breeder">${breeder}</div>
-                    <div class="strain-detail-labels">${labelsHTML}</div>
-                    ${geneticsHTML}
-                    <div class="strain-detail-stats">
-                        <div class="stat-item">
-                            <div class="stat-label">Count</div>
-                            <div class="stat-value">${count}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Type</div>
-                            <div class="stat-value">${seedType}</div>
-                        </div>
-                    </div>
-                `;
-                
-                strainDetail.classList.add('active');
+                e.dataTransfer.setData('text/plain', JSON.stringify(draggedStrain));
             }
             
-            function getTypeLabels(type, status) {
-                const labels = [];
-                
-                if (!type && !status) return labels;
-                
-                const lowerType = (type || '').toLowerCase();
-                const lowerStatus = (status || '').toLowerCase();
-                
-                if (lowerType.includes('auto')) labels.push('AUTO');
-                if (lowerType.includes('photo')) labels.push('PHOTO');
-                if (lowerType.includes('fem')) labels.push('FEM');
-                if (lowerType.includes('reg')) labels.push('REG');
-                if (lowerType.includes('fast')) labels.push('FAST');
-                
-                if (lowerStatus.includes('limited')) labels.push('LIMITED');
-                if (lowerStatus === 'rare') labels.push('RARE');
-                
-                return labels;
+            function handleDragEnd() {
+                this.classList.remove('strain-item-drag');
+                draggedStrain = null;
             }
             
-            // Interaction Handlers
-            function selectStrain(strain) {
-                // Clear previous selection
-                document.querySelectorAll('.strain-card.selected').forEach(card => {
-                    card.classList.remove('selected');
+            function handleDragOver(e) {
+                e.preventDefault();
+            }
+            
+            function handleDragEnter(e) {
+                e.preventDefault();
+                showDropIndicator();
+            }
+            
+            function handleDragLeave() {
+                hideDropIndicator();
+            }
+            
+            function handleDrop(e) {
+                e.preventDefault();
+                hideDropIndicator();
+                
+                const data = e.dataTransfer.getData('text/plain');
+                if (!data) return;
+                
+                try {
+                    const strain = JSON.parse(data);
+                    
+                    // Get coordinates relative to the canvas
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    addNodeToGraph(strain, x, y);
+                } catch (error) {
+                    console.error('Error parsing drag data:', error);
+                }
+            }
+            
+            function showDropIndicator() {
+                dropIndicator.classList.add('visible');
+                dropIndicator.style.top = '50%';
+                dropIndicator.style.left = '50%';
+                dropIndicator.style.transform = 'translate(-50%, -50%)';
+                dropIndicator.style.width = '300px';
+                dropIndicator.style.height = '150px';
+            }
+            
+            function hideDropIndicator() {
+                dropIndicator.classList.remove('visible');
+            }
+            
+            function addNodeToGraph(strain, x, y) {
+                // Check if this strain is already in the graph
+                const existingNode = graph.nodes.find(node => node.id === strain.id);
+                if (existingNode) {
+                    // Node already exists, just update its position
+                    existingNode.fx = x;
+                    existingNode.fy = y;
+                    simulation.alpha(0.3).restart();
+                    return;
+                }
+                
+                // Create a new node
+                const newNode = {
+                    id: strain.id,
+                    name: strain.name,
+                    type: strain.type,
+                    x: x,
+                    y: y,
+                    parent1: strain.parent1,
+                    parent2: strain.parent2
+                };
+                
+                // Add to graph
+                graph.nodes.push(newNode);
+                
+                // If this strain has known parents, try to add links
+                if (strain.parent1 || strain.parent2) {
+                    // Check if parents are already in the graph
+                    const parent1Node = graph.nodes.find(node => 
+                        node.name.toLowerCase() === strain.parent1.toLowerCase());
+                    
+                    const parent2Node = graph.nodes.find(node => 
+                        node.name.toLowerCase() === strain.parent2.toLowerCase());
+                    
+                    if (parent1Node) {
+                        graph.links.push({
+                            source: parent1Node.id,
+                            target: newNode.id,
+                            type: 'parent'
+                        });
+                    }
+                    
+                    if (parent2Node) {
+                        graph.links.push({
+                            source: parent2Node.id,
+                            target: newNode.id,
+                            type: 'parent'
+                        });
+                    }
+                }
+                
+                updateGraph();
+            }
+            
+            function updateGraph() {
+                // Update the simulation with new data
+                simulation.nodes(graph.nodes);
+                simulation.force('link').links(graph.links);
+                
+                // Create links
+                const link = svg.selectAll('.link')
+                    .data(graph.links, d => `${d.source.id || d.source}-${d.target.id || d.target}`);
+                
+                link.exit().remove();
+                
+                const linkEnter = link.enter()
+                    .append('line')
+                    .attr('class', 'link')
+                    .attr('stroke', d => getNodeColor(d.type, 'link'))
+                    .attr('opacity', 0)
+                    .transition()
+                    .duration(500)
+                    .attr('opacity', 1);
+                
+                // Create nodes
+                const node = svg.selectAll('.node')
+                    .data(graph.nodes, d => d.id);
+                
+                node.exit().remove();
+                
+                const nodeEnter = node.enter()
+                    .append('g')
+                    .attr('class', 'node')
+                    .call(d3.drag()
+                        .on('start', dragstarted)
+                        .on('drag', dragged)
+                        .on('end', dragended))
+                    .on('click', handleNodeClick)
+                    .on('contextmenu', handleNodeRightClick);
+                
+                nodeEnter.append('circle')
+                    .attr('r', 0)
+                    .attr('fill', d => getNodeColor(d.type))
+                    .transition()
+                    .duration(500)
+                    .attr('r', 20);
+                
+                nodeEnter.append('text')
+                    .attr('class', 'node-label')
+                    .attr('text-anchor', 'middle')
+                    .attr('dy', '0.35em')
+                    .attr('fill', 'white')
+                    .text(d => d.name)
+                    .attr('opacity', 0)
+                    .transition()
+                    .duration(500)
+                    .attr('opacity', 1);
+                
+                // Update node title based on drag
+                node.select('circle')
+                    .attr('stroke', d => d === selectedNode ? '#fff' : 'none')
+                    .attr('stroke-width', d => d === selectedNode ? 2 : 0);
+                
+                // Restart simulation
+                simulation.alpha(0.3).restart();
+            }
+            
+            function ticked() {
+                svg.selectAll('.link')
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                svg.selectAll('.node')
+                    .attr('transform', d => `translate(${d.x}, ${d.y})`);
+            }
+            
+            function dragstarted(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+            
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+            
+            function dragended(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+            
+            function handleNodeClick(event, d) {
+                // Prevent the event from bubbling up
+                event.stopPropagation();
+                
+                // Update selected node
+                selectedNode = d;
+                
+                // Update visual selection indication
+                svg.selectAll('.node circle')
+                    .attr('stroke', node => node === selectedNode ? '#fff' : 'none')
+                    .attr('stroke-width', node => node === selectedNode ? 2 : 0);
+            }
+            
+            function handleNodeRightClick(event, d) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Update selected node
+                selectedNode = d;
+                
+                // Show context menu at mouse position
+                nodeMenu.style.left = `${event.clientX}px`;
+                nodeMenu.style.top = `${event.clientY}px`;
+                nodeMenu.classList.add('visible');
+                
+                // Update visual selection indication
+                svg.selectAll('.node circle')
+                    .attr('stroke', node => node === selectedNode ? '#fff' : 'none')
+                    .attr('stroke-width', node => node === selectedNode ? 2 : 0);
+            }
+            
+            function clearSelection() {
+                selectedNode = null;
+                
+                // Hide context menu
+                nodeMenu.classList.remove('visible');
+                
+                // Clear selection visuals
+                svg.selectAll('.node circle')
+                    .attr('stroke', 'none')
+                    .attr('stroke-width', 0);
+            }
+            
+            function getNodeColor(type, elementType = 'node') {
+                if (!type) return nodeColors.default;
+                
+                const lowerType = type.toLowerCase();
+                
+                if (elementType === 'link') return nodeColors.default;
+                
+                if (lowerType.includes('fem')) return nodeColors.fem;
+                if (lowerType.includes('reg')) return nodeColors.reg;
+                if (lowerType.includes('auto')) return nodeColors.auto;
+                if (lowerType.includes('photo')) return nodeColors.photo;
+                if (lowerType.includes('fast')) return nodeColors.fast;
+                
+                return nodeColors.default;
+            }
+            
+            function setupEventListeners() {
+                // Search functionality
+                searchBtn.addEventListener('click', performSearch);
+                searchInput.addEventListener('keyup', e => {
+                    if (e.key === 'Enter') performSearch();
                 });
                 
-                // Update selection
-                selectedStrain = strain;
-                document.querySelector(`[data-id="${strain.id}"]`).classList.add('selected');
+                // Filter buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        filterStrains(this.dataset.filter);
+                    });
+                });
                 
-                renderStrainDetail(strain);
+                // Main action buttons
+                document.getElementById('new-diagram').addEventListener('click', newDiagram);
+                document.getElementById('save-diagram').addEventListener('click', saveDiagram);
+                document.getElementById('load-diagram').addEventListener('click', loadDiagram);
+                
+                // Node menu actions
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        if (!selectedNode) return;
+                        
+                        const action = this.dataset.action;
+                        
+                        switch(action) {
+                            case 'details':
+                                showNodeDetails(selectedNode);
+                                break;
+                            case 'addParent':
+                                promptAddParent(selectedNode);
+                                break;
+                            case 'addChild':
+                                promptAddChild(selectedNode);
+                                break;
+                            case 'remove':
+                                removeNode(selectedNode);
+                                break;
+                        }
+                        
+                        // Hide menu
+                        nodeMenu.classList.remove('visible');
+                    });
+                });
+                
+                // Close node menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!nodeMenu.contains(event.target)) {
+                        nodeMenu.classList.remove('visible');
+                    }
+                });
             }
             
+            // Filter and search functions
             function performSearch() {
-                const searchTerm= document.getElementById('search-input').value.trim().toLowerCase();
+                const searchTerm = searchInput.value.trim().toLowerCase();
                 
                 if (!searchTerm) {
                     renderStrainList(allStrains);
@@ -908,21 +934,16 @@
                     const parent2 = (strain.PARENT2 || strain.parent2 || '').toLowerCase();
                     
                     return name.includes(searchTerm) || 
-                           breeder.includes(searchTerm) || 
-                           type.includes(searchTerm) || 
-                           parent1.includes(searchTerm) || 
-                           parent2.includes(searchTerm);
+                        breeder.includes(searchTerm) || 
+                        type.includes(searchTerm) || 
+                        parent1.includes(searchTerm) || 
+                        parent2.includes(searchTerm);
                 });
                 
                 renderStrainList(filteredStrains);
             }
             
             function filterStrains(filter) {
-                // Update active filter button
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.filter === filter);
-                });
-                
                 if (filter === 'all') {
                     renderStrainList(allStrains);
                     return;
@@ -930,379 +951,193 @@
                 
                 const filteredStrains = allStrains.filter(strain => {
                     const type = (strain['REG / FEM'] || strain.Type || '').toLowerCase();
-                    const status = (strain.STATUS || strain.Status || '').toLowerCase();
-                    
-                    if (filter === 'reg' && type.includes('reg')) return true;
-                    if (filter === 'fem' && type.includes('fem')) return true;
-                    if (filter === 'auto' && type.includes('auto')) return true;
-                    if (filter === 'photo' && type.includes('photo')) return true;
-                    if (filter === 'fast' && type.includes('fast')) return true;
-                    if (filter === 'limited' && status.includes('limited')) return true;
-                    if (filter === 'rare' && status === 'rare') return true;
-                    
-                    return false;
+                    return type.includes(filter.toLowerCase());
                 });
                 
                 renderStrainList(filteredStrains);
             }
             
-            // Breeding Group Functions
-            function addBreedingGroup() {
-                groupCounter++;
-                const groupId = `group-${groupCounter}`;
+            // Node operations
+            function showNodeDetails(node) {
+                // Find the full strain data
+                const strain = allStrains.find(s => s.id === node.id);
                 
-                const groupElement = document.createElement('div');
-                groupElement.className = 'breeding-group';
-                groupElement.dataset.id = groupId;
-                
-                groupElement.innerHTML = `
-                    <div class="breeding-group-header">
-                        <input type="text" class="breeding-group-title" value="Breeding Project ${groupCounter}">
-                        <div class="breeding-group-actions">
-                            <button class="btn btn-sm btn-clear" data-action="clear" data-group="${groupId}">Clear</button>
-                            <button class="btn btn-sm btn-remove" data-action="remove" data-group="${groupId}">Remove</button>
-                        </div>
-                    </div>
-                    <div class="breeding-group-content empty" data-group="${groupId}">
-                        Drop strains here
-                    </div>
-                    <div class="cross-results">
-                        <div class="cross-results-title">Potential Crosses</div>
-                        <div class="cross-results-content" data-results="${groupId}">
-                            Add multiple strains to see crosses
-                        </div>
-                    </div>
-                    <textarea class="notes-field" placeholder="Notes about this breeding project..."></textarea>
-                `;
-                
-                breedingGroups.appendChild(groupElement);
-                
-                // Add event listeners
-                const clearBtn = groupElement.querySelector('[data-action="clear"]');
-                const removeBtn = groupElement.querySelector('[data-action="remove"]');
-                
-                clearBtn.addEventListener('click', () => clearBreedingGroup(groupId));
-                removeBtn.addEventListener('click', () => removeBreedingGroup(groupId));
-                
-                // Make the group a drop target
-                setupGroupDropTarget(groupId);
-                
-                return groupId;
-            }
-            
-            function setupGroupDropTarget(groupId) {
-                const groupContent = document.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
-                
-                // Set up drop target for drag-and-drop from strain list
-                groupContent.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    groupContent.classList.add('drag-over');
-                });
-                
-                groupContent.addEventListener('dragleave', () => {
-                    groupContent.classList.remove('drag-over');
-                });
-                
-                groupContent.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    groupContent.classList.remove('drag-over');
-                    
-                    const data = e.dataTransfer.getData('text/plain');
-                    if (data) {
-                        try {
-                            const strainData = JSON.parse(data);
-                            addStrainToGroup(strainData.id, groupId);
-                        } catch (error) {
-                            console.error('Error parsing drag data:', error);
-                        }
-                    }
-                });
-            }
-            
-            function clearBreedingGroup(groupId) {
-                const groupContent = document.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
-                groupContent.innerHTML = 'Drop strains here';
-                groupContent.classList.add('empty');
-                
-                // Reset cross results
-                const resultsContent = document.querySelector(`.cross-results-content[data-results="${groupId}"]`);
-                resultsContent.innerHTML = 'Add multiple strains to see crosses';
-                
-                updateCrosses(groupId);
-            }
-            
-            function removeBreedingGroup(groupId) {
-                const group = document.querySelector(`.breeding-group[data-id="${groupId}"]`);
-                if (group) {
-                    group.remove();
-                }
-            }
-            
-            function addStrainToGroup(strainId, groupId) {
-                // Find the strain in our data
-                const strain = allStrains.find(s => s.id === strainId);
-                if (!strain) return;
-                
-                const groupContent = document.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
-                
-                // Check if this strain is already in the group
-                if (groupContent.querySelector(`[data-strain-id="${strainId}"]`)) {
-                    return; // Already added
-                }
-                
-                // Clear the empty placeholder if needed
-                if (groupContent.classList.contains('empty')) {
-                    groupContent.innerHTML = '';
-                    groupContent.classList.remove('empty');
+                if (!strain) {
+                    alert(`Details for ${node.name} not available`);
+                    return;
                 }
                 
                 const strainName = strain.STRAIN || strain.Strain || strain.Name || 'Unnamed';
-                const seedType = strain['REG / FEM'] || strain.Type || '';
+                const breeder = strain.BREEDER || strain.Breeder || '';
+                const type = strain['REG / FEM'] || strain.Type || '';
+                const count = strain.COUNT || strain.Count || '';
+                const parent1 = strain.PARENT1 || strain.parent1 || '';
+                const parent2 = strain.PARENT2 || strain.parent2 || '';
                 
-                // Create type indicators
-                let typeIndicators = '';
-                if (seedType.toLowerCase().includes('photo')) typeIndicators += '<span class="chip-indicator indicator-photo"></span>';
-                if (seedType.toLowerCase().includes('auto')) typeIndicators += '<span class="chip-indicator indicator-auto"></span>';
-                if (seedType.toLowerCase().includes('reg')) typeIndicators += '<span class="chip-indicator indicator-reg"></span>';
-                if (seedType.toLowerCase().includes('fem')) typeIndicators += '<span class="chip-indicator indicator-fem"></span>';
-                if (seedType.toLowerCase().includes('fast')) typeIndicators += '<span class="chip-indicator indicator-fast"></span>';
+                let details = `Strain: ${strainName}\n`;
+                if (breeder) details += `Breeder: ${breeder}\n`;
+                if (type) details += `Type: ${type}\n`;
+                if (count) details += `Count: ${count}\n`;
+                if (parent1) details += `Parent 1: ${parent1}\n`;
+                if (parent2) details += `Parent 2: ${parent2}\n`;
                 
-                const chipElement = document.createElement('div');
-                chipElement.className = 'strain-chip';
-                chipElement.dataset.strainId = strainId;
-                chipElement.dataset.type = seedType;
-                chipElement.innerHTML = `
-                    <span class="strain-chip-name">${strainName}</span>
-                    <span class="strain-chip-type">${typeIndicators}</span>
-                    <span class="strain-chip-remove" data-remove="${strainId}">×</span>
-                `;
-                
-                // Make it draggable for moving between groups
-                chipElement.draggable = true;
-                chipElement.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', JSON.stringify({
-                        id: strainId,
-                        sourceGroup: groupId
-                    }));
-                });
-                
-                // Add remove functionality
-                chipElement.querySelector(`.strain-chip-remove`).addEventListener('click', () => {
-                    chipElement.remove();
-                    if (groupContent.children.length === 0) {
-                        groupContent.innerHTML = 'Drop strains here';
-                        groupContent.classList.add('empty');
-                    }
-                    updateCrosses(groupId);
-                });
-                
-                groupContent.appendChild(chipElement);
-                updateCrosses(groupId);
+                alert(details);
             }
             
-            function showGroupSelectionModal() {
-                if (!selectedStrain) return;
+            function promptAddParent(node) {
+                const parentType = prompt('What type of parent? (Female/Male)');
+                if (!parentType) return;
                 
-                // Simple implementation - add to the first group
-                // In a more complex UI, you would show a modal to let the user choose which group
-                const groups = document.querySelectorAll('.breeding-group');
-                if (groups.length > 0) {
-                    const firstGroupId = groups[0].dataset.id;
-                    addStrainToGroup(selectedStrain.id, firstGroupId);
-                } else {
-                    const newGroupId = addBreedingGroup();
-                    addStrainToGroup(selectedStrain.id, newGroupId);
-                }
+                const parentName = prompt('Enter parent name:');
+                if (!parentName) return;
+                
+                // Create parent node
+                const newId = `parent-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                const parentNode = {
+                    id: newId,
+                    name: parentName,
+                    type: parentType.toLowerCase() === 'female' ? 'female' : 'male',
+                    x: node.x + (Math.random() * 100 - 50),
+                    y: node.y - 150
+                };
+                
+                // Add parent to graph
+                graph.nodes.push(parentNode);
+                
+                // Add link from parent to child
+                graph.links.push({
+                    source: newId,
+                    target: node.id,
+                    type: parentType.toLowerCase() === 'female' ? 'female' : 'male'
+                });
+                
+                updateGraph();
             }
             
-            // Crosses and Genetics
-            function updateCrosses(groupId) {
-                const groupContent = document.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
-                const resultsContent = document.querySelector(`.cross-results-content[data-results="${groupId}"]`);
+            function promptAddChild(node) {
+                const childName = prompt('Enter child strain name:');
+                if (!childName) return;
                 
-                // Get all strains in this group
-                const strainChips = groupContent.querySelectorAll('.strain-chip');
-                if (strainChips.length < 2) {
-                    resultsContent.innerHTML = 'Add multiple strains to see crosses';
+                const childType = prompt('Enter child type (REG/FEM/AUTO/etc):');
+                
+                // Create child node
+                const newId = `child-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                const childNode = {
+                    id: newId,
+                    name: childName,
+                    type: childType || '',
+                    x: node.x + (Math.random() * 100 - 50),
+                    y: node.y + 150,
+                    parent1: node.name
+                };
+                
+                // Add child to graph
+                graph.nodes.push(childNode);
+                
+                // Add link from parent to child
+                graph.links.push({
+                    source: node.id,
+                    target: newId,
+                    type: 'parent'
+                });
+                
+                updateGraph();
+            }
+            
+            function removeNode(node) {
+                if (!confirm(`Are you sure you want to remove ${node.name} from the diagram?`)) {
                     return;
                 }
                 
-                // Generate all possible crosses
-                let crossesHTML = '';
-                for (let i = 0; i < strainChips.length; i++) {
-                    for (let j = i + 1; j < strainChips.length; j++) {
-                        const strain1 = strainChips[i];
-                        const strain2 = strainChips[j];
-                        
-                        const strain1Name = strain1.querySelector('.strain-chip-name').textContent;
-                        const strain2Name = strain2.querySelector('.strain-chip-name').textContent;
-                        const strain1Type = strain1.dataset.type;
-                        const strain2Type = strain2.dataset.type;
-                        
-                        const compatibility = analyzeCompatibility(strain1Type, strain2Type);
-                        const compatibilityClass = compatibility.level === 'good' ? 'compatibility-good' : 
-                                                  compatibility.level === 'warning' ? 'compatibility-warning' : 
-                                                  'compatibility-bad';
-                        
-                        crossesHTML += `
-                            <div class="cross-item">
-                                <div class="cross-name">${strain1Name} × ${strain2Name}</div>
-                                <div class="cross-compatibility ${compatibilityClass}">
-                                    ${compatibility.message}
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
+                // Remove node
+                graph.nodes = graph.nodes.filter(n => n.id !== node.id);
                 
-                resultsContent.innerHTML = crossesHTML || 'No valid crosses found';
+                // Remove any links connected to this node
+                graph.links = graph.links.filter(link => 
+                    link.source.id !== node.id && link.target.id !== node.id);
+                
+                selectedNode = null;
+                updateGraph();
             }
             
-            function analyzeCompatibility(type1, type2) {
-                const type1Lower = (type1 || '').toLowerCase();
-                const type2Lower = (type2 || '').toLowerCase();
-                
-                // Check for auto vs photo compatibility
-                const isType1Auto = type1Lower.includes('auto');
-                const isType2Auto = type2Lower.includes('auto');
-                
-                if (isType1Auto !== isType2Auto) {
-                    return {
-                        level: 'warning',
-                        message: 'Caution: Mixing auto and photo genetics may produce unpredictable results'
-                    };
+            // Diagram operations
+            function newDiagram() {
+                if (graph.nodes.length > 0 && !confirm('Are you sure you want to create a new diagram? All unsaved changes will be lost.')) {
+                    return;
                 }
                 
-                // Check for feminized compatibility
-                const isType1Fem = type1Lower.includes('fem');
-                const isType2Fem = type2Lower.includes('fem');
-                
-                if (isType1Fem && isType2Fem) {
-                    return {
-                        level: 'warning',
-                        message: 'Caution: Both are feminized, you will need to reverse one for pollen'
-                    };
-                }
-                
-                // Default case - these should work well together
-                return {
-                    level: 'good',
-                    message: 'Good match: Compatible genetics'
+                graph = {
+                    nodes: [],
+                    links: []
                 };
+                
+                updateGraph();
             }
             
-            function toggleGeneticsTree() {
-                // Simple placeholder - in the real implementation, you would create
-                // a visualization similar to the one shown in the second image
-                alert('Genetics tree visualization would be displayed here');
+            function saveDiagram() {
+                const name = prompt('Name this breeding diagram:');
+                if (!name) return;
                 
-                // This would typically be a D3.js or similar visualization that you add to the page
-            }
-            
-            // Saving and Loading
-            function saveBreedingPlan() {
-                const groups = document.querySelectorAll('.breeding-group');
-                const savedPlan = [];
+                const diagramData = {
+                    name: name,
+                    date: new Date().toISOString(),
+                    data: graph
+                };
                 
-                groups.forEach(group => {
-                    const groupId = group.dataset.id;
-                    const title = group.querySelector('.breeding-group-title').value;
-                    const notes = group.querySelector('.notes-field').value;
-                    
-                    const strains = [];
-                    group.querySelectorAll('.strain-chip').forEach(chip => {
-                        strains.push({
-                            id: chip.dataset.strainId,
-                            type: chip.dataset.type
-                        });
-                    });
-                    
-                    savedPlan.push({
-                        id: groupId,
-                        title: title,
-                        notes: notes,
-                        strains: strains
-                    });
-                });
+                // Get existing saved diagrams
+                let savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+                
+                // Add or update
+                const existingIndex = savedDiagrams.findIndex(d => d.name === name);
+                if (existingIndex >= 0) {
+                    savedDiagrams[existingIndex] = diagramData;
+                } else {
+                    savedDiagrams.push(diagramData);
+                }
                 
                 // Save to local storage
-                localStorage.setItem('breedingPlan', JSON.stringify(savedPlan));
-                alert('Breeding plan saved successfully!');
+                localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+                
+                alert(`Diagram "${name}" saved successfully!`);
             }
             
-            function loadBreedingPlan() {
-                const savedPlan = localStorage.getItem('breedingPlan');
-                if (!savedPlan) {
-                    alert('No saved breeding plan found');
+            function loadDiagram() {
+                // Get saved diagrams
+                const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+                
+                if (savedDiagrams.length === 0) {
+                    alert('No saved diagrams found.');
                     return;
                 }
                 
-                try {
-                    const plan = JSON.parse(savedPlan);
-                    
-                    // Clear existing groups
-                    breedingGroups.innerHTML = '';
-                    groupCounter = 0;
-                    
-                    // Create each group and add strains
-                    plan.forEach(groupData => {
-                        groupCounter++;
-                        const groupId = `group-${groupCounter}`;
-                        
-                        // Create the group
-                        const groupElement = document.createElement('div');
-                        groupElement.className = 'breeding-group';
-                        groupElement.dataset.id = groupId;
-                        
-                        groupElement.innerHTML = `
-                            <div class="breeding-group-header">
-                                <input type="text" class="breeding-group-title" value="${groupData.title || `Breeding Project ${groupCounter}`}">
-                                <div class="breeding-group-actions">
-                                    <button class="btn btn-sm btn-clear" data-action="clear" data-group="${groupId}">Clear</button>
-                                    <button class="btn btn-sm btn-remove" data-action="remove" data-group="${groupId}">Remove</button>
-                                </div>
-                            </div>
-                            <div class="breeding-group-content" data-group="${groupId}"></div>
-                            <div class="cross-results">
-                                <div class="cross-results-title">Potential Crosses</div>
-                                <div class="cross-results-content" data-results="${groupId}"></div>
-                            </div>
-                            <textarea class="notes-field" placeholder="Notes about this breeding project...">${groupData.notes || ''}</textarea>
-                        `;
-                        
-                        breedingGroups.appendChild(groupElement);
-                        
-                        // Add event listeners
-                        const clearBtn = groupElement.querySelector('[data-action="clear"]');
-                        const removeBtn = groupElement.querySelector('[data-action="remove"]');
-                        
-                        clearBtn.addEventListener('click', () => clearBreedingGroup(groupId));
-                        removeBtn.addEventListener('click', () => removeBreedingGroup(groupId));
-                        
-                        // Set up drop target
-                        setupGroupDropTarget(groupId);
-                        
-                        // Add strains
-                        const groupContent = groupElement.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
-                        groupContent.classList.remove('empty');
-                        groupContent.innerHTML = ''; // Clear the placeholder
-                        
-                        if (groupData.strains && groupData.strains.length > 0) {
-                            groupData.strains.forEach(strainData => {
-                                addStrainToGroup(strainData.id, groupId);
-                            });
-                        } else {
-                            // Empty group
-                            groupContent.innerHTML = 'Drop strains here';
-                            groupContent.classList.add('empty');
-                        }
-                    });
-                    
-                    alert('Breeding plan loaded successfully!');
-                } catch (error) {
-                    console.error('Error loading breeding plan:', error);
-                    alert('Error loading breeding plan. The saved data may be corrupted.');
+                // Create list of saved diagrams
+                let diagramList = 'Select a diagram to load:\n';
+                savedDiagrams.forEach((diagram, index) => {
+                    const date = new Date(diagram.date).toLocaleDateString();
+                    diagramList += `${index + 1}. ${diagram.name} (${date})\n`;
+                });
+                
+                const selection = prompt(diagramList);
+                if (!selection) return;
+                
+                const index = parseInt(selection) - 1;
+                if (isNaN(index) || index < 0 || index >= savedDiagrams.length) {
+                    alert('Invalid selection.');
+                    return;
                 }
+                
+                const selectedDiagram = savedDiagrams[index];
+                
+                // If current diagram has changes, confirm
+                if (graph.nodes.length > 0 && !confirm('Loading a new diagram will replace the current one. Continue?')) {
+                    return;
+                }
+                
+                // Load the selected diagram
+                graph = selectedDiagram.data;
+                
+                updateGraph();
+                alert(`Diagram "${selectedDiagram.name}" loaded successfully!`);
             }
         });
     </script>
