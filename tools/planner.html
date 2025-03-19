@@ -274,26 +274,34 @@
             margin-right: 3px;
         }
         
-        .connection-points {
-            display: flex;
-            justify-content: center;
-            padding: 5px;
-            background-color: #f0f0f0;
-            border-radius: 0 0 6px 6px;
-        }
-        
-        .connection-point {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #673ab7;
-            cursor: pointer;
-            border: 2px solid white;
-        }
-        
-        .connection-point:hover {
-            background-color: #9c27b0;
-        }
+		.connection-points {
+			display: flex;
+			justify-content: space-between;
+			padding: 5px 10px;
+			background-color: #f0f0f0;
+			border-radius: 0 0 6px 6px;
+		}
+
+		.connection-point {
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			cursor: pointer;
+			border: 2px solid white;
+		}
+
+		.connection-point-female {
+			background-color: #e091b9; /* Pink for female */
+		}
+
+		.connection-point-male {
+			background-color: #91b7e0; /* Blue for male */
+		}
+
+		.connection-point:hover {
+			transform: scale(1.2);
+			box-shadow: 0 0 3px rgba(0,0,0,0.3);
+		}
         
         /* Node types */
         .breeding-node.reg {
@@ -950,43 +958,48 @@
                 isPanning = false;
             }
             
-            function centerView() {
-                // If no nodes, just center canvas
-                if (nodes.length === 0) {
-                    centerCanvas();
-                    return;
-                }
-                
-                // Find bounding box of all nodes
-                let minX = Infinity, minY = Infinity;
-                let maxX = -Infinity, maxY = -Infinity;
-                
-                nodes.forEach(node => {
-                    const nodeEl = document.getElementById(node.id);
-                    if (nodeEl) {
-                        const rect = nodeEl.getBoundingClientRect();
-                        const nodeLeft = parseInt(nodeEl.style.left || '0');
-                        const nodeTop = parseInt(nodeEl.style.top || '0');
-                        const nodeRight = nodeLeft + rect.width;
-                        const nodeBottom = nodeTop + rect.height;
-                        
-                        minX = Math.min(minX, nodeLeft);
-                        minY = Math.min(minY, nodeTop);
-                        maxX = Math.max(maxX, nodeRight);
-                        maxY = Math.max(maxY, nodeBottom);
-                    }
-                });
-                
-                // Calculate center of nodes
-                const centerX = (minX + maxX) / 2;
-                const centerY = (minY + maxY) / 2;
-                
-                // Calculate new canvas position to center the nodes
-                canvasOffset.x = canvasContainer.clientWidth / 2 - centerX;
-                canvasOffset.y = canvasContainer.clientHeight / 2 - centerY;
-                
-                updateCanvasPosition();
-            }
+			function centerView() {
+				// If no nodes, just center canvas
+				if (nodes.length === 0) {
+					centerCanvas();
+					return;
+				}
+				
+				// Find bounding box of all nodes
+				let minX = Infinity, minY = Infinity;
+				let maxX = -Infinity, maxY = -Infinity;
+				
+				nodes.forEach(node => {
+					const nodeEl = document.getElementById(node.id);
+					if (nodeEl) {
+						const left = parseInt(nodeEl.style.left || '0');
+						const top = parseInt(nodeEl.style.top || '0');
+						const width = nodeEl.offsetWidth || 200;
+						const height = nodeEl.offsetHeight || 100;
+						
+						minX = Math.min(minX, left);
+						minY = Math.min(minY, top);
+						maxX = Math.max(maxX, left + width);
+						maxY = Math.max(maxY, top + height);
+					}
+				});
+				
+				// Add padding
+				minX -= 100;
+				minY -= 100;
+				maxX += 100;
+				maxY += 100;
+				
+				// Calculate center of nodes
+				const centerX = (minX + maxX) / 2;
+				const centerY = (minY + maxY) / 2;
+				
+				// Calculate new canvas position to center the nodes
+				canvasOffset.x = canvasContainer.clientWidth / 2 - centerX;
+				canvasOffset.y = canvasContainer.clientHeight / 2 - centerY;
+				
+				updateCanvasPosition();
+			}
             
             // Search and Filter
             function performSearch() {
@@ -1029,103 +1042,120 @@
             }
             
             // Node Operations
-            function addStrainToCanvas(strain) {
-                nodeCounter++;
-                const nodeId = `node-${nodeCounter}`;
-                
-                // Get data from strain
-                const strainName = strain.STRAIN || strain.Strain || strain.Name || 'Unnamed';
-                const type = strain['REG / FEM'] || strain.Type || '';
-                const breeder = strain.BREEDER || strain.Breeder || '';
-                const parent1 = strain.PARENT1 || strain.parent1 || '';
-                const parent2 = strain.PARENT2 || strain.parent2 || '';
-                
-                // Determine node type class
-                let nodeClass = 'breeding-node';
-                if (type.toLowerCase().includes('reg')) nodeClass += ' reg';
-                if (type.toLowerCase().includes('fem')) nodeClass += ' fem';
-                if (type.toLowerCase().includes('auto')) nodeClass += ' auto';
-                if (type.toLowerCase().includes('photo')) nodeClass += ' photo';
-                if (type.toLowerCase().includes('fast')) nodeClass += ' fast';
-                
-                // Create node element
-                const node = document.createElement('div');
-                node.id = nodeId;
-                node.className = nodeClass;
-                node.dataset.name = strainName;
-                node.dataset.type = type;
-                
-                // Type indicators
-                let typeSpans = '';
-                if (type.toLowerCase().includes('reg')) typeSpans += '<span>REG</span>';
-                if (type.toLowerCase().includes('fem')) typeSpans += '<span>FEM</span>';
-                if (type.toLowerCase().includes('auto')) typeSpans += '<span>AUTO</span>';
-                if (type.toLowerCase().includes('photo')) typeSpans += '<span>PHOTO</span>';
-                if (type.toLowerCase().includes('fast')) typeSpans += '<span>FAST</span>';
-                
-                // Set the starting position - place near center of visible area
-                const x = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 80;
-                const y = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
-                
-                node.style.left = `${x}px`;
-                node.style.top = `${y}px`;
-                
-                node.innerHTML = `
-                    <div class="node-header">
-                        <div class="node-name">${strainName}</div>
-                        <div class="node-controls">
-                            <div class="node-control" data-action="remove" title="Remove">×</div>
-                        </div>
-                    </div>
-                    <div class="node-content">
-                        <div class="node-type">${typeSpans}</div>
-                        ${breeder ? `<div class="node-breeder">Breeder: ${breeder}</div>` : ''}
-                        ${parent1 || parent2 ? `
-                            <div class="node-parents">
-                                ${parent1 ? `<div>Parent 1: ${parent1}</div>` : ''}
-                                ${parent2 ? `<div>Parent 2: ${parent2}</div>` : ''}
-                            </div>
-                        ` : ''}
-                    </div>
-                    <div class="connection-points">
-                        <div class="connection-point" data-node="${nodeId}"></div>
-                    </div>
-                `;
-                
-                // Make node draggable
-                node.addEventListener('mousedown', startDraggingNode);
-                
-                // Setup connection point
-                const connectionPoint = node.querySelector('.connection-point');
-                connectionPoint.addEventListener('mousedown', startConnecting);
-                
-                // Setup remove button
-                const removeButton = node.querySelector('[data-action="remove"]');
-                removeButton.addEventListener('click', e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    removeNode(nodeId);
-                });
-                
-                // Add to canvas
-                breedingCanvas.appendChild(node);
-                
-                // Add to nodes array
-                nodes.push({
-                    id: nodeId,
-                    name: strainName,
-                    type: type,
-                    origin: 'strain',
-                    parent1: parent1,
-                    parent2: parent2,
-                    breeder: breeder,
-                    children: [],
-                    parents: []
-                });
-                
-                selectNode(nodeId);
-                return nodeId;
-            }
+			function addStrainToCanvas(strain) {
+				nodeCounter++;
+				const nodeId = `node-${nodeCounter}`;
+				
+				// Get data from strain
+				const strainName = strain.STRAIN || strain.Strain || strain.Name || 'Unnamed';
+				const type = strain['REG / FEM'] || strain.Type || '';
+				const breeder = strain.BREEDER || strain.Breeder || '';
+				const parent1 = strain.PARENT1 || strain.parent1 || '';
+				const parent2 = strain.PARENT2 || strain.parent2 || '';
+				
+				// Determine node type classes
+				let nodeClass = 'breeding-node';
+				
+				// Parse growth type (AUTO/PHOTO)
+				if (type.toLowerCase().includes('auto')) nodeClass += ' auto';
+				if (type.toLowerCase().includes('photo')) nodeClass += ' photo';
+				
+				// Parse sex type (REG/FEM)
+				if (type.toLowerCase().includes('reg')) nodeClass += ' reg';
+				if (type.toLowerCase().includes('fem')) nodeClass += ' fem';
+				
+				// Parse flowering type (FAST)
+				if (type.toLowerCase().includes('fast')) nodeClass += ' fast';
+				
+				// Create node element
+				const node = document.createElement('div');
+				node.id = nodeId;
+				node.className = nodeClass;
+				node.dataset.name = strainName;
+				node.dataset.type = type;
+				
+				// Type indicators
+				let growthType = '';
+				let sexType = '';
+				let floweringType = '';
+				
+				if (type.toLowerCase().includes('auto')) growthType = '<span>AUTO</span>';
+				if (type.toLowerCase().includes('photo')) growthType = '<span>PHOTO</span>';
+				
+				if (type.toLowerCase().includes('reg')) sexType = '<span>REG</span>';
+				if (type.toLowerCase().includes('fem')) sexType = '<span>FEM</span>';
+				
+				if (type.toLowerCase().includes('fast')) floweringType = '<span>FAST</span>';
+				
+				// Set the starting position near center of visible area
+				const x = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 80;
+				const y = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
+				
+				node.style.left = `${x}px`;
+				node.style.top = `${y}px`;
+				
+				node.innerHTML = `
+					<div class="node-header">
+						<div class="node-name">${strainName}</div>
+						<div class="node-controls">
+							<div class="node-control" data-action="remove" title="Remove">×</div>
+						</div>
+					</div>
+					<div class="node-content">
+						<div class="node-type">
+							${growthType}
+							${sexType}
+							${floweringType}
+						</div>
+						${breeder ? `<div class="node-breeder">Breeder: ${breeder}</div>` : ''}
+						${parent1 || parent2 ? `
+							<div class="node-parents">
+								${parent1 ? `<div>Parent 1: ${parent1}</div>` : ''}
+								${parent2 ? `<div>Parent 2: ${parent2}</div>` : ''}
+							</div>
+						` : ''}
+					</div>
+					<div class="connection-points">
+						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
+						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
+					</div>
+				`;
+				
+				// Make node draggable
+				node.addEventListener('mousedown', startDraggingNode);
+				
+				// Setup connection points
+				node.querySelectorAll('.connection-point').forEach(point => {
+					point.addEventListener('mousedown', startConnecting);
+				});
+				
+				// Setup remove button
+				const removeButton = node.querySelector('[data-action="remove"]');
+				removeButton.addEventListener('click', e => {
+					e.preventDefault();
+					e.stopPropagation();
+					removeNode(nodeId);
+				});
+				
+				// Add to canvas
+				breedingCanvas.appendChild(node);
+				
+				// Add to nodes array
+				nodes.push({
+					id: nodeId,
+					name: strainName,
+					type: type,
+					origin: 'strain',
+					parent1: parent1,
+					parent2: parent2,
+					breeder: breeder,
+					children: [],
+					parents: []
+				});
+				
+				selectNode(nodeId);
+				return nodeId;
+			}
             
             function addCrossNodeToCanvas(crossData) {
                 nodeCounter++;
@@ -1398,223 +1428,279 @@
             }
             
             // Connection Operations
-            function startConnecting(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const connectionPoint = e.target;
-                const nodeId = connectionPoint.dataset.node;
-                
-                connecting = true;
-                connectingSourceNode = nodeId;
-                
-                // Create temporary SVG line
-                tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                tempLine.setAttribute('stroke', '#b39ddb');
-                tempLine.setAttribute('stroke-width', '2');
-                tempLine.setAttribute('fill', 'none');
-                tempLine.setAttribute('marker-end', 'url(#arrowhead)');
-                
-                connectionsGroup.appendChild(tempLine);
-                
-                // Add mouse move and up handlers
-                document.addEventListener('mousemove', updateTempConnection);
-                document.addEventListener('mouseup', finishConnection);
-            }
+			function startConnecting(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				
+				const connectionPoint = e.target;
+				const nodeId = connectionPoint.dataset.node;
+				const role = connectionPoint.dataset.role; // 'female' or 'male'
+				
+				connecting = true;
+				connectingSourceNode = nodeId;
+				connectingRole = role;
+				
+				// Create temporary SVG line
+				tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+				tempLine.setAttribute('stroke', role === 'female' ? '#e091b9' : '#91b7e0');
+				tempLine.setAttribute('stroke-width', '2');
+				tempLine.setAttribute('fill', 'none');
+				tempLine.setAttribute('marker-end', 'url(#arrowhead)');
+				
+				connectionsGroup.appendChild(tempLine);
+				
+				// Add mouse move and up handlers
+				document.addEventListener('mousemove', updateTempConnection);
+				document.addEventListener('mouseup', finishConnection);
+			}
+
+			function updateTempConnection(e) {
+				if (!connecting || !connectingSourceNode) return;
+				
+				const canvasRect = breedingCanvas.getBoundingClientRect();
+				const sourceNode = document.getElementById(connectingSourceNode);
+				if (!sourceNode) return;
+				
+				const sourcePoint = sourceNode.querySelector(`.connection-point-${connectingRole}`);
+				const sourceRect = sourcePoint.getBoundingClientRect();
+				
+				const startX = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
+				const startY = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
+				
+				const endX = e.clientX - canvasRect.left;
+				const endY = e.clientY - canvasRect.top;
+				
+				// Create a curved path
+				const controlPointX = (startX + endX) / 2;
+				const controlPointY = (startY + endY + 50) / 2;
+				
+				const path = `M ${startX} ${startY} Q ${controlPointX} ${controlPointY}, ${endX} ${endY}`;
+				tempLine.setAttribute('d', path);
+			}
+
+			function finishConnection(e) {
+				if (!connecting || !connectingSourceNode) return;
+				
+				document.removeEventListener('mousemove', updateTempConnection);
+				document.removeEventListener('mouseup', finishConnection);
+				
+				// Remove temp line
+				if (tempLine) {
+					tempLine.remove();
+					tempLine = null;
+				}
+				
+				// Check if mouse is over a connection point
+				const element = document.elementFromPoint(e.clientX, e.clientY);
+				if (element && element.classList.contains('connection-point')) {
+					const targetNodeId = element.dataset.node;
+					const targetRole = element.dataset.role;
+					
+					// Don't connect to self
+					if (targetNodeId !== connectingSourceNode) {
+						// Don't connect same roles (female to female or male to male)
+						if (connectingRole !== targetRole) {
+							// Show cross creation modal
+							showNameCrossModal(connectingSourceNode, targetNodeId, connectingRole, targetRole);
+						} else {
+							alert('Cannot connect same types. Connect female to male or male to female.');
+						}
+					}
+				}
+				
+				connecting = false;
+				connectingSourceNode = null;
+				connectingRole = null;
+			}
+
+			function showNameCrossModal(sourceId, targetId, sourceRole, targetRole) {
+				// Determine which is female and which is male
+				let femaleId, maleId;
+				
+				if (sourceRole === 'female') {
+					femaleId = sourceId;
+					maleId = targetId;
+				} else {
+					femaleId = targetId;
+					maleId = sourceId;
+				}
+				
+				// Get parent nodes
+				const femaleNode = nodes.find(n => n.id === femaleId);
+				const maleNode = nodes.find(n => n.id === maleId);
+				
+				if (!femaleNode || !maleNode) return;
+				
+				// Setup cross parent information
+				crossParents.innerHTML = `
+					<div>
+						<span style="color: #e091b9;">♀ ${femaleNode.name}</span> × 
+						<span style="color: #91b7e0;">♂ ${maleNode.name}</span>
+					</div>
+				`;
+				
+				// Set default name - female × male format
+				const defaultName = `${femaleNode.name} × ${maleNode.name}`;
+				defaultCrossName.textContent = defaultName;
+				
+				// Suggest type based on parent types
+				let suggestedType = 'reg';
+				const femaleType = femaleNode.type.toLowerCase();
+				const maleType = maleNode.type.toLowerCase();
+				
+				if (femaleType.includes('fem') || maleType.includes('fem')) {
+					suggestedType = 'fem';
+				}
+				
+				if (femaleType.includes('auto') || maleType.includes('auto')) {
+					suggestedType = 'auto';
+				} else if (femaleType.includes('photo') || maleType.includes('photo')) {
+					suggestedType = 'photo';
+				}
+				
+				crossType.value = suggestedType;
+				
+				// Store data for cross creation
+				pendingCrossData = {
+					femaleId: femaleId,
+					maleId: maleId,
+					femaleName: femaleNode.name,
+					maleName: maleNode.name,
+					defaultName: defaultName
+				};
+				
+				// Show modal
+				showModal(nameCrossModal);
+				customCrossName.focus();
+			}
             
-            function updateTempConnection(e) {
-                if (!connecting || !connectingSourceNode) return;
-                
-                const canvasRect = breedingCanvas.getBoundingClientRect();
-                const sourceNode = document.getElementById(connectingSourceNode);
-                if (!sourceNode) return;
-                
-                const sourcePoint = sourceNode.querySelector('.connection-point');
-                const sourceRect = sourcePoint.getBoundingClientRect();
-                
-                const startX = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
-                const startY = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
-                
-                const endX = e.clientX - canvasRect.left;
-                const endY = e.clientY - canvasRect.top;
-                
-                // Create a curved path
-                const controlPointX = (startX + endX) / 2;
-                const controlPointY = (startY + endY + 50) / 2;
-                
-                const path = `M ${startX} ${startY} Q ${controlPointX} ${controlPointY}, ${endX} ${endY}`;
-                tempLine.setAttribute('d', path);
-            }
+			function createCross() {
+				if (!pendingCrossData) return;
+				
+				// Get data from form
+				const customName = customCrossName.value.trim();
+				const finalName = customName || pendingCrossData.defaultName;
+				const type = crossType.value;
+				
+				// Create cross data
+				const crossData = {
+					parent1: pendingCrossData.femaleId,
+					parent2: pendingCrossData.maleId,
+					parent1Name: pendingCrossData.femaleName,
+					parent2Name: pendingCrossData.maleName,
+					name: finalName,
+					type: type
+				};
+				
+				// Add cross node to canvas
+				const newNodeId = addCrossNodeToCanvas(crossData);
+				
+				// Hide modal and reset
+				hideModal(nameCrossModal);
+				customCrossName.value = '';
+				pendingCrossData = null;
+				
+				// Force update all connections to ensure visibility
+				connections.forEach(conn => {
+					updateConnection(conn.source, conn.target);
+				});
+			}
             
-            function finishConnection(e) {
-                if (!connecting || !connectingSourceNode) return;
-                
-                document.removeEventListener('mousemove', updateTempConnection);
-                document.removeEventListener('mouseup', finishConnection);
-                
-                // Remove temp line
-                if (tempLine) {
-                    tempLine.remove();
-                    tempLine = null;
-                }
-                
-                // Check if mouse is over a connection point
-                const element = document.elementFromPoint(e.clientX, e.clientY);
-                if (element && element.classList.contains('connection-point')) {
-                    const targetNodeId = element.dataset.node;
-                    
-                    // Don't connect to self
-                    if (targetNodeId !== connectingSourceNode) {
-                        // Show cross creation modal
-                        showNameCrossModal(connectingSourceNode, targetNodeId);
-                    }
-                }
-                
-                connecting = false;
-                connectingSourceNode = null;
-            }
+			function addConnection(sourceId, targetId) {
+				// Create connection id
+				const connectionId = `connection-${sourceId}-${targetId}`;
+				
+				// Check if connection already exists
+				if (connections.some(c => c.id === connectionId)) {
+					return;
+				}
+				
+				// Find source and target nodes
+				const sourceNode = nodes.find(n => n.id === sourceId);
+				const targetNode = nodes.find(n => n.id === targetId);
+				
+				if (!sourceNode || !targetNode) return;
+				
+				// Determine color based on roles - for now we'll set female parent as source
+				const isSourceFemale = true; // This could be dynamic based on real data
+				const connectionColor = isSourceFemale ? '#e091b9' : '#91b7e0';
+				
+				// Create SVG connection
+				const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+				path.id = connectionId;
+				path.classList.add('connector');
+				path.setAttribute('stroke', connectionColor);
+				path.setAttribute('marker-end', 'url(#arrowhead)');
+				path.setAttribute('data-source', sourceId);
+				path.setAttribute('data-target', targetId);
+				
+				connectionsGroup.appendChild(path);
+				
+				// Add to connections array
+				connections.push({
+					id: connectionId,
+					source: sourceId,
+					target: targetId,
+					color: connectionColor
+				});
+				
+				// Update connection path immediately to ensure it's visible
+				updateConnection(sourceId, targetId);
+			}
             
-            function showNameCrossModal(sourceId, targetId) {
-                // Get parent nodes
-                const sourceNode = nodes.find(n => n.id === sourceId);
-                const targetNode = nodes.find(n => n.id === targetId);
-                
-                if (!sourceNode || !targetNode) return;
-                
-                // Setup cross parent information
-                crossParents.innerHTML = `
-                    <div>${sourceNode.name} × ${targetNode.name}</div>
-                `;
-                
-                // Set default name
-                const defaultName = `${sourceNode.name} × ${targetNode.name}`;
-                defaultCrossName.textContent = defaultName;
-                
-                // Suggest type based on parent types
-                let suggestedType = 'reg';
-                const sourceType = sourceNode.type.toLowerCase();
-                const targetType = targetNode.type.toLowerCase();
-                
-                if (sourceType.includes('fem') || targetType.includes('fem')) {
-                    suggestedType = 'fem';
-                }
-                
-                if (sourceType.includes('auto') || targetType.includes('auto')) {
-                    suggestedType = 'auto';
-                }
-                
-                if (sourceType.includes('photo') || targetType.includes('photo')) {
-                    suggestedType = 'photo';
-                }
-                
-                crossType.value = suggestedType;
-                
-                // Store data for cross creation
-                pendingCrossData = {
-                    parent1: sourceId,
-                    parent2: targetId,
-                    parent1Name: sourceNode.name,
-                    parent2Name: targetNode.name,
-                    defaultName: defaultName
-                };
-                
-                // Show modal
-                showModal(nameCrossModal);
-                customCrossName.focus();
-            }
-            
-            function createCross() {
-                if (!pendingCrossData) return;
-                
-                // Get data from form
-                const customName = customCrossName.value.trim();
-                const finalName = customName || pendingCrossData.defaultName;
-                const type = crossType.value;
-                
-                // Create cross data
-                const crossData = {
-                    ...pendingCrossData,
-                    name: finalName,
-                    type: type
-                };
-                
-                // Add cross node to canvas
-                addCrossNodeToCanvas(crossData);
-                
-                // Hide modal and reset
-                hideModal(nameCrossModal);
-                customCrossName.value = '';
-                pendingCrossData = null;
-                
-                // Arrange tree layout
-                arrangeTreeLayout();
-            }
-            
-            function addConnection(sourceId, targetId) {
-                // Create connection id
-                const connectionId = `connection-${sourceId}-${targetId}`;
-                
-                // Check if connection already exists
-                if (connections.some(c => c.id === connectionId)) {
-                    return;
-                }
-                
-                // Create SVG connection
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.id = connectionId;
-                path.classList.add('connector');
-                path.setAttribute('marker-end', 'url(#arrowhead)');
-                
-                connectionsGroup.appendChild(path);
-                
-                // Add to connections array
-                connections.push({
-                    id: connectionId,
-                    source: sourceId,
-                    target: targetId
-                });
-                
-                // Update connection path
-                updateConnection(sourceId, targetId);
-            }
-            
-            function updateConnection(sourceId, targetId) {
-                const connectionId = `connection-${sourceId}-${targetId}`;
-                const path = document.getElementById(connectionId);
-                
-                if (!path) return;
-                
-                const sourceNode = document.getElementById(sourceId);
-                const targetNode = document.getElementById(targetId);
-                
-                if (!sourceNode || !targetNode) {
-                    // If nodes don't exist, remove the connection
-                    removeConnection(connectionId);
-                    return;
-                }
-                
-                const sourcePoint = sourceNode.querySelector('.connection-point');
-                const targetPoint = targetNode.querySelector('.connection-point');
-                
-                const sourceRect = sourcePoint.getBoundingClientRect();
-                const targetRect = targetPoint.getBoundingClientRect();
-                const canvasRect = breedingCanvas.getBoundingClientRect();
-                
-                const startX = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
-                const startY = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
-                
-                const endX = targetRect.left + targetRect.width / 2 - canvasRect.left;
-                const endY = targetRect.top + targetRect.height / 2 - canvasRect.top;
-                
-                // Calculate control point for curve
-                const midY = (startY + endY) / 2;
-                const controlPointX = (startX + endX) / 2;
-                const controlPointY = midY - 20; // Pull curve up slightly
-                
-                // Create path with quadratic curve
-                const pathD = `M ${startX} ${startY} Q ${controlPointX} ${controlPointY}, ${endX} ${endY}`;
-                path.setAttribute('d', pathD);
-            }
+			function updateConnection(sourceId, targetId) {
+				const connectionId = `connection-${sourceId}-${targetId}`;
+				const path = document.getElementById(connectionId);
+				
+				if (!path) return;
+				
+				const sourceNode = document.getElementById(sourceId);
+				const targetNode = document.getElementById(targetId);
+				
+				if (!sourceNode || !targetNode) {
+					// If nodes don't exist, remove the connection
+					removeConnection(connectionId);
+					return;
+				}
+				
+				// Source is typically the female (based on our connection design)
+				const sourceFemalePoint = sourceNode.querySelector('.connection-point-female');
+				const targetMalePoint = targetNode.querySelector('.connection-point-male');
+				
+				if (!sourceFemalePoint || !targetMalePoint) return;
+				
+				const sourceRect = sourceFemalePoint.getBoundingClientRect();
+				const targetRect = targetMalePoint.getBoundingClientRect();
+				const canvasRect = breedingCanvas.getBoundingClientRect();
+				
+				const startX = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
+				const startY = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
+				
+				const endX = targetRect.left + targetRect.width / 2 - canvasRect.left;
+				const endY = targetRect.top + targetRect.height / 2 - canvasRect.top;
+				
+				// Calculate path with bezier curve
+				const dx = endX - startX;
+				const dy = endY - startY;
+				const distance = Math.sqrt(dx * dx + dy * dy);
+				
+				// Adjust control points based on distance
+				const controlLen = Math.min(200, distance * 0.5);
+				const controlX1 = startX + controlLen;
+				const controlY1 = startY;
+				const controlX2 = endX - controlLen;
+				const controlY2 = endY;
+				
+				// Create path with cubic bezier
+				const pathD = `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`;
+				path.setAttribute('d', pathD);
+				
+				// Set color based on source node (assuming female)
+				const conn = connections.find(c => c.id === connectionId);
+				if (conn) {
+					path.setAttribute('stroke', conn.color || '#b39ddb');
+				}
+			}
             
             function updateConnectionsForNode(nodeId) {
                 // Update all connections involving this node
@@ -1647,60 +1733,99 @@
             }
             
             // Layout Arrangement
-            function arrangeTreeLayout() {
-                if (nodes.length === 0) return;
-                
-                // Find root nodes (no parents)
-                const rootNodes = nodes.filter(node => node.parents.length === 0);
-                
-                if (rootNodes.length === 0) {
-                    // If no root nodes, use the first node as root
-                    arrangeFromNode(nodes[0], 100, 100, {});
-                } else {
-                    // Arrange from each root node
-                    const spacing = breedingCanvas.clientWidth / (rootNodes.length + 1);
-                    rootNodes.forEach((root, index) => {
-                        const startX = spacing * (index + 1);
-                        arrangeFromNode(root, startX, 100, {});
-                    });
-                }
-                
-                // Update all connections
-                connections.forEach(conn => {
-                    updateConnection(conn.source, conn.target);
-                });
-                
-                // Center view on the arranged tree
-                centerView();
-            }
-            
-            function arrangeFromNode(node, x, y, placedNodes) {
-                // Mark this node as placed
-                placedNodes[node.id] = { x, y };
-                
-                // Position this node
-                const nodeElement = document.getElementById(node.id);
-                if (nodeElement) {
-                    nodeElement.style.left = `${x}px`;
-                    nodeElement.style.top = `${y}px`;
-                }
-                
-                // If no children, we're done with this branch
-                if (node.children.length === 0) return;
-                
-                // Calculate space needed for children
-                const childrenWidth = node.children.length * nodeSpacing.horizontal;
-                let startX = x - childrenWidth / 2 + nodeSpacing.horizontal / 2;
-                
-                // Position each child
-                node.children.forEach(childId => {
-                    const childNode = nodes.find(n => n.id === childId);
-                    if (childNode && !placedNodes[childId]) {
-                        arrangeFromNode(childNode, startX, y + nodeSpacing.vertical, placedNodes);
-                        startX += nodeSpacing.horizontal;
-                    }
-                });
-            }
+			function arrangeTreeLayout() {
+				if (nodes.length === 0) return;
+				
+				// Reset all potential parent-child relationships
+				nodes.forEach(node => {
+					node.children = [];
+					node.parents = [];
+				});
+				
+				// Rebuild relationships from connections
+				connections.forEach(conn => {
+					const sourceNode = nodes.find(n => n.id === conn.source);
+					const targetNode = nodes.find(n => n.id === conn.target);
+					
+					if (sourceNode && targetNode) {
+						// Target is child of source
+						if (!sourceNode.children.includes(conn.target)) {
+							sourceNode.children.push(conn.target);
+						}
+						
+						// Source is parent of target
+						if (!targetNode.parents.includes(conn.source)) {
+							targetNode.parents.push(conn.source);
+						}
+					}
+				});
+				
+				// Find root nodes (no parents or only unknown parents)
+				const rootNodes = nodes.filter(node => node.parents.length === 0);
+				
+				if (rootNodes.length === 0) {
+					// If no root nodes, use the first node as root
+					arrangeFromNode(nodes[0], 100, 100, {}, 0);
+				} else {
+					// Arrange from each root node
+					const spacing = Math.max(300, Math.min(600, breedingCanvas.clientWidth / rootNodes.length));
+					rootNodes.forEach((root, index) => {
+						const startX = 100 + spacing * index;
+						arrangeFromNode(root, startX, 100, {}, 0);
+					});
+				}
+				
+				// Force update all connections
+				setTimeout(() => {
+					connections.forEach(conn => {
+						updateConnection(conn.source, conn.target);
+					});
+				}, 50);
+				
+				// Center view on the arranged tree
+				setTimeout(centerView, 100);
+			}
+
+			function arrangeFromNode(node, x, y, placedNodes, level) {
+				// Mark this node as placed
+				placedNodes[node.id] = { x, y, level };
+				
+				// Position this node
+				const nodeElement = document.getElementById(node.id);
+				if (nodeElement) {
+					nodeElement.style.left = `${x}px`;
+					nodeElement.style.top = `${y}px`;
+				}
+				
+				// If no children, we're done with this branch
+				if (!node.children || node.children.length === 0) return;
+				
+				// Calculate space needed for children
+				const childrenWidth = Math.max(300, node.children.length * nodeSpacing.horizontal);
+				let startX = x - childrenWidth / 2 + nodeSpacing.horizontal / 2;
+				
+				// Position each child
+				node.children.forEach(childId => {
+					const childNode = nodes.find(n => n.id === childId);
+					if (childNode && !placedNodes[childId]) {
+						const childX = startX;
+						const childY = y + nodeSpacing.vertical;
+						
+						arrangeFromNode(childNode, childX, childY, placedNodes, level + 1);
+						startX += nodeSpacing.horizontal;
+					} else if (childNode && placedNodes[childId]) {
+						// If already placed, check if we need to move it lower
+						if (placedNodes[childId].level < level + 1) {
+							placedNodes[childId].level = level + 1;
+							
+							const childElement = document.getElementById(childId);
+							if (childElement) {
+								childElement.style.top = `${y + nodeSpacing.vertical}px`;
+							}
+						}
+					}
+				});
+			}
             
             // UI Handlers
             function handleCanvasClick(e) {
