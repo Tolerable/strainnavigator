@@ -501,6 +501,15 @@
         .btn-secondary:hover {
             background-color: #555;
         }
+
+		.btn-danger {
+			background-color: #d32f2f;
+			color: white;
+		}
+
+		.btn-danger:hover {
+			background-color: #b71c1c;
+		}
         
         .form-group {
             margin-bottom: 15px;
@@ -692,20 +701,44 @@
         </div>
     </div>
     
-    <div class="modal" id="load-diagram-modal">
-        <div class="modal-content">
-            <div class="modal-header">Load Breeding Plan</div>
-            <div class="modal-body">
-                <div id="saved-diagrams-list">
-                    Loading saved plans...
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-load-btn">Cancel</button>
-                <button class="btn btn-primary" id="confirm-load-btn">Load Plan</button>
-            </div>
-        </div>
-    </div>
+	<!-- Load Diagram Modal -->
+	<div class="modal" id="load-diagram-modal">
+		<div class="modal-content">
+			<div class="modal-header">Load Breeding Plan</div>
+			<div class="modal-body">
+				<div id="saved-diagrams-list">
+					Loading saved plans...
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-danger" id="delete-plan-btn">Delete</button>
+				<button class="btn btn-secondary" id="rename-plan-btn">Rename</button>
+				<button class="btn btn-secondary" id="cancel-load-btn">Cancel</button>
+				<button class="btn btn-primary" id="confirm-load-btn">Load Plan</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Rename Plan Modal -->
+	<div class="modal" id="rename-plan-modal">
+		<div class="modal-content">
+			<div class="modal-header">Rename Breeding Plan</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label class="form-label">Current Name</label>
+					<div id="rename-plan-current-name" style="color: #aaa;"></div>
+				</div>
+				<div class="form-group">
+					<label class="form-label">New Name</label>
+					<input type="text" class="form-input" id="rename-plan-input" placeholder="Enter new name">
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary" id="cancel-rename-btn">Cancel</button>
+				<button class="btn btn-primary" id="confirm-rename-btn">Rename</button>
+			</div>
+		</div>
+	</div>
     
     <!-- Context Menu -->
     <div class="context-menu" id="node-context-menu">
@@ -967,6 +1000,15 @@
                 cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
                 confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
                 
+				// Listeners for delete rename 
+				document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
+				document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
+				document.getElementById('cancel-rename-btn').addEventListener('click', () => {
+					hideModal(renamePlanModal);
+					showModal(loadDiagramModal);
+				});
+				document.getElementById('confirm-rename-btn').addEventListener('click', confirmRenamePlan);				
+				
                 // Context menu items
                 contextEdit.addEventListener('click', () => {
                     // Future feature: edit node properties
@@ -2118,63 +2160,165 @@
                 alert(`Breeding plan "${name}" saved successfully!`);
             }
             
-            function showLoadModal() {
-                // Get saved diagrams
-                const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-                
-                if (savedDiagrams.length === 0) {
-                    savedDiagramsList.innerHTML = `
-                        <div style="padding: 10px; text-align: center; color: #999;">
-                            No saved breeding plans found
-                        </div>
-                    `;
-                    confirmLoadBtn.disabled = true;
-                } else {
-                    // Create list of saved diagrams
-                    let html = '<div class="saved-plans-list">';
-                    
-                    savedDiagrams.forEach((diagram, index) => {
-                        const date = new Date(diagram.date).toLocaleDateString();
-                        const nodeCount = diagram.nodes.length;
-                        
-                        html += `
-                            <div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" 
-                                data-index="${index}">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <label style="font-weight: 500; cursor: pointer;">
-                                        <input type="radio" name="saved-diagram" value="${index}" 
-                                            ${index === 0 ? 'checked' : ''}>
-                                        ${diagram.name}
-                                    </label>
-                                    <span style="font-size: 12px; color: #999;">${date}</span>
-                                </div>
-                                <div style="font-size: 12px; color: #aaa; margin-top: 5px;">
-                                    ${nodeCount} strain${nodeCount !== 1 ? 's' : ''}
-                                    ${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += '</div>';
-                    savedDiagramsList.innerHTML = html;
-                    confirmLoadBtn.disabled = false;
-                    
-                    // Add click handler for selection
-                    document.querySelectorAll('.saved-plan-item').forEach(item => {
-                        item.addEventListener('click', function() {
-                            const radio = this.querySelector('input[type="radio"]');
-                            radio.checked = true;
-                            selectedDiagramIndex = parseInt(radio.value);
-                        });
-                    });
-                    
-                    // Set initial selection
-                    selectedDiagramIndex = 0;
-                }
-                
-                showModal(loadDiagramModal);
-            }
+			function showLoadModal() {
+				// Get saved diagrams
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (savedDiagrams.length === 0) {
+					savedDiagramsList.innerHTML = `
+						<div style="padding: 10px; text-align: center; color: #999;">
+							No saved breeding plans found
+						</div>
+					`;
+					confirmLoadBtn.disabled = true;
+					document.getElementById('delete-plan-btn').disabled = true;
+					document.getElementById('rename-plan-btn').disabled = true;
+				} else {
+					// Create list of saved diagrams with options to rename/delete
+					let html = '<div class="saved-plans-list">';
+					
+					savedDiagrams.forEach((diagram, index) => {
+						const date = new Date(diagram.date).toLocaleDateString();
+						const nodeCount = diagram.nodes.length;
+						
+						html += `
+							<div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" 
+								data-index="${index}">
+								<div style="display: flex; justify-content: space-between; align-items: center;">
+									<label style="font-weight: 500; cursor: pointer; flex: 1;">
+										<input type="radio" name="saved-diagram" value="${index}" 
+											${index === 0 ? 'checked' : ''}>
+										${diagram.name}
+									</label>
+									<span style="font-size: 12px; color: #999;">${date}</span>
+								</div>
+								<div style="font-size: 12px; color: #aaa; margin-top: 5px;">
+									${nodeCount} strain${nodeCount !== 1 ? 's' : ''}
+									${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}
+								</div>
+							</div>
+						`;
+					});
+					
+					html += '</div>';
+					savedDiagramsList.innerHTML = html;
+					confirmLoadBtn.disabled = false;
+					document.getElementById('delete-plan-btn').disabled = false;
+					document.getElementById('rename-plan-btn').disabled = false;
+					
+					// Add click handler for selection
+					document.querySelectorAll('.saved-plan-item').forEach(item => {
+						item.addEventListener('click', function() {
+							const radio = this.querySelector('input[type="radio"]');
+							radio.checked = true;
+							selectedDiagramIndex = parseInt(radio.value);
+						});
+					});
+					
+					// Set initial selection
+					selectedDiagramIndex = 0;
+				}
+				
+				showModal(loadDiagramModal);
+			}
+
+			function deleteSavedPlan() {
+				const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
+				if (!selectedRadio) {
+					alert('Please select a breeding plan to delete.');
+					return;
+				}
+				
+				const index = parseInt(selectedRadio.value);
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (index < 0 || index >= savedDiagrams.length) {
+					alert('Invalid selection.');
+					return;
+				}
+				
+				const planName = savedDiagrams[index].name;
+				
+				if (confirm(`Are you sure you want to delete the breeding plan "${planName}"?`)) {
+					// Remove the plan from the array
+					savedDiagrams.splice(index, 1);
+					
+					// Save updated array
+					localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+					
+					// Refresh the list
+					showLoadModal();
+					
+					alert(`Breeding plan "${planName}" has been deleted.`);
+				}
+			}
+
+			function showRenamePlanModal() {
+				const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
+				if (!selectedRadio) {
+					alert('Please select a breeding plan to rename.');
+					return;
+				}
+				
+				const index = parseInt(selectedRadio.value);
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (index < 0 || index >= savedDiagrams.length) {
+					alert('Invalid selection.');
+					return;
+				}
+				
+				const plan = savedDiagrams[index];
+				selectedDiagramIndex = index;
+				
+				// Set up rename modal
+				document.getElementById('rename-plan-current-name').textContent = plan.name;
+				document.getElementById('rename-plan-input').value = plan.name;
+				
+				// Show rename modal
+				hideModal(loadDiagramModal);
+				showModal(renamePlanModal);
+				document.getElementById('rename-plan-input').focus();
+			}
+
+			function confirmRenamePlan() {
+				const newName = document.getElementById('rename-plan-input').value.trim();
+				
+				if (!newName) {
+					alert('Please enter a name for your breeding plan.');
+					return;
+				}
+				
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
+					alert('Invalid selection.');
+					return;
+				}
+				
+				const oldName = savedDiagrams[selectedDiagramIndex].name;
+				
+				// Check for name collision (except with itself)
+				const nameExists = savedDiagrams.some((plan, idx) => idx !== selectedDiagramIndex && plan.name === newName);
+				if (nameExists) {
+					if (!confirm(`A breeding plan named "${newName}" already exists. Do you want to use this name anyway?`)) {
+						return;
+					}
+				}
+				
+				// Update the name
+				savedDiagrams[selectedDiagramIndex].name = newName;
+				
+				// Save updated array
+				localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+				
+				// Hide rename modal and show confirmation
+				hideModal(renamePlanModal);
+				alert(`Breeding plan renamed from "${oldName}" to "${newName}".`);
+				
+				// Refresh the load modal
+				showLoadModal();
+			}
             
             function loadSelectedDiagram() {
                 // Get selected diagram
@@ -2309,6 +2453,7 @@
                 // Center the view
                 centerView();
             }
+						
         });
     </script>
 </body>
