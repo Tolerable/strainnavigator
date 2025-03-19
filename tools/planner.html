@@ -13,7 +13,7 @@
             --background: #F8F6E9;
             --text: #333;
             --text-light: #666;
-            --border: #eee;
+            --border: #ddd;
             --count-bg: rgba(93, 74, 126, 0.1);
             --female-color: #E091B9;
             --male-color: #91B7E0;
@@ -22,8 +22,8 @@
             --reg-color: #9575CD;
             --fem-color: #F06292;
             --fast-color: #4FC3F7;
-            --cross-color: #FF5722;
-            --drop-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --limited-color: #FFC107;
+            --rare-color: #9C27B0;
         }
         
         * {
@@ -44,7 +44,7 @@
             color: white;
             padding: 1rem;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .subtitle {
@@ -55,52 +55,74 @@
         
         .container {
             max-width: 1400px;
-            margin: 1rem auto;
-            padding: 0 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .tab-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: var(--drop-shadow);
-            overflow: hidden;
-        }
-        
-        .content-section {
+            margin: 0 auto;
             padding: 1rem;
         }
         
+        .main-layout {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 1rem;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .panel-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.6rem 1rem;
+            font-weight: 500;
+        }
+        
+        .panel-content {
+            padding: 1rem;
+        }
+        
+        /* Strain List Panel */
         .search-container {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
         }
         
         .search-input {
             flex: 1;
             padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid var(--border);
+            border-radius: 4px 0 0 4px;
             font-size: 0.9rem;
+        }
+        
+        .search-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
         }
         
         .filters {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 0.3rem;
+            margin-bottom: 0.8rem;
         }
         
         .filter-btn {
             background-color: #f0f0f0;
             border: none;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 500;
         }
         
         .filter-btn.active {
@@ -108,96 +130,169 @@
             color: white;
         }
         
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: var(--primary-dark);
-        }
-        
-        .seed-list {
-            list-style: none;
-            max-height: 400px;
+        .strain-list-container {
+            height: calc(100vh - 270px);
             overflow-y: auto;
             border: 1px solid var(--border);
             border-radius: 4px;
         }
         
-        .seed-item {
-            padding: 0.6rem 0.8rem;
+        .strain-list {
+            list-style: none;
+        }
+        
+        .strain-card {
+            padding: 0.5rem;
             border-bottom: 1px solid var(--border);
+            cursor: pointer;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            cursor: grab;
-            transition: background-color 0.2s;
+            align-items: center;
+            transition: background 0.15s;
         }
         
-        .seed-item:hover {
-            background-color: rgba(93, 74, 126, 0.05);
+        .strain-card:hover {
+            background-color: rgba(45, 94, 50, 0.05);
         }
         
-        .seed-item:last-child {
-            border-bottom: none;
+        .strain-card.selected {
+            background-color: rgba(45, 94, 50, 0.1);
+            border-left: 3px solid var(--primary);
         }
         
-        .seed-name {
-            font-weight: 600;
-            color: var(--primary-dark);
-            margin-bottom: 0.2rem;
+        .strain-info {
+            flex: 1;
+        }
+        
+        .strain-name {
+            font-weight: 500;
+            margin-bottom: 0.1rem;
             display: flex;
             align-items: center;
+            gap: 0.3rem;
         }
         
-        .seed-labels {
+        .strain-labels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.2rem;
+        }
+        
+        .strain-label {
+            font-size: 0.6rem;
+            padding: 0.05rem 0.3rem;
+            border-radius: 2px;
+            color: white;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .label-auto { background-color: var(--auto-color); }
+        .label-photo { background-color: var(--photo-color); }
+        .label-fem { background-color: var(--fem-color); }
+        .label-reg { background-color: var(--reg-color); }
+        .label-fast { background-color: var(--fast-color); }
+        .label-limited { background-color: var(--limited-color); }
+        .label-rare { background-color: var(--rare-color); }
+        
+        .strain-count {
+            background-color: var(--count-bg);
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--accent);
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .strain-actions {
+            display: flex;
+            gap: 0.3rem;
+            margin-top: 1rem;
+        }
+        
+        .btn {
+            padding: 0.3rem 0.6rem;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: background 0.15s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-accent {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .btn-accent:hover {
+            background-color: #4a3a66;
+        }
+        
+        /* Strain Detail Panel */
+        .strain-detail-panel {
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .strain-detail-panel.active {
+            display: block;
+        }
+        
+        .strain-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .strain-detail-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+        
+        .strain-detail-breeder {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        .strain-detail-labels {
             display: flex;
             flex-wrap: wrap;
             gap: 0.3rem;
-            margin-top: 0.2rem;
+            margin-bottom: 0.8rem;
         }
         
-        .seed-label {
-            font-size: 0.65rem;
-            padding: 0.1rem 0.4rem;
-            border-radius: 3px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: white;
-            display: inline-flex;
-            align-items: center;
-        }
-        
-        .label-auto {
-            background-color: var(--auto-color);
-        }
-        
-        .label-photo {
-            background-color: var(--photo-color);
-        }
-        
-        .label-fem {
-            background-color: var(--fem-color);
-        }
-        
-        .label-reg {
-            background-color: var(--reg-color);
-        }
-        
-        .label-fast {
-            background-color: var(--fast-color);
-        }
-        
-        .genetics-label {
+        .strain-detail-label {
             font-size: 0.7rem;
-            margin-top: 0.1rem;
+            padding: 0.1rem 0.5rem;
+            border-radius: 3px;
+            color: white;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .strain-detail-genetics {
+            margin-bottom: 0.8rem;
+            padding: 0.5rem;
+            background-color: rgba(0, 0, 0, 0.02);
+            border-radius: 4px;
+        }
+        
+        .parent-label {
+            font-size: 0.8rem;
             color: var(--text-light);
         }
         
@@ -211,78 +306,242 @@
             font-weight: 500;
         }
         
-        .cross-symbol {
+        .strain-detail-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .stat-item {
+            background-color: rgba(0, 0, 0, 0.02);
+            padding: 0.4rem;
+            border-radius: 3px;
+        }
+        
+        .stat-label {
             font-size: 0.7rem;
-            margin: 0 0.2rem;
-            opacity: 0.7;
+            color: var(--text-light);
         }
         
-        .seed-count-breeder {
+        .stat-value {
+            font-weight: 500;
+        }
+        
+        /* Breeding Planner Panel */
+        .planner-controls {
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            min-width: 80px;
-            max-width: 120px;
-            margin-left: 8px;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
         }
         
-        .seed-count {
-            font-weight: bold;
-            color: var(--accent);
-            background-color: var(--count-bg);
-            padding: 0.1rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.8rem;
-            margin-bottom: 0.3rem;
+        .breeding-groups {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
         }
         
-        .seed-breeder {
-            background-color: var(--primary-light);
-            color: white;
-            padding: 0.1rem 0.4rem;
-            border-radius: 3px;
-            font-size: 0.65rem;
-            text-align: center;
-            white-space: normal;
-            word-break: break-word;
-            min-width: 80px;
+        .breeding-group {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: fit-content;
         }
         
-        .run-mark {
-            color: var(--accent);
-            font-weight: bold;
-            margin-left: 0.3rem;
-            font-size: 0.8rem;
-        }
-        
-        .loader {
+        .breeding-group-header {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            height: 100px;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border);
         }
         
-        .loader:after {
-            content: " ";
-            display: block;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 4px solid var(--primary);
-            border-color: var(--primary) transparent var(--primary) transparent;
-            animation: loader 1.2s linear infinite;
+        .breeding-group-title {
+            width: 100%;
+            padding: 0.3rem;
+            border: 1px solid transparent;
+            font-weight: 500;
+            background: transparent;
         }
         
-        @keyframes loader {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .breeding-group-title:focus {
+            outline: none;
+            border-color: var(--border);
+            background: white;
         }
         
-        .error-message {
-            color: #d32f2f;
-            text-align: center;
-            padding: 1rem;
+        .breeding-group-actions {
+            display: flex;
+            gap: 0.3rem;
+        }
+        
+        .btn-sm {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.7rem;
+        }
+        
+        .btn-clear {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .btn-clear:hover {
+            background-color: #f57c00;
+        }
+        
+        .btn-remove {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .btn-remove:hover {
+            background-color: #d32f2f;
+        }
+        
+        .breeding-group-content {
+            min-height: 150px;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .breeding-group-content.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
             font-size: 0.9rem;
+            font-style: italic;
+            border: 2px dashed #eee;
+            border-radius: 4px;
+            margin: 0.5rem;
+        }
+        
+        .strain-chip {
+            display: inline-flex;
+            align-items: center;
+            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.3rem 0.5rem;
+            margin: 0 0.3rem 0.3rem 0;
+            font-size: 0.85rem;
+            position: relative;
+            max-width: 100%;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .strain-chip:hover {
+            background-color: rgba(45, 94, 50, 0.05);
+        }
+        
+        .strain-chip-name {
+            margin-right: 0.5rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 150px;
+        }
+        
+        .strain-chip-type {
+            display: flex;
+            gap: 0.1rem;
+        }
+        
+        .chip-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .indicator-photo { background-color: var(--photo-color); }
+        .indicator-auto { background-color: var(--auto-color); }
+        .indicator-reg { background-color: var(--reg-color); }
+        .indicator-fem { background-color: var(--fem-color); }
+        .indicator-fast { background-color: var(--fast-color); }
+        
+        .strain-chip-remove {
+            color: #aaa;
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+            cursor: pointer;
+        }
+        
+        .strain-chip-remove:hover {
+            color: #f44336;
+        }
+        
+        .cross-results {
+            padding: 0.5rem;
+        }
+        
+        .cross-results-title {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        
+        .cross-item {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            background-color: rgba(93, 74, 126, 0.05);
+        }
+        
+        .cross-name {
+            font-weight: 500;
+        }
+        
+        .cross-compatibility {
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+        }
+        
+        .compatibility-good {
+            color: #4CAF50;
+        }
+        
+        .compatibility-warning {
+            color: #FFC107;
+        }
+        
+        .compatibility-bad {
+            color: #F44336;
+        }
+        
+        .strain-tree {
+            margin-top: 0.5rem;
+        }
+        
+        .notes-field {
+            width: 100%;
+            min-height: 60px;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0 0 6px 6px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        
+        /* Tree view styling */
+        .tree-visualization {
+            margin-top: 1rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+        
+        .tree-container {
+            min-height: 250px;
+            position: relative;
+        }
+        
+        /* Utility classes */
+        .hidden {
+            display: none;
         }
         
         footer {
@@ -293,241 +552,13 @@
             font-size: 0.8rem;
         }
         
-        /* Breeding Planner Styles */
-        .planner-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .planner-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-        
-        @media (min-width: 1200px) {
-            .planner-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        
-        .breeding-group {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: var(--drop-shadow);
-            padding: 1rem;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .breeding-group-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .breeding-group-title {
-            color: var(--primary-dark);
-            font-weight: 600;
-            font-size: 1rem;
-        }
-        
-        .breeding-group-content {
-            flex: 1;
-            min-height: 150px;
-            border: 2px dashed #ddd;
-            border-radius: 6px;
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .breeding-plan-item {
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-            padding: 0.5rem;
-            position: relative;
-        }
-        
-        .breeding-group-controls {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .breeding-group-controls button {
-            padding: 0.3rem 0.6rem;
-            font-size: 0.8rem;
-        }
-        
-        .remove-btn {
-            background-color: #d32f2f;
-        }
-        
-        .remove-btn:hover {
-            background-color: #b71c1c;
-        }
-        
-        .clear-btn {
-            background-color: #ff9800;
-        }
-        
-        .clear-btn:hover {
-            background-color: #f57c00;
-        }
-        
-        .save-btn {
-            background-color: var(--accent);
-        }
-        
-        .save-btn:hover {
-            background-color: #4a3a66;
-        }
-        
-        .add-group-btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .add-group-btn:hover {
-            background-color: var(--primary-dark);
-        }
-        
-        .add-group-btn i {
-            font-size: 1.2rem;
-        }
-        
-        .strain-info {
-            position: relative;
-            padding: 0.3rem 0.5rem;
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-            border-left: 3px solid var(--primary);
-            background-color: rgba(45, 94, 50, 0.05);
-        }
-        
-        .strain-info.dragging {
-            opacity: 0.5;
-        }
-        
-        .strain-info-header {
-            display: flex;
-            justify-content: space-between;
-            font-weight: 600;
-        }
-        
-        .strain-info-type {
-            font-size: 0.7rem;
-            color: var(--text-light);
-        }
-        
-        .strain-remove {
-            position: absolute;
-            top: 0.2rem;
-            right: 0.2rem;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background-color: rgba(211, 47, 47, 0.1);
-            color: #d32f2f;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
-        
-        .strain-remove:hover {
-            background-color: #d32f2f;
-            color: white;
-        }
-        
-        .cross-result {
-            margin-top: 1rem;
-            padding: 0.5rem;
-            background-color: rgba(255, 87, 34, 0.1);
-            border-radius: 4px;
-            border-left: 3px solid var(--cross-color);
-        }
-        
-        .cross-result-title {
-            color: var(--cross-color);
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 0.3rem;
-        }
-        
-        .cross-result-info {
-            font-size: 0.8rem;
-        }
-        
-        .drag-placeholder {
-            border: 2px dashed var(--accent);
-            background-color: rgba(93, 74, 126, 0.05);
-            height: 50px;
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-        }
-        
-        .export-controls {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .notes-field {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            min-height: 60px;
-            resize: vertical;
-            margin-top: 0.5rem;
-        }
-        
-        @media (max-width: 768px) {
-            .search-container {
-                flex-direction: column;
-            }
-            
-            .seed-item {
-                flex-direction: column;
-                padding-bottom: 0.8rem;
-            }
-            
-            .seed-count-breeder {
-                flex-direction: row;
-                align-items: center;
-                gap: 0.5rem;
-                margin-top: 0.4rem;
-                width: 100%;
-                justify-content: flex-start;
-            }
-            
-            .seed-count {
-                margin-bottom: 0;
-            }
-            
-            .planner-grid {
+        @media (max-width: 1000px) {
+            .main-layout {
                 grid-template-columns: 1fr;
+            }
+            
+            .strain-list-container {
+                height: 300px;
             }
         }
     </style>
@@ -538,40 +569,75 @@
     </header>
     
     <div class="container">
-        <div class="tab-container">
-            <div class="content-section">
-                <div class="search-container">
-                    <input type="text" id="search-input" class="search-input" placeholder="Search seeds by name, breeder, etc.">
-                    <button id="search-btn">Search</button>
+        <div class="main-layout">
+            <!-- Left Column -->
+            <div class="left-column">
+                <!-- Strain List Panel -->
+                <div class="panel">
+                    <div class="panel-header">Strain Collection</div>
+                    <div class="panel-content">
+                        <div class="search-container">
+                            <input type="text" id="search-input" class="search-input" placeholder="Search strains...">
+                            <button id="search-btn" class="search-btn">Search</button>
+                        </div>
+                        
+                        <div class="filters">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="reg">Reg</button>
+                            <button class="filter-btn" data-filter="fem">Fem</button>
+                            <button class="filter-btn" data-filter="auto">Auto</button>
+                            <button class="filter-btn" data-filter="photo">Photo</button>
+                            <button class="filter-btn" data-filter="fast">Fast</button>
+                            <button class="filter-btn" data-filter="limited">Limited</button>
+                            <button class="filter-btn" data-filter="rare">Rare</button>
+                        </div>
+                        
+                        <div class="strain-list-container">
+                            <ul id="strain-list" class="strain-list">
+                                <!-- Strains will be loaded here -->
+                                <li class="strain-card" data-id="loading">
+                                    <div class="strain-info">
+                                        <div class="strain-name">Loading strains...</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <div class="filters">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="reg">REG</button>
-                    <button class="filter-btn" data-filter="fem">FEM</button>
-                    <button class="filter-btn" data-filter="auto">AUTO</button>
-                    <button class="filter-btn" data-filter="photo">PHOTO</button>
-                    <button class="filter-btn" data-filter="fast">FAST</button>
-                </div>
-                <div id="seed-content" class="seed-content">
-                    <div class="loader"></div>
+                
+                <!-- Strain Detail Panel -->
+                <div id="strain-detail" class="panel strain-detail-panel">
+                    <div class="panel-header">Strain Details</div>
+                    <div class="panel-content">
+                        <div id="strain-detail-content">
+                            <!-- Strain details will be loaded here -->
+                        </div>
+                        
+                        <div class="strain-actions">
+                            <button id="add-to-group-btn" class="btn btn-primary">Add to Group</button>
+                            <button id="view-tree-btn" class="btn btn-accent">View Genetics</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="tab-container">
-            <div class="content-section">
-                <h2>Breeding Planner</h2>
-                <p>Drag strains into breeding groups to plan your crosses. You can add multiple groups for different breeding projects.</p>
-                
-                <div class="export-controls">
-                    <button id="add-group-btn" class="add-group-btn">+ Add Breeding Group</button>
-                    <button id="save-all-btn">Save All Plans</button>
-                    <button id="load-btn">Load Plans</button>
-                </div>
-                
-                <div id="planner-container" class="planner-container">
-                    <div class="planner-grid" id="planner-grid">
-                        <!-- Breeding groups will be added here -->
+            
+            <!-- Right Column -->
+            <div class="right-column">
+                <!-- Breeding Planner Panel -->
+                <div class="panel">
+                    <div class="panel-header">Breeding Planner</div>
+                    <div class="panel-content">
+                        <p>Select strains and add them to breeding groups to plan your crosses.</p>
+                        
+                        <div class="planner-controls">
+                            <button id="add-group-btn" class="btn btn-primary">+ Add Group</button>
+                            <button id="save-all-btn" class="btn btn-accent">Save All</button>
+                            <button id="load-btn" class="btn btn-accent">Load Saved</button>
+                        </div>
+                        
+                        <div id="breeding-groups" class="breeding-groups">
+                            <!-- Breeding groups will be added here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -584,50 +650,75 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Your Google Sheet ID (from the existing code)
+            // Config & State
             const sheetId = '1A7kFjfw6cjmQQOwz-5liWVGgFK0K5lwS8AfIZ_Zthbg';
-            
-            // Global variables
-            let allSeeds = [];
-            let draggedItem = null;
+            let allStrains = [];
+            let selectedStrain = null;
+            let activeGroupForAdd = null;
             let groupCounter = 0;
             
-            // Load data from Google Sheet
-            function loadSheetData() {
-                const contentContainer = document.getElementById('seed-content');
-                if (!contentContainer) {
-                    console.error('Content container not found');
-                    return;
-                }
+            // Cached Elements
+            const strainList = document.getElementById('strain-list');
+            const strainDetail = document.getElementById('strain-detail');
+            const strainDetailContent = document.getElementById('strain-detail-content');
+            const addToGroupBtn = document.getElementById('add-to-group-btn');
+            const viewTreeBtn = document.getElementById('view-tree-btn');
+            const breedingGroups = document.getElementById('breeding-groups');
+            
+            // Initialize
+            init();
+            
+            function init() {
+                loadStrains();
+                setupEventListeners();
+                addBreedingGroup(); // Add first group
+            }
+            
+            function setupEventListeners() {
+                // Search
+                document.getElementById('search-btn').addEventListener('click', performSearch);
+                document.getElementById('search-input').addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') performSearch();
+                });
                 
-                contentContainer.innerHTML = '<div class="loader"></div>';
+                // Filters
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        filterStrains(this.dataset.filter);
+                    });
+                });
                 
-                // Google Sheets API URL to export as CSV
+                // Planner Controls
+                document.getElementById('add-group-btn').addEventListener('click', addBreedingGroup);
+                document.getElementById('save-all-btn').addEventListener('click', saveBreedingPlan);
+                document.getElementById('load-btn').addEventListener('click', loadBreedingPlan);
+                
+                // Strain Actions
+                addToGroupBtn.addEventListener('click', showGroupSelectionModal);
+                viewTreeBtn.addEventListener('click', toggleGeneticsTree);
+            }
+            
+            // Data Loading Functions
+            function loadStrains() {
+                strainList.innerHTML = '<li class="strain-card"><div class="strain-info"><div class="strain-name">Loading strains...</div></div></li>';
+                
                 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
                 
                 fetch(csvUrl)
                     .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
+                        if (!response.ok) throw new Error('Network error');
                         return response.text();
                     })
                     .then(csv => {
-                        allSeeds = parseCSV(csv);
-                        displaySeeds(allSeeds);
-                        setupDragAndDrop();
+                        allStrains = parseCSV(csv);
+                        renderStrainList(allStrains);
                     })
                     .catch(error => {
-                        console.error('Error loading sheet data:', error);
-                        contentContainer.innerHTML = `
-                            <div class="error-message">
-                                <p>Error loading sheet data. Please check sheet permissions and your connection.</p>
-                            </div>
-                        `;
+                        console.error('Error loading data:', error);
+                        strainList.innerHTML = '<li class="strain-card"><div class="strain-info"><div class="strain-name">Error loading strains. Please try again.</div></div></li>';
                     });
             }
             
-            // Parse CSV data
             function parseCSV(csv) {
                 const lines = csv.split('\n');
                 const headers = lines[0].split(',').map(header => header.trim());
@@ -636,498 +727,449 @@
                 for (let i = 1; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
                     
-                    // Use regex to properly handle CSV with commas in quoted fields
-                    const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
-                    const matches = [...lines[i].matchAll(regex)];
-                    const values = matches.map(match => match[0].replace(/^"|"$/g, '').trim());
+                    // Handle CSV with potential quoted values and commas
+                    const values = parseCSVLine(lines[i]);
+                    
+                    if (values.length < 2 || !values[0].trim()) continue;
+                    if (values[0].trim().toUpperCase() === 'STRAIN' || values[0].trim() === 'Unnamed Seed') continue;
                     
                     const entry = {};
-                    
-                    // Skip if this appears to be an empty row or just contains column headers
-                    if (values.length < 2 || !values[0].trim()) continue;
-                    
-                    // Skip if this is the header row being repeated
-                    if (values[0].trim().toUpperCase() === 'STRAIN' || 
-                        values[0].trim() === 'Unnamed Seed') continue;
-                    
                     for (let j = 0; j < headers.length; j++) {
-                        entry[headers[j]] = values[j] ? values[j].trim() : '';
+                        entry[headers[j]] = j < values.length ? values[j].trim() : '';
                     }
                     
-                    // Generate a unique ID for each seed
-                    entry.id = `seed-${i}`;
-                    
+                    // Add unique ID
+                    entry.id = `strain-${i}`;
                     result.push(entry);
                 }
                 
                 return result;
             }
             
-            // Create a CSS class name from seed type
-            function getTypeClassName(type) {
-                if (!type) return '';
+            function parseCSVLine(line) {
+                const result = [];
+                let inQuotes = false;
+                let currentValue = '';
+                let i = 0;
                 
-                const lowerType = type.toLowerCase();
-                if (lowerType.includes('auto')) return 'label-auto';
-                if (lowerType.includes('photo')) return 'label-photo';
-                if (lowerType.includes('fem')) return 'label-fem';
-                if (lowerType.includes('reg')) return 'label-reg';
-                if (lowerType.includes('fast')) return 'label-fast';
+                while (i < line.length) {
+                    const char = line[i];
+                    
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(currentValue);
+                        currentValue = '';
+                    } else {
+                        currentValue += char;
+                    }
+                    
+                    i++;
+                }
                 
-                return '';
+                result.push(currentValue);
+                return result;
             }
             
-            // Parse seed type into separate labels
-            function parseTypeLabels(type) {
-                if (!type) return [];
+            // Rendering Functions
+            function renderStrainList(strains) {
+                if (strains.length === 0) {
+                    strainList.innerHTML = '<li class="strain-card"><div class="strain-info"><div class="strain-name">No strains found</div></div></li>';
+                    return;
+                }
                 
+                strainList.innerHTML = '';
+                strains.forEach(strain => {
+                    const strainName = strain.STRAIN || strain.Strain || strain.Name || strain.strain || 'Unnamed';
+                    const seedType = strain['REG / FEM'] || strain.Type || strain.type || '';
+                    const count = strain.COUNT || strain.Count || strain.count || '';
+                    const status = strain.STATUS || strain.Status || strain.status || '';
+                    
+                    // Create type labels
+                    const typeLabels = getTypeLabels(seedType, status);
+                    let labelsHTML = '';
+                    typeLabels.forEach(label => {
+                        labelsHTML += `<span class="strain-label label-${label.toLowerCase()}">${label}</span>`;
+                    });
+                    
+                    const listItem = document.createElement('li');
+                    listItem.className = 'strain-card';
+                    listItem.dataset.id = strain.id;
+                    listItem.innerHTML = `
+                        <div class="strain-info">
+                            <div class="strain-name">${strainName}</div>
+                            <div class="strain-labels">${labelsHTML}</div>
+                        </div>
+                        <div class="strain-count">${count}</div>
+                    `;
+                    
+                    listItem.addEventListener('click', () => selectStrain(strain));
+                    strainList.appendChild(listItem);
+                });
+            }
+            
+            function renderStrainDetail(strain) {
+                const strainName = strain.STRAIN || strain.Strain || strain.Name || strain.strain || 'Unnamed';
+                const breeder = strain.BREEDER || strain.Breeder || strain.breeder || 'Unknown';
+                const seedType = strain['REG / FEM'] || strain.Type || strain.type || '';
+                const count = strain.COUNT || strain.Count || strain.count || '';
+                const status = strain.STATUS || strain.Status || strain.status || '';
+                const parent1 = strain.PARENT1 || strain.parent1 || '';
+                const parent2 = strain.PARENT2 || strain.parent2 || '';
+                
+                // Create type labels
+                const typeLabels = getTypeLabels(seedType, status);
+                let labelsHTML = '';
+                typeLabels.forEach(label => {
+                    labelsHTML += `<span class="strain-detail-label label-${label.toLowerCase()}">${label}</span>`;
+                });
+                
+                // Create genetics section
+                let geneticsHTML = '';
+                if (parent1 || parent2) {
+                    geneticsHTML = `
+                        <div class="strain-detail-genetics">
+                            <div class="parent-label">Genetics:</div>
+                            ${parent1 ? `<div><span class="parent-female">${parent1}</span></div>` : ''}
+                            ${parent2 ? `<div><span class="parent-male">${parent2}</span></div>` : ''}
+                        </div>
+                    `;
+                }
+                
+                strainDetailContent.innerHTML = `
+                    <div class="strain-detail-header">
+                        <div class="strain-detail-title">${strainName}</div>
+                    </div>
+                    <div class="strain-detail-breeder">${breeder}</div>
+                    <div class="strain-detail-labels">${labelsHTML}</div>
+                    ${geneticsHTML}
+                    <div class="strain-detail-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Count</div>
+                            <div class="stat-value">${count}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Type</div>
+                            <div class="stat-value">${seedType}</div>
+                        </div>
+                    </div>
+                `;
+                
+                strainDetail.classList.add('active');
+            }
+            
+            function getTypeLabels(type, status) {
                 const labels = [];
-                const lowerType = type.toLowerCase();
                 
-                if (lowerType.includes('auto')) labels.push('auto');
-                if (lowerType.includes('photo')) labels.push('photo');
-                if (lowerType.includes('fem')) labels.push('fem');
-                if (lowerType.includes('reg')) labels.push('reg');
-                if (lowerType.includes('fast')) labels.push('fast');
+                if (!type && !status) return labels;
+                
+                const lowerType = (type || '').toLowerCase();
+                const lowerStatus = (status || '').toLowerCase();
+                
+                if (lowerType.includes('auto')) labels.push('AUTO');
+                if (lowerType.includes('photo')) labels.push('PHOTO');
+                if (lowerType.includes('fem')) labels.push('FEM');
+                if (lowerType.includes('reg')) labels.push('REG');
+                if (lowerType.includes('fast')) labels.push('FAST');
+                
+                if (lowerStatus.includes('limited')) labels.push('LIMITED');
+                if (lowerStatus === 'rare') labels.push('RARE');
                 
                 return labels;
             }
             
-            // Display seeds in the content container
-            function displaySeeds(seeds) {
-                const contentContainer = document.getElementById('seed-content');
+            // Interaction Handlers
+            function selectStrain(strain) {
+                // Clear previous selection
+                document.querySelectorAll('.strain-card.selected').forEach(card => {
+                    card.classList.remove('selected');
+                });
                 
-                if (seeds.length === 0) {
-                    contentContainer.innerHTML = '<p>No seeds found in this collection.</p>';
+                // Update selection
+                selectedStrain = strain;
+                document.querySelector(`[data-id="${strain.id}"]`).classList.add('selected');
+                
+                renderStrainDetail(strain);
+            }
+            
+            function performSearch() {
+                const searchTerm= document.getElementById('search-input').value.trim().toLowerCase();
+                
+                if (!searchTerm) {
+                    renderStrainList(allStrains);
                     return;
                 }
                 
-                let html = '<ul class="seed-list">';
-                
-                seeds.forEach(seed => {
-                    // Extract key properties if they exist
-                    const seedName = seed.STRAIN || seed.Strain || seed.Name || seed.strain || seed.name || 'Unnamed Seed';
-                    const breeder = seed.BREEDER || seed.Breeder || seed.breeder || 'Unknown Breeder';
-                    const seedType = seed['REG / FEM'] || seed.Type || seed.type || '';
-                    const count = seed.COUNT || seed.Count || seed.count || '';
-                    const run = seed.RUN || '';
-                    const status = seed.STATUS || seed.Status || seed.status || '';
+                const filteredStrains = allStrains.filter(strain => {
+                    const name = (strain.STRAIN || strain.Strain || strain.Name || '').toLowerCase();
+                    const breeder = (strain.BREEDER || strain.Breeder || '').toLowerCase();
+                    const type = (strain['REG / FEM'] || strain.Type || '').toLowerCase();
+                    const parent1 = (strain.PARENT1 || strain.parent1 || '').toLowerCase();
+                    const parent2 = (strain.PARENT2 || strain.parent2 || '').toLowerCase();
                     
-                    // Parse the type into labels
-                    const typeLabels = parseTypeLabels(seedType);
-                    
-                    // Create HTML for type labels
-                    let typeLabelsHtml = '';
-                    typeLabels.forEach(label => {
-                        typeLabelsHtml += `<span class="seed-label label-${label}">${label}</span>`;
-                    });
-                    
-                    // Add parent genetics if available
-                    const parent1 = seed.PARENT1 || seed.parent1 || '';
-                    const parent2 = seed.PARENT2 || seed.parent2 || '';
-                    
-                    let geneticsHtml = '';
-                    if (parent1 || parent2) {
-                        geneticsHtml = `<div class="genetics-label">`;
-                        if (parent1 && parent2) {
-                            geneticsHtml += `<span class="parent-female">${parent1}</span><span class="cross-symbol">×</span><span class="parent-male">${parent2}</span>`;
-                        } else if (parent1) {
-                            geneticsHtml += `<span class="parent-female">${parent1}</span>`;
-                        } else if (parent2) {
-                            geneticsHtml += `<span class="parent-male">${parent2}</span>`;
-                        }
-                        geneticsHtml += `</div>`;
-                    }
-                    
-                    // Build HTML for the seed item
-                    html += `
-                        <li class="seed-item" draggable="true" data-id="${seed.id}" data-type="${seedType}" data-status="${status}" data-name="${seedName}" data-breeder="${breeder}">
-                            <div>
-                                <div class="seed-name">
-                                    ${seedName} ${run === 'X' ? '<span class="run-mark">✓</span>' : ''}
-                                </div>
-                                ${geneticsHtml}
-                                <div class="seed-labels">
-                                    ${typeLabelsHtml}
-                                </div>
-                            </div>
-                            <div class="seed-count-breeder">
-                                <div class="seed-count">${count}</div>
-                                <div class="seed-breeder">${breeder}</div>
-                            </div>
-                        </li>
-                    `;
+                    return name.includes(searchTerm) || 
+                           breeder.includes(searchTerm) || 
+                           type.includes(searchTerm) || 
+                           parent1.includes(searchTerm) || 
+                           parent2.includes(searchTerm);
                 });
                 
-                html += '</ul>';
-                contentContainer.innerHTML = html;
-                
-                // Set up search and filter after content is loaded
-                setupEventHandlers();
+                renderStrainList(filteredStrains);
             }
-
-            function performSearch() {
-                const searchInput = document.getElementById('search-input');
-                const searchTerm = searchInput.value.trim().toLowerCase();
-                
-                // Get all seed items
-                const seedItems = document.querySelectorAll('.seed-item');
-                
-                seedItems.forEach(item => {
-                    const text = item.textContent.toLowerCase();
-                    if (searchTerm === '' || text.includes(searchTerm)) {
-                        item.style.display = '';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            }
-
-            function filterSeeds(filter) {
-                // Get all seed items
-                const seedItems = document.querySelectorAll('.seed-item');
-                
-                // Update active button
+            
+            function filterStrains(filter) {
+                // Update active filter button
                 document.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.filter === filter);
                 });
                 
-                seedItems.forEach(item => {
-                    if (filter === 'all') {
-                        item.style.display = '';
-                    } else {
-                        const itemType = item.dataset.type.toLowerCase();
-                        const itemStatus = item.dataset.status.toLowerCase();
-                        const itemText = item.textContent.toLowerCase();
-                        
-                        if (itemType.includes(filter.toLowerCase()) || 
-                            itemStatus === filter.toLowerCase() || 
-                            itemText.includes(filter.toLowerCase())) {
-                            item.style.display = '';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    }
-                });
-            }
-
-            function setupEventHandlers() {
-                // Set up search
-                const searchBtn = document.getElementById('search-btn');
-                const searchInput = document.getElementById('search-input');
-                
-                if (searchBtn) {
-                    searchBtn.addEventListener('click', performSearch);
+                if (filter === 'all') {
+                    renderStrainList(allStrains);
+                    return;
                 }
                 
-                if (searchInput) {
-                    searchInput.addEventListener('keyup', function(event) {
-                        if (event.key === 'Enter') {
-                            performSearch();
-                        }
-                    });
-                }
-                
-                // Set up filter buttons
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        filterSeeds(this.dataset.filter);
-                    });
+                const filteredStrains = allStrains.filter(strain => {
+                    const type = (strain['REG / FEM'] || strain.Type || '').toLowerCase();
+                    const status = (strain.STATUS || strain.Status || '').toLowerCase();
+                    
+                    if (filter === 'reg' && type.includes('reg')) return true;
+                    if (filter === 'fem' && type.includes('fem')) return true;
+                    if (filter === 'auto' && type.includes('auto')) return true;
+                    if (filter === 'photo' && type.includes('photo')) return true;
+                    if (filter === 'fast' && type.includes('fast')) return true;
+                    if (filter === 'limited' && status.includes('limited')) return true;
+                    if (filter === 'rare' && status === 'rare') return true;
+                    
+                    return false;
                 });
                 
-                // Set up "Add Breeding Group" button
-                const addGroupBtn = document.getElementById('add-group-btn');
-                if (addGroupBtn) {
-                    addGroupBtn.addEventListener('click', addBreedingGroup);
-                }
-                
-                // Set up save/load buttons
-                const saveAllBtn = document.getElementById('save-all-btn');
-                if (saveAllBtn) {
-                    saveAllBtn.addEventListener('click', saveAllBreedingGroups);
-                }
-                
-                const loadBtn = document.getElementById('load-btn');
-                if (loadBtn) {
-                    loadBtn.addEventListener('click', loadBreedingGroups);
-                }
+                renderStrainList(filteredStrains);
             }
             
-            // Setup drag and drop functionality
-            function setupDragAndDrop() {
-                // Add event listeners to all seed items
-                document.querySelectorAll('.seed-item').forEach(item => {
-                    item.addEventListener('dragstart', handleDragStart);
-                    item.addEventListener('dragend', handleDragEnd);
-                });
-                
-                // Add initial breeding group
-                addBreedingGroup();
-            }
-            
-            // Breeding group functions
+            // Breeding Group Functions
             function addBreedingGroup() {
                 groupCounter++;
                 const groupId = `group-${groupCounter}`;
-                const plannerGrid = document.getElementById('planner-grid');
                 
                 const groupElement = document.createElement('div');
                 groupElement.className = 'breeding-group';
-                groupElement.id = groupId;
+                groupElement.dataset.id = groupId;
                 
                 groupElement.innerHTML = `
                     <div class="breeding-group-header">
                         <input type="text" class="breeding-group-title" value="Breeding Project ${groupCounter}">
-                        <div class="breeding-group-controls">
-                            <button class="clear-btn" data-action="clear" data-group="${groupId}">Clear</button>
-                            <button class="remove-btn" data-action="remove" data-group="${groupId}">Remove</button>
+                        <div class="breeding-group-actions">
+                            <button class="btn btn-sm btn-clear" data-action="clear" data-group="${groupId}">Clear</button>
+                            <button class="btn btn-sm btn-remove" data-action="remove" data-group="${groupId}">Remove</button>
                         </div>
                     </div>
-                    <div class="breeding-group-content" data-group="${groupId}"></div>
-                    <div class="cross-result" id="result-${groupId}">
-                        <div class="cross-result-title">Potential Cross Results:</div>
-                        <div class="cross-result-info">Drop strains above to see potential results</div>
+                    <div class="breeding-group-content empty" data-group="${groupId}">
+                        Drop strains here
+                    </div>
+                    <div class="cross-results">
+                        <div class="cross-results-title">Potential Crosses</div>
+                        <div class="cross-results-content" data-results="${groupId}">
+                            Add multiple strains to see crosses
+                        </div>
                     </div>
                     <textarea class="notes-field" placeholder="Notes about this breeding project..."></textarea>
                 `;
                 
-                plannerGrid.appendChild(groupElement);
+                breedingGroups.appendChild(groupElement);
                 
-                // Set up event listeners for the group
-                const groupContent = groupElement.querySelector('.breeding-group-content');
-                groupContent.addEventListener('dragover', handleDragOver);
-                groupContent.addEventListener('dragenter', handleDragEnter);
-                groupContent.addEventListener('dragleave', handleDragLeave);
-                groupContent.addEventListener('drop', handleDrop);
+                // Add event listeners
+                const clearBtn = groupElement.querySelector('[data-action="clear"]');
+                const removeBtn = groupElement.querySelector('[data-action="remove"]');
                 
-                // Set up event listeners for buttons
-                groupElement.querySelectorAll('button').forEach(btn => {
-                    btn.addEventListener('click', handleGroupAction);
+                clearBtn.addEventListener('click', () => clearBreedingGroup(groupId));
+                removeBtn.addEventListener('click', () => removeBreedingGroup(groupId));
+                
+                // Make the group a drop target
+                setupGroupDropTarget(groupId);
+                
+                return groupId;
+            }
+            
+            function setupGroupDropTarget(groupId) {
+                const groupContent = document.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
+                
+                // Set up drop target for drag-and-drop from strain list
+                groupContent.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    groupContent.classList.add('drag-over');
                 });
-            }
-            
-            // Drag and Drop Event Handlers
-            function handleDragStart(e) {
-                draggedItem = this;
-                this.classList.add('dragging');
                 
-                // If we're dragging from a breeding group (i.e., moving within planner)
-                if (this.classList.contains('strain-info')) {
-                    // Store the parent group to allow removal from original group
-                    e.dataTransfer.setData('text/plain', JSON.stringify({
-                        id: this.dataset.id,
-                        name: this.dataset.name,
-                        type: this.dataset.type,
-                        parentGroup: this.parentElement.dataset.group
-                    }));
-                } else {
-                    // We're dragging from the seed list
-                    e.dataTransfer.setData('text/plain', JSON.stringify({
-                        id: this.dataset.id,
-                        name: this.dataset.name, 
-                        type: this.dataset.type,
-                        breeder: this.dataset.breeder
-                    }));
-                }
-                
-                // Set drag image to make it look better
-                const dragImage = this.cloneNode(true);
-                dragImage.style.width = `${this.offsetWidth}px`;
-                dragImage.style.opacity = '0.8';
-                document.body.appendChild(dragImage);
-                e.dataTransfer.setDragImage(dragImage, 10, 10);
-                
-                // Remove the cloned element after drag starts
-                setTimeout(() => {
-                    document.body.removeChild(dragImage);
-                }, 0);
-            }
-            
-            function handleDragEnd() {
-                this.classList.remove('dragging');
-                draggedItem = null;
-                
-                // Remove any placeholders
-                document.querySelectorAll('.drag-placeholder').forEach(placeholder => {
-                    placeholder.remove();
+                groupContent.addEventListener('dragleave', () => {
+                    groupContent.classList.remove('drag-over');
                 });
-            }
-            
-            function handleDragOver(e) {
-                e.preventDefault();
-                return false;
-            }
-            
-            function handleDragEnter(e) {
-                e.preventDefault();
-                this.classList.add('drag-over');
-            }
-            
-            function handleDragLeave() {
-                this.classList.remove('drag-over');
-            }
-            
-            function handleDrop(e) {
-                e.preventDefault();
-                this.classList.remove('drag-over');
                 
-                const groupId = this.dataset.group;
-                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                
-                // Check if we're moving from one group to another
-                if (data.parentGroup && data.parentGroup !== groupId) {
-                    // Remove from original group
-                    const originalGroup = document.querySelector(`[data-group="${data.parentGroup}"]`);
-                    const originalItem = originalGroup.querySelector(`[data-id="${data.id}"]`);
-                    if (originalItem) {
-                        originalItem.remove();
+                groupContent.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    groupContent.classList.remove('drag-over');
+                    
+                    const data = e.dataTransfer.getData('text/plain');
+                    if (data) {
+                        try {
+                            const strainData = JSON.parse(data);
+                            addStrainToGroup(strainData.id, groupId);
+                        } catch (error) {
+                            console.error('Error parsing drag data:', error);
+                        }
                     }
-                }
-                
-                // Check if the strain is already in this group
-                if (!this.querySelector(`[data-id="${data.id}"]`)) {
-                    addStrainToGroup(data, groupId);
-                    updateCrossResults(groupId);
-                }
-                
-                return false;
+                });
             }
             
-            function addStrainToGroup(strainData, groupId) {
-                const groupContent = document.querySelector(`[data-group="${groupId}"]`);
+            function clearBreedingGroup(groupId) {
+                const groupContent = document.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
+                groupContent.innerHTML = 'Drop strains here';
+                groupContent.classList.add('empty');
                 
-                // Find the seed data
-                let seedData = null;
-                if (strainData.id) {
-                    seedData = allSeeds.find(seed => seed.id === strainData.id);
+                // Reset cross results
+                const resultsContent = document.querySelector(`.cross-results-content[data-results="${groupId}"]`);
+                resultsContent.innerHTML = 'Add multiple strains to see crosses';
+                
+                updateCrosses(groupId);
+            }
+            
+            function removeBreedingGroup(groupId) {
+                const group = document.querySelector(`.breeding-group[data-id="${groupId}"]`);
+                if (group) {
+                    group.remove();
+                }
+            }
+            
+            function addStrainToGroup(strainId, groupId) {
+                // Find the strain in our data
+                const strain = allStrains.find(s => s.id === strainId);
+                if (!strain) return;
+                
+                const groupContent = document.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
+                
+                // Check if this strain is already in the group
+                if (groupContent.querySelector(`[data-strain-id="${strainId}"]`)) {
+                    return; // Already added
                 }
                 
-                // Get type labels
-                const typeLabels = parseTypeLabels(strainData.type);
-                let typeLabelsHtml = '';
-                typeLabels.forEach(label => {
-                    typeLabelsHtml += `<span class="seed-label label-${label}">${label}</span>`;
-                });
+                // Clear the empty placeholder if needed
+                if (groupContent.classList.contains('empty')) {
+                    groupContent.innerHTML = '';
+                    groupContent.classList.remove('empty');
+                }
                 
-                // Create strain info element
-                const strainElement = document.createElement('div');
-                strainElement.className = 'strain-info';
-                strainElement.draggable = true;
-                strainElement.dataset.id = strainData.id;
-                strainElement.dataset.name = strainData.name;
-                strainElement.dataset.type = strainData.type;
+                const strainName = strain.STRAIN || strain.Strain || strain.Name || 'Unnamed';
+                const seedType = strain['REG / FEM'] || strain.Type || '';
                 
-                strainElement.innerHTML = `
-                    <div class="strain-info-header">
-                        <span>${strainData.name}</span>
-                        <span class="strain-info-type">${typeLabels.join(', ').toUpperCase()}</span>
-                    </div>
-                    <div class="strain-labels">${typeLabelsHtml}</div>
-                    <div class="strain-remove" data-id="${strainData.id}">×</div>
+                // Create type indicators
+                let typeIndicators = '';
+                if (seedType.toLowerCase().includes('photo')) typeIndicators += '<span class="chip-indicator indicator-photo"></span>';
+                if (seedType.toLowerCase().includes('auto')) typeIndicators += '<span class="chip-indicator indicator-auto"></span>';
+                if (seedType.toLowerCase().includes('reg')) typeIndicators += '<span class="chip-indicator indicator-reg"></span>';
+                if (seedType.toLowerCase().includes('fem')) typeIndicators += '<span class="chip-indicator indicator-fem"></span>';
+                if (seedType.toLowerCase().includes('fast')) typeIndicators += '<span class="chip-indicator indicator-fast"></span>';
+                
+                const chipElement = document.createElement('div');
+                chipElement.className = 'strain-chip';
+                chipElement.dataset.strainId = strainId;
+                chipElement.dataset.type = seedType;
+                chipElement.innerHTML = `
+                    <span class="strain-chip-name">${strainName}</span>
+                    <span class="strain-chip-type">${typeIndicators}</span>
+                    <span class="strain-chip-remove" data-remove="${strainId}">×</span>
                 `;
                 
-                groupContent.appendChild(strainElement);
-                
-                // Set up drag and drop for the new strain element
-                strainElement.addEventListener('dragstart', handleDragStart);
-                strainElement.addEventListener('dragend', handleDragEnd);
-                
-                // Set up remove button
-                strainElement.querySelector('.strain-remove').addEventListener('click', function() {
-                    strainElement.remove();
-                    updateCrossResults(groupId);
+                // Make it draggable for moving between groups
+                chipElement.draggable = true;
+                chipElement.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', JSON.stringify({
+                        id: strainId,
+                        sourceGroup: groupId
+                    }));
                 });
+                
+                // Add remove functionality
+                chipElement.querySelector(`.strain-chip-remove`).addEventListener('click', () => {
+                    chipElement.remove();
+                    if (groupContent.children.length === 0) {
+                        groupContent.innerHTML = 'Drop strains here';
+                        groupContent.classList.add('empty');
+                    }
+                    updateCrosses(groupId);
+                });
+                
+                groupContent.appendChild(chipElement);
+                updateCrosses(groupId);
             }
             
-            // Breeding group action handlers
-            function handleGroupAction(e) {
-                const action = e.target.dataset.action;
-                const groupId = e.target.dataset.group;
-                const groupElement = document.getElementById(groupId);
+            function showGroupSelectionModal() {
+                if (!selectedStrain) return;
                 
-                if (action === 'clear') {
-                    // Clear all strains from the group
-                    const groupContent = groupElement.querySelector('.breeding-group-content');
-                    groupContent.innerHTML = '';
-                    updateCrossResults(groupId);
-                } else if (action === 'remove') {
-                    // Remove the entire group
-                    groupElement.remove();
+                // Simple implementation - add to the first group
+                // In a more complex UI, you would show a modal to let the user choose which group
+                const groups = document.querySelectorAll('.breeding-group');
+                if (groups.length > 0) {
+                    const firstGroupId = groups[0].dataset.id;
+                    addStrainToGroup(selectedStrain.id, firstGroupId);
+                } else {
+                    const newGroupId = addBreedingGroup();
+                    addStrainToGroup(selectedStrain.id, newGroupId);
                 }
             }
             
-            // Generate and update cross results
-            function updateCrossResults(groupId) {
-                const groupContent = document.querySelector(`[data-group="${groupId}"]`);
-                const resultElement = document.getElementById(`result-${groupId}`);
-                const strains = Array.from(groupContent.querySelectorAll('.strain-info'));
+            // Crosses and Genetics
+            function updateCrosses(groupId) {
+                const groupContent = document.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
+                const resultsContent = document.querySelector(`.cross-results-content[data-results="${groupId}"]`);
                 
-                if (strains.length === 0) {
-                    resultElement.innerHTML = `
-                        <div class="cross-result-title">Potential Cross Results:</div>
-                        <div class="cross-result-info">Drop strains above to see potential results</div>
-                    `;
+                // Get all strains in this group
+                const strainChips = groupContent.querySelectorAll('.strain-chip');
+                if (strainChips.length < 2) {
+                    resultsContent.innerHTML = 'Add multiple strains to see crosses';
                     return;
                 }
-                
-                if (strains.length === 1) {
-                    resultElement.innerHTML = `
-                        <div class="cross-result-title">Potential Cross Results:</div>
-                        <div class="cross-result-info">Add more strains to see potential crosses</div>
-                    `;
-                    return;
-                }
-                
-                let resultHtml = `<div class="cross-result-title">Potential Cross Results:</div>`;
                 
                 // Generate all possible crosses
-                for (let i = 0; i < strains.length; i++) {
-                    for (let j = i + 1; j < strains.length; j++) {
-                        const strain1 = strains[i];
-                        const strain2 = strains[j];
+                let crossesHTML = '';
+                for (let i = 0; i < strainChips.length; i++) {
+                    for (let j = i + 1; j < strainChips.length; j++) {
+                        const strain1 = strainChips[i];
+                        const strain2 = strainChips[j];
                         
-                        const strain1Name = strain1.dataset.name;
-                        const strain2Name = strain2.dataset.name;
-                        const strain1Type = strain1.dataset.type || 'unknown';
-                        const strain2Type = strain2.dataset.type || 'unknown';
+                        const strain1Name = strain1.querySelector('.strain-chip-name').textContent;
+                        const strain2Name = strain2.querySelector('.strain-chip-name').textContent;
+                        const strain1Type = strain1.dataset.type;
+                        const strain2Type = strain2.dataset.type;
                         
-                        // Generate cross name
-                        const crossName = `${strain1Name} × ${strain2Name}`;
+                        const compatibility = analyzeCompatibility(strain1Type, strain2Type);
+                        const compatibilityClass = compatibility.level === 'good' ? 'compatibility-good' : 
+                                                  compatibility.level === 'warning' ? 'compatibility-warning' : 
+                                                  'compatibility-bad';
                         
-                        // Determine if cross is viable based on seed types
-                        let compatibility = determineCompatibility(strain1Type, strain2Type);
-                        
-                        resultHtml += `
-                            <div class="cross-result-info">
-                                <strong>${crossName}</strong> - ${compatibility.message}
+                        crossesHTML += `
+                            <div class="cross-item">
+                                <div class="cross-name">${strain1Name} × ${strain2Name}</div>
+                                <div class="cross-compatibility ${compatibilityClass}">
+                                    ${compatibility.message}
+                                </div>
                             </div>
                         `;
                     }
                 }
                 
-                resultElement.innerHTML = resultHtml;
+                resultsContent.innerHTML = crossesHTML || 'No valid crosses found';
             }
             
-            // Determine compatibility between seed types
-            function determineCompatibility(type1, type2) {
-                const type1Lower = type1.toLowerCase();
-                const type2Lower = type2.toLowerCase();
+            function analyzeCompatibility(type1, type2) {
+                const type1Lower = (type1 || '').toLowerCase();
+                const type2Lower = (type2 || '').toLowerCase();
                 
                 // Check for auto vs photo compatibility
                 const isType1Auto = type1Lower.includes('auto');
                 const isType2Auto = type2Lower.includes('auto');
                 
-                if (isType1Auto && !isType2Auto) {
+                if (isType1Auto !== isType2Auto) {
                     return {
-                        compatible: false,
-                        message: 'Caution: Crossing auto with photo may produce unpredictable results'
-                    };
-                }
-                
-                if (!isType1Auto && isType2Auto) {
-                    return {
-                        compatible: false,
-                        message: 'Caution: Crossing photo with auto may produce unpredictable results'
+                        level: 'warning',
+                        message: 'Caution: Mixing auto and photo genetics may produce unpredictable results'
                     };
                 }
                 
@@ -1137,125 +1179,131 @@
                 
                 if (isType1Fem && isType2Fem) {
                     return {
-                        compatible: false,
-                        message: 'Caution: Both are feminized, will need to reverse one for pollen'
+                        level: 'warning',
+                        message: 'Caution: Both are feminized, you will need to reverse one for pollen'
                     };
                 }
                 
-                if ((isType1Fem && !isType2Fem) || (!isType1Fem && isType2Fem)) {
-                    return {
-                        compatible: true,
-                        message: 'Compatible: Regular strain can pollinate feminized strain'
-                    };
-                }
-                
-                // Default case - two regular strains
+                // Default case - these should work well together
                 return {
-                    compatible: true,
-                    message: 'Compatible: Good potential cross'
+                    level: 'good',
+                    message: 'Good match: Compatible genetics'
                 };
             }
             
-            // Save and Load functions
-            function saveAllBreedingGroups() {
+            function toggleGeneticsTree() {
+                // Simple placeholder - in the real implementation, you would create
+                // a visualization similar to the one shown in the second image
+                alert('Genetics tree visualization would be displayed here');
+                
+                // This would typically be a D3.js or similar visualization that you add to the page
+            }
+            
+            // Saving and Loading
+            function saveBreedingPlan() {
                 const groups = document.querySelectorAll('.breeding-group');
-                const saveData = [];
+                const savedPlan = [];
                 
                 groups.forEach(group => {
-                    const groupId = group.id;
-                    const groupTitle = group.querySelector('.breeding-group-title').value;
+                    const groupId = group.dataset.id;
+                    const title = group.querySelector('.breeding-group-title').value;
                     const notes = group.querySelector('.notes-field').value;
                     
-                    const strains = Array.from(group.querySelectorAll('.strain-info')).map(strain => ({
-                        id: strain.dataset.id,
-                        name: strain.dataset.name,
-                        type: strain.dataset.type
-                    }));
+                    const strains = [];
+                    group.querySelectorAll('.strain-chip').forEach(chip => {
+                        strains.push({
+                            id: chip.dataset.strainId,
+                            type: chip.dataset.type
+                        });
+                    });
                     
-                    saveData.push({
+                    savedPlan.push({
                         id: groupId,
-                        title: groupTitle,
+                        title: title,
                         notes: notes,
                         strains: strains
                     });
                 });
                 
-                // Save to localStorage
-                localStorage.setItem('breedingPlans', JSON.stringify(saveData));
-                
-                alert('Breeding plans saved successfully!');
+                // Save to local storage
+                localStorage.setItem('breedingPlan', JSON.stringify(savedPlan));
+                alert('Breeding plan saved successfully!');
             }
             
-            function loadBreedingGroups() {
-                const savedData = localStorage.getItem('breedingPlans');
-                
-                if (!savedData) {
-                    alert('No saved breeding plans found.');
+            function loadBreedingPlan() {
+                const savedPlan = localStorage.getItem('breedingPlan');
+                if (!savedPlan) {
+                    alert('No saved breeding plan found');
                     return;
                 }
                 
-                const groups = JSON.parse(savedData);
-                
-                // Clear existing groups
-                document.getElementById('planner-grid').innerHTML = '';
-                
-                // Reset counter
-                groupCounter = 0;
-                
-                // Create new groups from saved data
-                groups.forEach(group => {
-                    groupCounter++;
-                    const groupId = `group-${groupCounter}`;
-                    const plannerGrid = document.getElementById('planner-grid');
+                try {
+                    const plan = JSON.parse(savedPlan);
                     
-                    const groupElement = document.createElement('div');
-                    groupElement.className = 'breeding-group';
-                    groupElement.id = groupId;
+                    // Clear existing groups
+                    breedingGroups.innerHTML = '';
+                    groupCounter = 0;
                     
-                    groupElement.innerHTML = `
-                        <div class="breeding-group-header">
-                            <input type="text" class="breeding-group-title" value="${group.title || `Breeding Project ${groupCounter}`}">
-                            <div class="breeding-group-controls">
-                                <button class="clear-btn" data-action="clear" data-group="${groupId}">Clear</button>
-                                <button class="remove-btn" data-action="remove" data-group="${groupId}">Remove</button>
+                    // Create each group and add strains
+                    plan.forEach(groupData => {
+                        groupCounter++;
+                        const groupId = `group-${groupCounter}`;
+                        
+                        // Create the group
+                        const groupElement = document.createElement('div');
+                        groupElement.className = 'breeding-group';
+                        groupElement.dataset.id = groupId;
+                        
+                        groupElement.innerHTML = `
+                            <div class="breeding-group-header">
+                                <input type="text" class="breeding-group-title" value="${groupData.title || `Breeding Project ${groupCounter}`}">
+                                <div class="breeding-group-actions">
+                                    <button class="btn btn-sm btn-clear" data-action="clear" data-group="${groupId}">Clear</button>
+                                    <button class="btn btn-sm btn-remove" data-action="remove" data-group="${groupId}">Remove</button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="breeding-group-content" data-group="${groupId}"></div>
-                        <div class="cross-result" id="result-${groupId}">
-                            <div class="cross-result-title">Potential Cross Results:</div>
-                            <div class="cross-result-info">Drop strains above to see potential results</div>
-                        </div>
-                        <textarea class="notes-field" placeholder="Notes about this breeding project...">${group.notes || ''}</textarea>
-                    `;
-                    
-                    plannerGrid.appendChild(groupElement);
-                    
-                    // Set up event listeners for the group
-                    const groupContent = groupElement.querySelector('.breeding-group-content');
-                    groupContent.addEventListener('dragover', handleDragOver);
-                    groupContent.addEventListener('dragenter', handleDragEnter);
-                    groupContent.addEventListener('dragleave', handleDragLeave);
-                    groupContent.addEventListener('drop', handleDrop);
-                    
-                    // Set up event listeners for buttons
-                    groupElement.querySelectorAll('button').forEach(btn => {
-                        btn.addEventListener('click', handleGroupAction);
+                            <div class="breeding-group-content" data-group="${groupId}"></div>
+                            <div class="cross-results">
+                                <div class="cross-results-title">Potential Crosses</div>
+                                <div class="cross-results-content" data-results="${groupId}"></div>
+                            </div>
+                            <textarea class="notes-field" placeholder="Notes about this breeding project...">${groupData.notes || ''}</textarea>
+                        `;
+                        
+                        breedingGroups.appendChild(groupElement);
+                        
+                        // Add event listeners
+                        const clearBtn = groupElement.querySelector('[data-action="clear"]');
+                        const removeBtn = groupElement.querySelector('[data-action="remove"]');
+                        
+                        clearBtn.addEventListener('click', () => clearBreedingGroup(groupId));
+                        removeBtn.addEventListener('click', () => removeBreedingGroup(groupId));
+                        
+                        // Set up drop target
+                        setupGroupDropTarget(groupId);
+                        
+                        // Add strains
+                        const groupContent = groupElement.querySelector(`.breeding-group-content[data-group="${groupId}"]`);
+                        groupContent.classList.remove('empty');
+                        groupContent.innerHTML = ''; // Clear the placeholder
+                        
+                        if (groupData.strains && groupData.strains.length > 0) {
+                            groupData.strains.forEach(strainData => {
+                                addStrainToGroup(strainData.id, groupId);
+                            });
+                        } else {
+                            // Empty group
+                            groupContent.innerHTML = 'Drop strains here';
+                            groupContent.classList.add('empty');
+                        }
                     });
                     
-                    // Add strains to the group
-                    group.strains.forEach(strain => {
-                        addStrainToGroup(strain, groupId);
-                    });
-                    
-                    // Update cross results
-                    updateCrossResults(groupId);
-                });
-                
-                alert('Breeding plans loaded successfully!');
+                    alert('Breeding plan loaded successfully!');
+                } catch (error) {
+                    console.error('Error loading breeding plan:', error);
+                    alert('Error loading breeding plan. The saved data may be corrupted.');
+                }
             }
-            
-            // Initialize the app
-            loadSheetData();
         });
     </script>
 </body>
