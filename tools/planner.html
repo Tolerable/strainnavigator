@@ -148,21 +148,6 @@
             font-size: 12px;
         }
 
-		.node-traits {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 4px;
-			margin-bottom: 6px;
-		}
-
-		.strain-trait {
-			padding: 2px 6px;
-			border-radius: 3px;
-			font-size: 11px;
-			font-weight: 500;
-			color: white;
-		}
-
 		.strain-trait.photo {
 			background-color: #4db6ac;
 		}
@@ -238,31 +223,59 @@
             height: 2000px;
         }
         
-        .breeding-node {
-            position: absolute;
-            border-radius: 6px;
-            min-width: 160px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            cursor: grab;
-            user-select: none;
-            z-index: 10;
-            background-color: #f8f8f8;
-            color: #333;
-            transition: transform 0.3s ease;
-        }
+		/* Node styling for ComfyUI-like appearance */
+		.breeding-node {
+			background-color: #333333;
+			border-radius: 6px;
+			min-width: 160px;
+			box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+			user-select: none;
+			position: absolute;
+			z-index: 10;
+			border: 1px solid #444;
+			color: #fff;
+		}
+
+		.strain-node {
+			border-left: 3px solid #FFB74D;
+		}
+
+		.cross-node {
+			border-left: 3px solid #9C27B0;
+		}
+
+		.node-header {
+			background-color: #222;
+			border-bottom: 1px solid #444;
+			padding: 8px 10px;
+			font-weight: 600;
+			border-radius: 6px 6px 0 0;
+			display: flex;
+			justify-content: space-between;
+		}
+
+		.node-content {
+			padding: 10px;
+		}
+
+		.node-traits {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 5px;
+			margin-bottom: 8px;
+		}
+
+		.strain-trait {
+			padding: 2px 6px;
+			border-radius: 3px;
+			font-size: 11px;
+			font-weight: 500;
+			color: white;
+		}
+
         
         .breeding-node.selected {
             box-shadow: 0 0 0 3px #ffeb3b;
-        }
-        
-        .node-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background-color: #e0e0e0;
-            border-radius: 6px 6px 0 0;
-            position: relative;
         }
         
         .node-name {
@@ -292,10 +305,6 @@
             background-color: rgba(0, 0, 0, 0.2);
         }
         
-        .node-content {
-            padding: 10px;
-        }
-        
         .node-type {
             font-size: 12px;
             color: #666;
@@ -311,10 +320,39 @@
         
 		.connection-points {
 			display: flex;
-			justify-content: space-between;
-			padding: 5px 10px;
-			background-color: #f0f0f0;
-			border-radius: 0 0 6px 6px;
+			justify-content: space-around;
+			padding: 8px 0;
+			margin-top: 5px;
+		}
+
+		/* Connection ports styling */
+		.connection-input {
+			display: flex;
+			justify-content: center;
+			position: absolute;
+			width: 100%;
+			top: -10px;
+		}
+
+		.connection-outputs {
+			display: flex;
+			justify-content: space-around;
+			padding: 5px 0;
+			margin-top: 5px;
+			border-top: 1px solid #444;
+		}
+
+		.connection-output {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding: 0 10px;
+		}
+
+		.connection-label {
+			font-size: 12px;
+			margin-bottom: 3px;
+			color: #bbb;
 		}
 
 		.connection-point {
@@ -322,20 +360,31 @@
 			height: 12px;
 			border-radius: 50%;
 			cursor: pointer;
-			border: 2px solid white;
+			border: 2px solid #fff;
 		}
 
 		.connection-point-female {
-			background-color: #e091b9; /* Pink for female */
+			background-color: #e091b9;
 		}
 
 		.connection-point-male {
-			background-color: #91b7e0; /* Blue for male */
+			background-color: #91b7e0;
 		}
 
 		.connection-point:hover {
 			transform: scale(1.2);
-			box-shadow: 0 0 3px rgba(0,0,0,0.3);
+			box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+		}
+
+		.connection-point-input {
+			background-color: #4CAF50;
+			top: -5px;
+		}
+
+		/* Connection line styling */
+		.connector {
+			stroke-linecap: round;
+			filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
 		}
         
         /* Node types */
@@ -375,13 +424,19 @@
             z-index: 5;
         }
         
-        .connector {
-            stroke: #b39ddb;
-            stroke-width: 2;
-            fill: none;
-            stroke-dasharray: none;
-            marker-end: url(#arrowhead);
-        }
+		.connector {
+			stroke-linecap: round;
+			stroke-linejoin: round;
+			filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
+		}
+
+		.connector-female {
+			stroke: #e091b9;
+		}
+
+		.connector-male {
+			stroke: #91b7e0;
+		}
         
         .connector-highlight {
             stroke: #673ab7;
@@ -501,6 +556,15 @@
         .btn-secondary:hover {
             background-color: #555;
         }
+
+		.btn-danger {
+			background-color: #d32f2f;
+			color: white;
+		}
+
+		.btn-danger:hover {
+			background-color: #b71c1c;
+		}
         
         .form-group {
             margin-bottom: 15px;
@@ -529,19 +593,37 @@
             outline: none;
         }
         
-        .help-text {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: #fff;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            max-width: 300px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-            z-index: 50;
-        }
+		.help-text {
+			position: fixed;
+			bottom: 10px;
+			left: 310px;
+			background-color: rgba(0, 0, 0, 0.7);
+			color: #fff;
+			padding: 10px 30px 10px 10px;
+			border-radius: 4px;
+			font-size: 12px;
+			max-width: 300px;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+			z-index: 50;
+		}
+
+		.help-text-close {
+			position: absolute;
+			right: 5px;
+			top: 5px;
+			width: 20px;
+			height: 20px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			background: rgba(255,255,255,0.2);
+		}
+
+		.help-text-close:hover {
+			background: rgba(255,255,255,0.3);
+		}
         
         /* Context menu */
         .context-menu {
@@ -625,21 +707,26 @@
             
             <div class="breeding-canvas" id="breeding-canvas">
                 <!-- SVG for connections -->
-                <svg class="connection-svg" id="connection-svg">
-                    <defs>
-                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                            refX="10" refY="3.5" orient="auto">
-                            <polygon points="0 0, 10 3.5, 0 7" fill="#b39ddb" />
-                        </marker>
-                    </defs>
-                    <g id="connections-group"></g>
-                </svg>
+				<svg class="connection-svg" id="connection-svg">
+					<defs>
+						<marker id="arrow-female" viewBox="0 0 10 10" refX="8" refY="5" 
+								markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+							<path d="M 0 0 L 10 5 L 0 10 z" fill="#E91E63"/>
+						</marker>
+						<marker id="arrow-male" viewBox="0 0 10 10" refX="8" refY="5" 
+								markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+							<path d="M 0 0 L 10 5 L 0 10 z" fill="#2196F3"/>
+						</marker>
+					</defs>
+					<g id="connections-group"></g>
+				</svg>
                 <!-- Nodes will be added here -->
             </div>
             
-            <div class="help-text">
-                Click on strains to add them to the diagram. Connect strains by dragging from one connection point to another. Right-click nodes for more options.
-            </div>
+			<div class="help-text">
+				Click on strains to add them to the diagram. Connect strains by dragging from one connection point to another. Right-click nodes for more options.
+				<div class="help-text-close">×</div>
+			</div>
         </div>
     </div>
     
@@ -692,20 +779,44 @@
         </div>
     </div>
     
-    <div class="modal" id="load-diagram-modal">
-        <div class="modal-content">
-            <div class="modal-header">Load Breeding Plan</div>
-            <div class="modal-body">
-                <div id="saved-diagrams-list">
-                    Loading saved plans...
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-load-btn">Cancel</button>
-                <button class="btn btn-primary" id="confirm-load-btn">Load Plan</button>
-            </div>
-        </div>
-    </div>
+	<!-- Load Diagram Modal -->
+	<div class="modal" id="load-diagram-modal">
+		<div class="modal-content">
+			<div class="modal-header">Load Breeding Plan</div>
+			<div class="modal-body">
+				<div id="saved-diagrams-list">
+					Loading saved plans...
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-danger" id="delete-plan-btn">Delete</button>
+				<button class="btn btn-secondary" id="rename-plan-btn">Rename</button>
+				<button class="btn btn-secondary" id="cancel-load-btn">Cancel</button>
+				<button class="btn btn-primary" id="confirm-load-btn">Load Plan</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Rename Plan Modal -->
+	<div class="modal" id="rename-plan-modal">
+		<div class="modal-content">
+			<div class="modal-header">Rename Breeding Plan</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label class="form-label">Current Name</label>
+					<div id="rename-plan-current-name" style="color: #aaa;"></div>
+				</div>
+				<div class="form-group">
+					<label class="form-label">New Name</label>
+					<input type="text" class="form-input" id="rename-plan-input" placeholder="Enter new name">
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary" id="cancel-rename-btn">Cancel</button>
+				<button class="btn btn-primary" id="confirm-rename-btn">Rename</button>
+			</div>
+		</div>
+	</div>
     
     <!-- Context Menu -->
     <div class="context-menu" id="node-context-menu">
@@ -761,7 +872,8 @@
             const savedDiagramsList = document.getElementById('saved-diagrams-list');
             const cancelLoadBtn = document.getElementById('cancel-load-btn');
             const confirmLoadBtn = document.getElementById('confirm-load-btn');
-            
+            const renamePlanModal = document.getElementById('rename-plan-modal');
+			
             // Context Menu
             const nodeContextMenu = document.getElementById('node-context-menu');
             const contextEdit = document.getElementById('context-edit');
@@ -790,7 +902,8 @@
             initializeCanvas();
             loadStrains();
             setupEventListeners();
-            
+            setupDirectControls();
+			
             // Functions
             function initializeCanvas() {
                 // Set initial canvas position
@@ -923,73 +1036,85 @@
                 });
             }
             
-            function setupEventListeners() {
-                // Canvas pan events
-                canvasContainer.addEventListener('mousedown', startPan);
-                document.addEventListener('mousemove', doPan);
-                document.addEventListener('mouseup', endPan);
-                
-                // General canvas events
-                canvasContainer.addEventListener('click', handleCanvasClick);
-                canvasContainer.addEventListener('contextmenu', handleContextMenu);
-                document.addEventListener('click', hideContextMenu);
-                
-                // Search & filter
-                searchBtn.addEventListener('click', performSearch);
-                searchInput.addEventListener('keyup', e => {
-                    if (e.key === 'Enter') performSearch();
-                });
-                
-                filterTabs.forEach(tab => {
-                    tab.addEventListener('click', function() {
-                        filterTabs.forEach(t => t.classList.remove('active'));
-                        this.classList.add('active');
-                        filterStrains(this.dataset.filter);
-                    });
-                });
-                
-                // Action buttons
-                newDiagramBtn.addEventListener('click', newDiagram);
-                saveDiagramBtn.addEventListener('click', showSaveModal);
-                loadDiagramBtn.addEventListener('click', showLoadModal);
-                arrangeTreeBtn.addEventListener('click', arrangeTreeLayout);
-                centerViewBtn.addEventListener('click', centerView);
-                
-                // Cross modal
-                cancelCrossBtn.addEventListener('click', () => hideModal(nameCrossModal));
-                createCrossBtn.addEventListener('click', createCross);
-                
-                // Save modal
-                cancelSaveBtn.addEventListener('click', () => hideModal(saveDiagramModal));
-                confirmSaveBtn.addEventListener('click', saveDiagram);
-                
-                // Load modal
-                cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
-                confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
-                
-                // Context menu items
-                contextEdit.addEventListener('click', () => {
-                    // Future feature: edit node properties
-                    hideContextMenu();
-                });
-                
-                contextDuplicate.addEventListener('click', () => {
-                    if (contextMenuTargetNode) {
-                        duplicateNode(contextMenuTargetNode);
-                    }
-                    hideContextMenu();
-                });
-                
-                contextRemove.addEventListener('click', () => {
-                    if (contextMenuTargetNode) {
-                        removeNode(contextMenuTargetNode);
-                    }
-                    hideContextMenu();
-                });
-                
-                // Window resize
-                window.addEventListener('resize', updateSvgSize);
-            }
+			function setupEventListeners() {
+			  // Canvas pan events
+			  canvasContainer.addEventListener('mousedown', startPan);
+			  document.addEventListener('mousemove', doPan);
+			  document.addEventListener('mouseup', endPan);
+			  
+			  // General canvas events
+			  canvasContainer.addEventListener('click', handleCanvasClick);
+			  canvasContainer.addEventListener('contextmenu', handleContextMenu);
+			  document.addEventListener('click', hideContextMenu);
+			  
+			  // Help text close button
+			  const helpTextClose = document.querySelector('.help-text-close');
+			  if (helpTextClose) {
+				helpTextClose.addEventListener('click', function() {
+				  document.querySelector('.help-text').style.display = 'none';
+				});
+			  }
+			  
+			  // Search & filter
+			  searchBtn.addEventListener('click', performSearch);
+			  searchInput.addEventListener('keyup', e => {
+				if (e.key === 'Enter') performSearch();
+			  });
+			  
+			  filterTabs.forEach(tab => {
+				tab.addEventListener('click', function() {
+				  filterTabs.forEach(t => t.classList.remove('active'));
+				  this.classList.add('active');
+				  filterStrains(this.dataset.filter);
+				});
+			  });
+			  
+			  // Action buttons
+			  newDiagramBtn.addEventListener('click', newDiagram);
+			  saveDiagramBtn.addEventListener('click', showSaveModal);
+			  loadDiagramBtn.addEventListener('click', showLoadModal);
+			  arrangeTreeBtn.addEventListener('click', arrangeTreeLayout);
+			  centerViewBtn.addEventListener('click', centerView);
+			  
+			  // Cross modal
+			  cancelCrossBtn.addEventListener('click', () => hideModal(nameCrossModal));
+			  createCrossBtn.addEventListener('click', createCross);
+			  
+			  // Save modal
+			  cancelSaveBtn.addEventListener('click', () => hideModal(saveDiagramModal));
+			  confirmSaveBtn.addEventListener('click', saveDiagram);
+			  
+			  // Listeners for delete rename 
+			  document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
+			  document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
+			  document.getElementById('cancel-rename-btn').addEventListener('click', function() {
+				hideModal(renamePlanModal);
+				showModal(loadDiagramModal);
+			  });
+			  document.getElementById('confirm-rename-btn').addEventListener('click', confirmRenamePlan);
+			  
+			  // Context menu items
+			  contextEdit.addEventListener('click', () => {
+				hideContextMenu();
+			  });
+			  
+			  contextDuplicate.addEventListener('click', () => {
+				if (contextMenuTargetNode) {
+				  duplicateNode(contextMenuTargetNode);
+				}
+				hideContextMenu();
+			  });
+			  
+			  contextRemove.addEventListener('click', () => {
+				if (contextMenuTargetNode) {
+				  removeNode(contextMenuTargetNode);
+				}
+				hideContextMenu();
+			  });
+			  
+			  // Window resize
+			  window.addEventListener('resize', updateSvgSize);
+			}
             
             // Canvas Pan/Zoom
             function startPan(e) {
@@ -1109,41 +1234,70 @@
 				nodeCounter++;
 				const nodeId = `node-${nodeCounter}`;
 				
-				// Get data from strain
+				// Get strain data
 				const strainName = strain.STRAIN || strain.Strain || strain.Name || 'Unnamed';
 				const type = strain['REG / FEM'] || strain.Type || '';
-				const breeder = strain.BREEDER || strain.Breeder || '';
-				const parent1 = strain.PARENT1 || strain.parent1 || '';
-				const parent2 = strain.PARENT2 || strain.parent2 || '';
 				
-				// Parse traits - a strain can have multiple traits
+				// Parse traits
 				const traits = {
 					growthType: type.toLowerCase().includes('auto') ? 'AUTO' : 
-								type.toLowerCase().includes('photo') ? 'PHOTO' : '',
+							   type.toLowerCase().includes('photo') ? 'PHOTO' : '',
 					sexType: type.toLowerCase().includes('reg') ? 'REG' : 
 							type.toLowerCase().includes('fem') ? 'FEM' : '',
 					floweringType: type.toLowerCase().includes('fast') ? 'FAST' : ''
 				};
 				
-				// Determine node class
-				let nodeClass = 'breeding-node';
-				
 				// Create node element
 				const node = document.createElement('div');
 				node.id = nodeId;
-				node.className = nodeClass;
+				node.className = 'breeding-node strain-node';
 				node.dataset.name = strainName;
-				node.dataset.type = type;
 				node.dataset.growthType = traits.growthType;
 				node.dataset.sexType = traits.sexType;
 				node.dataset.floweringType = traits.floweringType;
 				
-				// Set the starting position
-				const x = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 80;
-				const y = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
+				// Calculate position - ensure nodes don't stack
+				// Find a free spot on the canvas with a grid-like layout
+				const gridSize = 250; // Space between grid points
+				const existingPositions = nodes.map(n => {
+					const el = document.getElementById(n.id);
+					if (el) {
+						return {
+							x: parseInt(el.style.left || 0),
+							y: parseInt(el.style.top || 0)
+						};
+					}
+					return null;
+				}).filter(p => p);
 				
-				node.style.left = `${x}px`;
-				node.style.top = `${y}px`;
+				// Start at the center view position
+				const centerX = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 100;
+				const centerY = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
+				
+				let posX = centerX;
+				let posY = centerY;
+				let attemptCount = 0;
+				
+				// Try to find an empty spot in a spiral pattern
+				while (attemptCount < 20) {
+					const isOccupied = existingPositions.some(p => 
+						Math.abs(p.x - posX) < 200 && Math.abs(p.y - posY) < 100
+					);
+					
+					if (!isOccupied) {
+						break;
+					}
+					
+					// Spiral outward
+					const angle = attemptCount * 0.5;
+					const distance = (attemptCount + 1) * 80;
+					posX = centerX + Math.cos(angle) * distance;
+					posY = centerY + Math.sin(angle) * distance;
+					attemptCount++;
+				}
+				
+				node.style.left = `${posX}px`;
+				node.style.top = `${posY}px`;
 				
 				// Create trait tags HTML
 				let traitsHTML = '';
@@ -1151,6 +1305,7 @@
 				if (traits.sexType) traitsHTML += `<span class="strain-trait ${traits.sexType.toLowerCase()}">${traits.sexType}</span>`;
 				if (traits.floweringType) traitsHTML += `<span class="strain-trait ${traits.floweringType.toLowerCase()}">${traits.floweringType}</span>`;
 				
+				// Simplified node content - removed breeder info
 				node.innerHTML = `
 					<div class="node-header">
 						<div class="node-name">${strainName}</div>
@@ -1160,17 +1315,10 @@
 					</div>
 					<div class="node-content">
 						<div class="node-traits">${traitsHTML}</div>
-						${breeder ? `<div class="node-breeder">Breeder: ${breeder}</div>` : ''}
-						${parent1 || parent2 ? `
-							<div class="node-parents">
-								${parent1 ? `<div>Parent 1: ${parent1}</div>` : ''}
-								${parent2 ? `<div>Parent 2: ${parent2}</div>` : ''}
-							</div>
-						` : ''}
 					</div>
 					<div class="connection-points">
-						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
-						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
+						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Use as Female (Mother)"></div>
+						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Use as Male (Father)"></div>
 					</div>
 				`;
 				
@@ -1197,14 +1345,10 @@
 				nodes.push({
 					id: nodeId,
 					name: strainName,
-					type: type,
 					growthType: traits.growthType,
 					sexType: traits.sexType,
 					floweringType: traits.floweringType,
 					origin: 'strain',
-					parent1: parent1,
-					parent2: parent2,
-					breeder: breeder,
 					children: [],
 					parents: []
 				});
@@ -1227,10 +1371,10 @@
 				
 				// Create cross data
 				const crossData = {
-					parent1: pendingCrossData.femaleId,
-					parent2: pendingCrossData.maleId,
-					parent1Name: pendingCrossData.femaleName,
-					parent2Name: pendingCrossData.maleName,
+					femaleId: pendingCrossData.femaleId,
+					maleId: pendingCrossData.maleId,
+					femaleName: pendingCrossData.femaleName,
+					maleName: pendingCrossData.maleName,
 					name: finalName,
 					growthType: growthType,
 					sexType: seedType,
@@ -1244,52 +1388,60 @@
 				hideModal(nameCrossModal);
 				customCrossName.value = '';
 				pendingCrossData = null;
-				
-				// Force update all connections to ensure visibility
-				setTimeout(() => {
-					connections.forEach(conn => {
-						updateConnection(conn.source, conn.target);
-					});
-				}, 100);
 			}
 
 			function addCrossNodeToCanvas(crossData) {
 				nodeCounter++;
 				const nodeId = `node-${nodeCounter}`;
 				
-				// Create node element with proper highlighting for cross
+				// Create node element
 				const node = document.createElement('div');
 				node.id = nodeId;
-				node.className = 'breeding-node cross';
+				node.className = 'breeding-node cross-node';
 				node.dataset.name = crossData.name;
-				node.dataset.type = crossData.type;
-				node.dataset.growthType = crossData.growthType;
-				node.dataset.sexType = crossData.sexType;
-				node.dataset.floweringType = crossData.floweringType;
 				
-				// Calculate position between parents but below
-				const parent1El = document.getElementById(crossData.parent1);
-				const parent2El = document.getElementById(crossData.parent2);
+				// Store all type information
+				node.dataset.growthType = crossData.growthType || '';
+				node.dataset.sexType = crossData.sexType || '';
+				node.dataset.floweringType = crossData.floweringType || '';
 				
-				if (parent1El && parent2El) {
-					const p1Rect = parent1El.getBoundingClientRect();
-					const p2Rect = parent2El.getBoundingClientRect();
+				// Calculate position - below and between the parents with offset
+				const femaleEl = document.getElementById(crossData.femaleId);
+				const maleEl = document.getElementById(crossData.maleId);
+				
+				let posX = 300;
+				let posY = 300;
+				
+				if (femaleEl && maleEl) {
+					const femaleLeft = parseInt(femaleEl.style.left || 0);
+					const femaleTop = parseInt(femaleEl.style.top || 0);
+					const maleLeft = parseInt(maleEl.style.left || 0);
+					const maleTop = parseInt(maleEl.style.top || 0);
 					
-					const p1Left = parseInt(parent1El.style.left);
-					const p1Top = parseInt(parent1El.style.top);
-					const p2Left = parseInt(parent2El.style.left);
-					const p2Top = parseInt(parent2El.style.top);
+					// Position in a triangle relationship instead of directly below
+					posX = femaleLeft + (maleLeft - femaleLeft) * 0.5;
+					posY = Math.max(femaleTop, maleTop) + 150;
 					
-					const newLeft = Math.min(p1Left, p2Left) + Math.abs(p1Left - p2Left) / 2;
-					const newTop = Math.max(p1Top, p2Top) + 150;
+					// Check if this position is already occupied
+					const isPositionOccupied = nodes.some(n => {
+						const el = document.getElementById(n.id);
+						if (el && n.id !== nodeId) {
+							const nodeLeft = parseInt(el.style.left || 0);
+							const nodeTop = parseInt(el.style.top || 0);
+							return Math.abs(nodeLeft - posX) < 100 && Math.abs(nodeTop - posY) < 100;
+						}
+						return false;
+					});
 					
-					node.style.left = `${newLeft}px`;
-					node.style.top = `${newTop}px`;
-				} else {
-					// Fallback position
-					node.style.left = '500px';
-					node.style.top = '300px';
+					// If position is occupied, offset it
+					if (isPositionOccupied) {
+						posX += 120;
+						posY += 50;
+					}
 				}
+				
+				node.style.left = `${posX}px`;
+				node.style.top = `${posY}px`;
 				
 				// Create trait tags HTML
 				let traitsHTML = '';
@@ -1303,6 +1455,7 @@
 					traitsHTML += `<span class="strain-trait ${crossData.floweringType.toLowerCase()}">${crossData.floweringType}</span>`;
 				}
 				
+				// Cleaner node representation with parent info and connection points for further breeding
 				node.innerHTML = `
 					<div class="node-header">
 						<div class="node-name">${crossData.name}</div>
@@ -1313,13 +1466,13 @@
 					<div class="node-content">
 						<div class="node-traits">${traitsHTML}</div>
 						<div class="node-parents">
-							<div>Parent 1: ${crossData.parent1Name}</div>
-							<div>Parent 2: ${crossData.parent2Name}</div>
+							<div>♀: ${crossData.femaleName}</div>
+							<div>♂: ${crossData.maleName}</div>
 						</div>
 					</div>
 					<div class="connection-points">
-						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
-						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
+						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Use as Female (Mother)"></div>
+						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Use as Male (Father)"></div>
 					</div>
 				`;
 				
@@ -1346,35 +1499,27 @@
 				const newNode = {
 					id: nodeId,
 					name: crossData.name,
-					type: crossData.type,
 					growthType: crossData.growthType,
 					sexType: crossData.sexType,
 					floweringType: crossData.floweringType,
 					origin: 'cross',
-					parent1: crossData.parent1Name,
-					parent2: crossData.parent2Name,
-					children: [],
-					parents: [crossData.parent1, crossData.parent2]
+					femaleParent: crossData.femaleId,
+					maleParent: crossData.maleId,
+					children: []
 				};
 				
 				nodes.push(newNode);
 				
 				// Update parent nodes to have this as a child
-				const parent1Node = nodes.find(n => n.id === crossData.parent1);
-				const parent2Node = nodes.find(n => n.id === crossData.parent2);
+				const femaleParent = nodes.find(n => n.id === crossData.femaleId);
+				const maleParent = nodes.find(n => n.id === crossData.maleId);
 				
-				if (parent1Node) parent1Node.children.push(nodeId);
-				if (parent2Node) parent2Node.children.push(nodeId);
+				if (femaleParent) femaleParent.children.push(nodeId);
+				if (maleParent) maleParent.children.push(nodeId);
 				
-				// Create connections
-				addConnection(crossData.parent1, nodeId);
-				addConnection(crossData.parent2, nodeId);
-				
-				// Make sure connections are visible
-				setTimeout(() => {
-					updateConnection(crossData.parent1, nodeId);
-					updateConnection(crossData.parent2, nodeId);
-				}, 50);
+				// Create connections with right-angle paths
+				addConnection(crossData.femaleId, nodeId, 'female');
+				addConnection(crossData.maleId, nodeId, 'male');
 				
 				selectNode(nodeId);
 				return nodeId;
@@ -1474,48 +1619,51 @@
                 }
             }
             
-            function startDraggingNode(e) {
-                // Don't drag if clicking connection point or control
-                if (e.target.classList.contains('connection-point') || 
-                    e.target.classList.contains('node-control')) {
-                    return;
-                }
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Find the node element (could be child of node)
-                const nodeElement = e.target.closest('.breeding-node');
-                if (!nodeElement) return;
-                
-                // Select this node
-                selectNode(nodeElement.id);
-                
-                // Calculate offset within the node
-                const rect = nodeElement.getBoundingClientRect();
-                const offsetX = e.clientX - rect.left;
-                const offsetY = e.clientY - rect.top;
-                
-                function moveNode(moveEvent) {
-                    const canvasRect = breedingCanvas.getBoundingClientRect();
-                    const newLeft = moveEvent.clientX - canvasRect.left - offsetX;
-                    const newTop = moveEvent.clientY - canvasRect.top - offsetY;
-                    
-                    nodeElement.style.left = `${newLeft}px`;
-                    nodeElement.style.top = `${newTop}px`;
-                    
-                    // Update connections
-                    updateConnectionsForNode(nodeElement.id);
-                }
-                
-                function endDrag() {
-                    document.removeEventListener('mousemove', moveNode);
-                    document.removeEventListener('mouseup', endDrag);
-                }
-                
-                document.addEventListener('mousemove', moveNode);
-                document.addEventListener('mouseup', endDrag);
-            }
+			function startDraggingNode(e) {
+				// Don't drag if clicking connection point or control
+				if (e.target.classList.contains('connection-point') || 
+					e.target.classList.contains('node-control')) {
+					return;
+				}
+				
+				e.preventDefault();
+				e.stopPropagation();
+				
+				// Find the node element (could be child of node)
+				const nodeElement = e.target.closest('.breeding-node');
+				if (!nodeElement) return;
+				
+				// Select this node
+				selectNode(nodeElement.id);
+				
+				// Calculate offset within the node
+				const rect = nodeElement.getBoundingClientRect();
+				const offsetX = e.clientX - rect.left;
+				const offsetY = e.clientY - rect.top;
+				
+				function moveNode(moveEvent) {
+					const canvasRect = breedingCanvas.getBoundingClientRect();
+					const newLeft = moveEvent.clientX - canvasRect.left - offsetX;
+					const newTop = moveEvent.clientY - canvasRect.top - offsetY;
+					
+					nodeElement.style.left = `${newLeft}px`;
+					nodeElement.style.top = `${newTop}px`;
+					
+					// Update connections - this updates all connections in real-time
+					updateConnectionsForNode(nodeElement.id);
+				}
+				
+				function endDrag() {
+					document.removeEventListener('mousemove', moveNode);
+					document.removeEventListener('mouseup', endDrag);
+					
+					// Make sure connections are updated one final time
+					updateConnectionsForNode(nodeElement.id);
+				}
+				
+				document.addEventListener('mousemove', moveNode);
+				document.addEventListener('mouseup', endDrag);
+			}
             
             function selectNode(nodeId) {
                 // Deselect any currently selected node
@@ -1549,12 +1697,13 @@
 				connectingSourceNode = nodeId;
 				connectingRole = role;
 				
-				// Create temporary SVG line
+				// Create temporary SVG line with right angles
 				tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 				tempLine.setAttribute('stroke', role === 'female' ? '#e091b9' : '#91b7e0');
 				tempLine.setAttribute('stroke-width', '2');
 				tempLine.setAttribute('fill', 'none');
-				tempLine.setAttribute('marker-end', 'url(#arrowhead)');
+				tempLine.setAttribute('stroke-dasharray', '5,5'); // make it dashed while dragging
+				tempLine.setAttribute('marker-end', `url(#arrow-${role})`);
 				
 				connectionsGroup.appendChild(tempLine);
 				
@@ -1570,21 +1719,31 @@
 				const sourceNode = document.getElementById(connectingSourceNode);
 				if (!sourceNode) return;
 				
-				const sourcePoint = sourceNode.querySelector(`.connection-point-${connectingRole}`);
-				const sourceRect = sourcePoint.getBoundingClientRect();
+				const sourceRect = sourceNode.getBoundingClientRect();
 				
-				const startX = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
-				const startY = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
+				// Source center
+				const startX = sourceRect.left + sourceRect.width/2 - canvasRect.left;
+				const startY = sourceRect.top + sourceRect.height/2 - canvasRect.top;
 				
+				// Mouse position
 				const endX = e.clientX - canvasRect.left;
 				const endY = e.clientY - canvasRect.top;
 				
-				// Create a curved path
-				const controlPointX = (startX + endX) / 2;
-				const controlPointY = (startY + endY + 50) / 2;
+				// Create a right-angled path
+				let pathD;
 				
-				const path = `M ${startX} ${startY} Q ${controlPointX} ${controlPointY}, ${endX} ${endY}`;
-				tempLine.setAttribute('d', path);
+				// Determine direction based on cursor position relative to source
+				if (Math.abs(endX - startX) > Math.abs(endY - startY)) {
+					// More horizontal movement
+					const midX = (startX + endX) / 2;
+					pathD = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
+				} else {
+					// More vertical movement
+					const midY = (startY + endY) / 2;
+					pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
+				}
+				
+				tempLine.setAttribute('d', pathD);
 			}
 
 			function finishConnection(e) {
@@ -1705,32 +1864,29 @@
 				customCrossName.focus();
 			}
             
-			function addConnection(sourceId, targetId) {
-				// Create connection id
-				const connectionId = `connection-${sourceId}-${targetId}`;
+			function addConnection(sourceId, targetId, role) {
+				// Create connection id with role information
+				const connectionId = `connection-${sourceId}-${targetId}-${role}`;
 				
 				// Check if connection already exists
 				if (connections.some(c => c.id === connectionId)) {
 					return;
 				}
 				
-				// Determine roles - let's say source is female parent by default
-				const sourceRole = 'female';
-				const targetRole = 'male';
+				// Set color based on role
+				const connectionColor = role === 'female' ? '#e091b9' : '#91b7e0';
 				
-				// Determine color based on roles
-				const connectionColor = sourceRole === 'female' ? '#e091b9' : '#91b7e0';
-				
-				// Create SVG path for connection
+				// Create SVG path for connection - we'll use a right-angled path
 				const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 				path.id = connectionId;
 				path.classList.add('connector');
 				path.setAttribute('stroke', connectionColor);
 				path.setAttribute('stroke-width', '2');
 				path.setAttribute('fill', 'none');
+				path.setAttribute('marker-end', 'url(#arrow-' + role + ')');
 				path.setAttribute('data-source', sourceId);
 				path.setAttribute('data-target', targetId);
-				path.setAttribute('pointer-events', 'none'); // Make sure it doesn't interfere with clicks
+				path.setAttribute('data-role', role);
 				
 				// Add to SVG
 				connectionsGroup.appendChild(path);
@@ -1740,91 +1896,120 @@
 					id: connectionId,
 					source: sourceId,
 					target: targetId,
-					sourceRole: sourceRole,
-					targetRole: targetRole,
+					role: role,
 					color: connectionColor
 				});
 				
-				// Immediately update connection path
-				setTimeout(() => updateConnection(sourceId, targetId), 50);
+				// Update connection immediately
+				updateConnection(connectionId);
 			}
 
-			function updateConnection(sourceId, targetId) {
-				const connectionId = `connection-${sourceId}-${targetId}`;
-				const path = document.getElementById(connectionId);
-				
-				if (!path) return;
-				
-				const sourceNode = document.getElementById(sourceId);
-				const targetNode = document.getElementById(targetId);
-				
-				if (!sourceNode || !targetNode) {
-					// Remove connection if nodes don't exist
-					removeConnection(connectionId);
-					return;
-				}
-				
-				// Find connection in array to get role info
-				const connection = connections.find(c => c.id === connectionId);
+			function updateConnection(connectionId) {
+				const connection = typeof connectionId === 'string' 
+					? connections.find(c => c.id === connectionId)
+					: connectionId;
+					
 				if (!connection) return;
 				
-				// Get appropriate connection points
-				const sourcePoint = sourceNode.querySelector(`.connection-point-${connection.sourceRole || 'female'}`);
-				const targetPoint = targetNode.querySelector(`.connection-point-${connection.targetRole || 'male'}`);
+				const path = document.getElementById(connection.id);
+				if (!path) return;
 				
-				if (!sourcePoint || !targetPoint) return;
+				const sourceNode = document.getElementById(connection.source);
+				const targetNode = document.getElementById(connection.target);
 				
-				// Calculate positions
-				const sourceRect = sourcePoint.getBoundingClientRect();
-				const targetRect = targetPoint.getBoundingClientRect();
-				const canvasRect = breedingCanvas.getBoundingClientRect();
-				
-				const startX = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
-				const startY = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
-				
-				const endX = targetRect.left + targetRect.width / 2 - canvasRect.left;
-				const endY = targetRect.top + targetRect.height / 2 - canvasRect.top;
-				
-				// Calculate distance and bend of curve
-				const dx = endX - startX;
-				const dy = endY - startY;
-				const distance = Math.sqrt(dx * dx + dy * dy);
-				
-				// Use a straight line for very short distances
-				if (distance < 30) {
-					const pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
-					path.setAttribute('d', pathD);
+				if (!sourceNode || !targetNode) {
+					removeConnection(connection.id);
 					return;
 				}
 				
-				// Create a curved path - for better visibility, especially when nodes overlap
-				// Use cubic bezier curve for better control of path shape
-				const curvature = 0.4; // Higher value means more curved
-				const midX = (startX + endX) / 2;
-				const midY = (startY + endY) / 2;
+				// Get the source and target rectangles
+				const sourceRect = sourceNode.getBoundingClientRect();
+				const targetRect = targetNode.getBoundingClientRect();
+				const canvasRect = breedingCanvas.getBoundingClientRect();
 				
-				// Perpendicular offset to create curve
-				const offsetX = -dy * curvature;
-				const offsetY = dx * curvature;
+				// Calculate the margin to maintain from the node edge
+				const margin = 15;
 				
-				const pathD = `M ${startX} ${startY} Q ${midX + offsetX} ${midY + offsetY}, ${endX} ${endY}`;
+				// Determine connection points based on relative positions
+				let startPoint, endPoint;
+				
+				// Source node connection point
+				if (sourceRect.left > targetRect.right) { // Source is to the right of target
+					startPoint = {
+						x: sourceRect.left - canvasRect.left - margin,
+						y: sourceRect.top + sourceRect.height/2 - canvasRect.top
+					};
+				} else if (sourceRect.right < targetRect.left) { // Source is to the left of target
+					startPoint = {
+						x: sourceRect.right - canvasRect.left + margin,
+						y: sourceRect.top + sourceRect.height/2 - canvasRect.top
+					};
+				} else if (sourceRect.top > targetRect.bottom) { // Source is below target
+					startPoint = {
+						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
+						y: sourceRect.top - canvasRect.top - margin
+					};
+				} else { // Source is above target
+					startPoint = {
+						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
+						y: sourceRect.bottom - canvasRect.top + margin
+					};
+				}
+				
+				// Target node connection point
+				if (targetRect.left > sourceRect.right) { // Target is to the right of source
+					endPoint = {
+						x: targetRect.left - canvasRect.left - margin,
+						y: targetRect.top + targetRect.height/2 - canvasRect.top
+					};
+				} else if (targetRect.right < sourceRect.left) { // Target is to the left of source
+					endPoint = {
+						x: targetRect.right - canvasRect.left + margin,
+						y: targetRect.top + targetRect.height/2 - canvasRect.top
+					};
+				} else if (targetRect.top > sourceRect.bottom) { // Target is below source
+					endPoint = {
+						x: targetRect.left + targetRect.width/2 - canvasRect.left,
+						y: targetRect.top - canvasRect.top - margin
+					};
+				} else { // Target is above source
+					endPoint = {
+						x: targetRect.left + targetRect.width/2 - canvasRect.left,
+						y: targetRect.bottom - canvasRect.top + margin
+					};
+				}
+				
+				// Create the path with right angles
+				let pathD;
+				
+				// Determine which type of path to create
+				if (Math.abs(endPoint.x - startPoint.x) > Math.abs(endPoint.y - startPoint.y)) {
+					// More horizontal distance - create a path with horizontal segments first
+					const midX = (startPoint.x + endPoint.x) / 2;
+					pathD = `M ${startPoint.x} ${startPoint.y} L ${midX} ${startPoint.y} L ${midX} ${endPoint.y} L ${endPoint.x} ${endPoint.y}`;
+				} else {
+					// More vertical distance - create a path with vertical segments first
+					const midY = (startPoint.y + endPoint.y) / 2;
+					pathD = `M ${startPoint.x} ${startPoint.y} L ${startPoint.x} ${midY} L ${endPoint.x} ${midY} L ${endPoint.x} ${endPoint.y}`;
+				}
+				
 				path.setAttribute('d', pathD);
-				
-				// Set color based on role
-				path.setAttribute('stroke', connection.color || '#b39ddb');
-				
-				// Add an arrowhead marker
-				path.setAttribute('marker-end', 'url(#arrowhead)');
+			}
+
+			function updateAllConnections() {
+				connections.forEach(connection => {
+					updateConnection(connection);
+				});
 			}
             
-            function updateConnectionsForNode(nodeId) {
-                // Update all connections involving this node
-                connections.forEach(conn => {
-                    if (conn.source === nodeId || conn.target === nodeId) {
-                        updateConnection(conn.source, conn.target);
-                    }
-                });
-            }
+			function updateConnectionsForNode(nodeId) {
+				// Update all connections involving this node
+				connections.forEach(conn => {
+					if (conn.source === nodeId || conn.target === nodeId) {
+						updateConnection(conn);
+					}
+				});
+			}
             
             function removeConnectionsForNode(nodeId) {
                 // Find all connections involving this node
@@ -1837,6 +2022,127 @@
                     removeConnection(conn.id);
                 });
             }
+
+			function setupDirectControls() {
+				// Remove existing canvas tools
+				const canvasTools = document.querySelector('.canvas-tools');
+				canvasTools.innerHTML = '';
+				
+				// Create all buttons in one row
+				const buttons = [
+					{ id: 'new-diagram', text: 'New', action: newDiagram },
+					{ id: 'save-diagram', text: 'Save', action: showSaveModal },
+					{ id: 'load-diagram', text: 'Load', action: loadLatestDiagram },
+					{ id: 'delete-diagram', text: 'Delete', action: showDeleteSelector },
+					{ id: 'rename-diagram', text: 'Rename', action: showRenameSelector }
+				];
+				
+				buttons.forEach(btn => {
+					const button = document.createElement('button');
+					button.id = btn.id;
+					button.className = 'canvas-tool';
+					button.textContent = btn.text;
+					button.onclick = btn.action;
+					canvasTools.appendChild(button);
+				});
+			}
+
+			function loadLatestDiagram() {
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				if (savedDiagrams.length === 0) {
+					alert('No saved breeding plans found');
+					return;
+				}
+				loadDiagram(savedDiagrams[savedDiagrams.length - 1]);
+			}
+
+			function showDeleteSelector() {
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				if (savedDiagrams.length === 0) {
+					alert('No saved breeding plans found');
+					return;
+				}
+				
+				// Create selector element
+				const selector = document.createElement('div');
+				selector.className = 'plan-selector';
+				selector.style = 'position: absolute; top: 50px; left: 10px; background: #333; padding: 10px; border-radius: 4px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.5);';
+				
+				savedDiagrams.forEach((plan, index) => {
+					const item = document.createElement('div');
+					item.innerText = plan.name;
+					item.style = 'padding: 8px; cursor: pointer; border-bottom: 1px solid #444;';
+					
+					item.onclick = function() {
+						if (confirm(`Delete plan "${plan.name}"?`)) {
+							savedDiagrams.splice(index, 1);
+							localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+							selector.remove();
+						}
+					};
+					
+					selector.appendChild(item);
+				});
+				
+				const closeBtn = document.createElement('div');
+				closeBtn.innerText = 'Cancel';
+				closeBtn.style = 'padding: 8px; text-align: center; cursor: pointer; border-top: 1px solid #444;';
+				closeBtn.onclick = () => selector.remove();
+				selector.appendChild(closeBtn);
+				
+				document.body.appendChild(selector);
+				
+				document.addEventListener('mousedown', function closeSelector(e) {
+					if (!selector.contains(e.target)) {
+						selector.remove();
+						document.removeEventListener('mousedown', closeSelector);
+					}
+				});
+			}
+
+			function showRenameSelector() {
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				if (savedDiagrams.length === 0) {
+					alert('No saved breeding plans found');
+					return;
+				}
+				
+				const selector = document.createElement('div');
+				selector.className = 'plan-selector';
+				selector.style = 'position: absolute; top: 50px; left: 10px; background: #333; padding: 10px; border-radius: 4px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.5);';
+				
+				savedDiagrams.forEach((plan, index) => {
+					const item = document.createElement('div');
+					item.innerText = plan.name;
+					item.style = 'padding: 8px; cursor: pointer; border-bottom: 1px solid #444;';
+					
+					item.onclick = function() {
+						const newName = prompt('Enter new name:', plan.name);
+						if (newName && newName.trim()) {
+							savedDiagrams[index].name = newName.trim();
+							localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+							selector.remove();
+						}
+					};
+					
+					selector.appendChild(item);
+				});
+				
+				const closeBtn = document.createElement('div');
+				closeBtn.innerText = 'Cancel';
+				closeBtn.style = 'padding: 8px; text-align: center; cursor: pointer; border-top: 1px solid #444;';
+				closeBtn.onclick = () => selector.remove();
+				selector.appendChild(closeBtn);
+				
+				document.body.appendChild(selector);
+				
+				document.addEventListener('mousedown', function closeSelector(e) {
+					if (!selector.contains(e.target)) {
+						selector.remove();
+						document.removeEventListener('mousedown', closeSelector);
+					}
+				});
+			}
             
             function removeConnection(connectionId) {
                 // Remove connection element
@@ -1901,7 +2207,7 @@
 				// Force update all connections with a slight delay
 				setTimeout(() => {
 					connections.forEach(conn => {
-						updateConnection(conn.source, conn.target);
+						updateConnection(conn);
 					});
 				}, 100);
 				
@@ -1944,47 +2250,6 @@
 					if (childNode) {
 						positionNode(childNode, childX, childY, placedNodes, level + 1);
 						childX += childSpacing;
-					}
-				});
-			}
-
-			function arrangeFromNode(node, x, y, placedNodes, level) {
-				// Mark this node as placed
-				placedNodes[node.id] = { x, y, level };
-				
-				// Position this node
-				const nodeElement = document.getElementById(node.id);
-				if (nodeElement) {
-					nodeElement.style.left = `${x}px`;
-					nodeElement.style.top = `${y}px`;
-				}
-				
-				// If no children, we're done with this branch
-				if (!node.children || node.children.length === 0) return;
-				
-				// Calculate space needed for children
-				const childrenWidth = Math.max(300, node.children.length * nodeSpacing.horizontal);
-				let startX = x - childrenWidth / 2 + nodeSpacing.horizontal / 2;
-				
-				// Position each child
-				node.children.forEach(childId => {
-					const childNode = nodes.find(n => n.id === childId);
-					if (childNode && !placedNodes[childId]) {
-						const childX = startX;
-						const childY = y + nodeSpacing.vertical;
-						
-						arrangeFromNode(childNode, childX, childY, placedNodes, level + 1);
-						startX += nodeSpacing.horizontal;
-					} else if (childNode && placedNodes[childId]) {
-						// If already placed, check if we need to move it lower
-						if (placedNodes[childId].level < level + 1) {
-							placedNodes[childId].level = level + 1;
-							
-							const childElement = document.getElementById(childId);
-							if (childElement) {
-								childElement.style.top = `${y + nodeSpacing.vertical}px`;
-							}
-						}
 					}
 				});
 			}
@@ -2061,254 +2326,364 @@
                 diagramName.focus();
             }
             
-            function saveDiagram() {
-                const name = diagramName.value.trim();
-                const notes = diagramNotes.value.trim();
-                
-                if (!name) {
-                    alert('Please enter a name for your breeding plan.');
-                    return;
-                }
-                
-                // Capture position data for all nodes
-                const nodePositions = {};
-                nodes.forEach(node => {
-                    const nodeEl = document.getElementById(node.id);
-                    if (nodeEl) {
-                        nodePositions[node.id] = {
-                            left: nodeEl.style.left,
-                            top: nodeEl.style.top
-                        };
-                    }
-                });
-                
-                // Create save data
-                const saveData = {
-                    name: name,
-                    notes: notes,
-                    date: new Date().toISOString(),
-                    nodes: nodes,
-                    connections: connections,
-                    positions: nodePositions
-                };
-                
-                // Get existing saved diagrams
-                let savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-                
-                // Check if diagram with this name already exists
-                const existingIndex = savedDiagrams.findIndex(d => d.name === name);
-                if (existingIndex >= 0) {
-                    if (confirm(`A breeding plan named "${name}" already exists. Overwrite it?`)) {
-                        savedDiagrams[existingIndex] = saveData;
-                    } else {
-                        return;
-                    }
-                } else {
-                    savedDiagrams.push(saveData);
-                }
-                
-                // Save to localStorage
-                localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
-                
-                // Hide modal and reset
-                hideModal(saveDiagramModal);
-                diagramName.value = '';
-                diagramNotes.value = '';
-                
-                alert(`Breeding plan "${name}" saved successfully!`);
-            }
+			function saveDiagram() {
+			  const name = diagramName.value.trim();
+			  const notes = diagramNotes.value.trim();
+			  
+			  if (!name) {
+				alert('Please enter a name for your breeding plan.');
+				return;
+			  }
+			  
+			  // Capture position data for all nodes
+			  const nodePositions = {};
+			  nodes.forEach(node => {
+				const nodeEl = document.getElementById(node.id);
+				if (nodeEl) {
+				  nodePositions[node.id] = {
+					left: nodeEl.style.left,
+					top: nodeEl.style.top
+				  };
+				}
+			  });
+			  
+			  // Ensure cross nodes have parent name information
+			  nodes.forEach(node => {
+				if (node.origin === 'cross') {
+				  if (node.femaleParent) {
+					const femaleNode = nodes.find(n => n.id === node.femaleParent);
+					if (femaleNode) node.femaleName = femaleNode.name;
+				  }
+				  if (node.maleParent) {
+					const maleNode = nodes.find(n => n.id === node.maleParent);
+					if (maleNode) node.maleName = maleNode.name;
+				  }
+				}
+			  });
+			  
+			  // Create save data
+			  const saveData = {
+				name: name,
+				notes: notes,
+				date: new Date().toISOString(),
+				nodes: nodes,
+				connections: connections,
+				positions: nodePositions
+			  };
+			  
+			  // Get existing saved diagrams
+			  let savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+			  
+			  // Check if diagram with this name already exists
+			  const existingIndex = savedDiagrams.findIndex(d => d.name === name);
+			  if (existingIndex >= 0) {
+				if (confirm(`A breeding plan named "${name}" already exists. Overwrite it?`)) {
+				  savedDiagrams[existingIndex] = saveData;
+				} else {
+				  return;
+				}
+			  } else {
+				savedDiagrams.push(saveData);
+			  }
+			  
+			  // Save to localStorage
+			  localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+			  
+			  // Hide modal and reset
+			  hideModal(saveDiagramModal);
+			  diagramName.value = '';
+			  diagramNotes.value = '';
+			  
+			  alert(`Breeding plan "${name}" saved successfully!`);
+			}
+
+			function loadDiagram(diagram) {
+			  // Clear existing diagram first
+			  breedingCanvas.querySelectorAll('.breeding-node').forEach(node => node.remove());
+			  connectionsGroup.innerHTML = '';
+			  nodes = [];
+			  connections = [];
+			  
+			  // Set the node counter to prevent ID conflicts
+			  if (diagram.nodes.length > 0) {
+				const nodeIds = diagram.nodes.map(n => {
+				  const match = n.id.match(/node-(\d+)/);
+				  return match ? parseInt(match[1]) : 0;
+				});
+				nodeCounter = Math.max(...nodeIds);
+			  }
+			  
+			  // Create all nodes first
+			  diagram.nodes.forEach(nodeData => {
+				// Create node element
+				const node = document.createElement('div');
+				node.id = nodeData.id;
+				node.className = nodeData.origin === 'strain' ? 'breeding-node strain-node' : 'breeding-node cross-node';
+				node.dataset.name = nodeData.name;
+				node.dataset.growthType = nodeData.growthType || '';
+				node.dataset.sexType = nodeData.sexType || '';
+				node.dataset.floweringType = nodeData.floweringType || '';
+				
+				// Set position
+				if (diagram.positions && diagram.positions[nodeData.id]) {
+				  node.style.left = diagram.positions[nodeData.id].left;
+				  node.style.top = diagram.positions[nodeData.id].top;
+				} else {
+				  node.style.left = '200px';
+				  node.style.top = '200px';
+				}
+				
+				// Create trait tags HTML
+				let traitsHTML = '';
+				if (nodeData.growthType) traitsHTML += `<span class="strain-trait ${nodeData.growthType.toLowerCase()}">${nodeData.growthType}</span>`;
+				if (nodeData.sexType) traitsHTML += `<span class="strain-trait ${nodeData.sexType.toLowerCase()}">${nodeData.sexType}</span>`;
+				if (nodeData.floweringType) traitsHTML += `<span class="strain-trait ${nodeData.floweringType.toLowerCase()}">${nodeData.floweringType}</span>`;
+				
+				// Generate node HTML based on type
+				if (nodeData.origin === 'cross') {
+				  node.innerHTML = `
+					<div class="node-header">
+					  <div class="node-name">${nodeData.name}</div>
+					  <div class="node-controls">
+						<div class="node-control" data-action="remove" title="Remove">×</div>
+					  </div>
+					</div>
+					<div class="node-content">
+					  <div class="node-traits">${traitsHTML}</div>
+					  <div class="node-parents">
+						<div>♀: ${nodeData.femaleName || ''}</div>
+						<div>♂: ${nodeData.maleName || ''}</div>
+					  </div>
+					</div>
+					<div class="connection-points">
+					  <div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
+					  <div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
+					</div>
+				  `;
+				} else {
+				  node.innerHTML = `
+					<div class="node-header">
+					  <div class="node-name">${nodeData.name}</div>
+					  <div class="node-controls">
+						<div class="node-control" data-action="remove" title="Remove">×</div>
+					  </div>
+					</div>
+					<div class="node-content">
+					  <div class="node-traits">${traitsHTML}</div>
+					</div>
+					<div class="connection-points">
+					  <div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
+					  <div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
+					</div>
+				  `;
+				}
+				
+				// Add event listeners
+				node.addEventListener('mousedown', startDraggingNode);
+				
+				node.querySelectorAll('.connection-point').forEach(point => {
+				  point.addEventListener('mousedown', startConnecting);
+				});
+				
+				const removeButton = node.querySelector('[data-action="remove"]');
+				if (removeButton) {
+				  removeButton.addEventListener('click', e => {
+					e.preventDefault();
+					e.stopPropagation();
+					removeNode(nodeData.id);
+				  });
+				}
+				
+				// Add to canvas
+				breedingCanvas.appendChild(node);
+			  });
+			  
+			  // Add nodes to state array with all properties preserved
+			  nodes = diagram.nodes.map(n => ({...n}));
+			  
+			  // Recreate all connections
+			  connections = [];
+			  if (diagram.connections) {
+				diagram.connections.forEach(conn => {
+				  addConnection(conn.source, conn.target, conn.role);
+				});
+			  }
+			  
+			  // Center view
+			  centerView();
+			}
             
-            function showLoadModal() {
-                // Get saved diagrams
-                const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-                
-                if (savedDiagrams.length === 0) {
-                    savedDiagramsList.innerHTML = `
-                        <div style="padding: 10px; text-align: center; color: #999;">
-                            No saved breeding plans found
-                        </div>
-                    `;
-                    confirmLoadBtn.disabled = true;
-                } else {
-                    // Create list of saved diagrams
-                    let html = '<div class="saved-plans-list">';
-                    
-                    savedDiagrams.forEach((diagram, index) => {
-                        const date = new Date(diagram.date).toLocaleDateString();
-                        const nodeCount = diagram.nodes.length;
-                        
-                        html += `
-                            <div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" 
-                                data-index="${index}">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <label style="font-weight: 500; cursor: pointer;">
-                                        <input type="radio" name="saved-diagram" value="${index}" 
-                                            ${index === 0 ? 'checked' : ''}>
-                                        ${diagram.name}
-                                    </label>
-                                    <span style="font-size: 12px; color: #999;">${date}</span>
-                                </div>
-                                <div style="font-size: 12px; color: #aaa; margin-top: 5px;">
-                                    ${nodeCount} strain${nodeCount !== 1 ? 's' : ''}
-                                    ${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += '</div>';
-                    savedDiagramsList.innerHTML = html;
-                    confirmLoadBtn.disabled = false;
-                    
-                    // Add click handler for selection
-                    document.querySelectorAll('.saved-plan-item').forEach(item => {
-                        item.addEventListener('click', function() {
-                            const radio = this.querySelector('input[type="radio"]');
-                            radio.checked = true;
-                            selectedDiagramIndex = parseInt(radio.value);
-                        });
-                    });
-                    
-                    // Set initial selection
-                    selectedDiagramIndex = 0;
-                }
-                
-                showModal(loadDiagramModal);
-            }
+			function showLoadModal() {
+			  // Get saved diagrams
+			  const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+			  
+			  if (savedDiagrams.length === 0) {
+				savedDiagramsList.innerHTML = `<div style="padding: 10px; text-align: center; color: #999;">No saved breeding plans found</div>`;
+				confirmLoadBtn.disabled = true;
+				document.getElementById('delete-plan-btn').disabled = true;
+				document.getElementById('rename-plan-btn').disabled = true;
+			  } else {
+				// Create list of saved diagrams
+				let html = '<div class="saved-plans-list">';
+				savedDiagrams.forEach((diagram, index) => {
+				  const date = new Date(diagram.date).toLocaleDateString();
+				  const nodeCount = diagram.nodes.length;
+				  html += `<div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" data-index="${index}"><div style="display: flex; justify-content: space-between; align-items: center;"><label style="font-weight: 500; cursor: pointer; flex: 1;"><input type="radio" name="saved-diagram" value="${index}" ${index === 0 ? 'checked' : ''}>${diagram.name}</label><span style="font-size: 12px; color: #999;">${date}</span></div><div style="font-size: 12px; color: #aaa; margin-top: 5px;">${nodeCount} strain${nodeCount !== 1 ? 's' : ''} ${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}</div></div>`;
+				});
+				html += '</div>';
+				savedDiagramsList.innerHTML = html;
+				confirmLoadBtn.disabled = false;
+				document.getElementById('delete-plan-btn').disabled = false;
+				document.getElementById('rename-plan-btn').disabled = false;
+				selectedDiagramIndex = 0;
+			  }
+			  
+			  // Click handler for plan items
+			  document.querySelectorAll('.saved-plan-item').forEach(item => {
+				item.onclick = function() {
+				  const radio = this.querySelector('input[type="radio"]');
+				  radio.checked = true;
+				  selectedDiagramIndex = parseInt(radio.value);
+				};
+			  });
+			  
+			  // DIRECT handlers for buttons
+			  document.getElementById('delete-plan-btn').onclick = deleteSavedPlan;
+			  document.getElementById('rename-plan-btn').onclick = showRenamePlanModal;
+			  document.getElementById('cancel-load-btn').onclick = function() { hideModal(loadDiagramModal); };
+			  document.getElementById('confirm-load-btn').onclick = loadSelectedDiagram;
+			  
+			  showModal(loadDiagramModal);
+			}
+
+			function deleteSavedPlan() {
+				const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
+				if (!selectedRadio) {
+					alert('Please select a breeding plan to delete.');
+					return;
+				}
+				
+				const index = parseInt(selectedRadio.value);
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (index < 0 || index >= savedDiagrams.length) {
+					alert('Invalid selection.');
+					return;
+				}
+				
+				const planName = savedDiagrams[index].name;
+				
+				if (confirm(`Are you sure you want to delete the breeding plan "${planName}"?`)) {
+					// Remove the plan from the array
+					savedDiagrams.splice(index, 1);
+					
+					// Save updated array
+					localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+					
+					// Refresh the list
+					showLoadModal();
+					
+					alert(`Breeding plan "${planName}" has been deleted.`);
+				}
+			}
+
+			function showRenamePlanModal() {
+				const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
+				if (!selectedRadio) {
+					alert('Please select a breeding plan to rename.');
+					return;
+				}
+				
+				const index = parseInt(selectedRadio.value);
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (index < 0 || index >= savedDiagrams.length) {
+					alert('Invalid selection.');
+					return;
+				}
+				
+				const plan = savedDiagrams[index];
+				selectedDiagramIndex = index;
+				
+				// Set up rename modal
+				document.getElementById('rename-plan-current-name').textContent = plan.name;
+				document.getElementById('rename-plan-input').value = plan.name;
+				
+				// Show rename modal
+				hideModal(loadDiagramModal);
+				showModal(renamePlanModal);
+				document.getElementById('rename-plan-input').focus();
+			}
+
+			function confirmRenamePlan() {
+				const newName = document.getElementById('rename-plan-input').value.trim();
+				
+				if (!newName) {
+					alert('Please enter a name for your breeding plan.');
+					return;
+				}
+				
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
+					alert('Invalid selection.');
+					return;
+				}
+				
+				const oldName = savedDiagrams[selectedDiagramIndex].name;
+				
+				// Check for name collision (except with itself)
+				const nameExists = savedDiagrams.some((plan, idx) => idx !== selectedDiagramIndex && plan.name === newName);
+				if (nameExists) {
+					if (!confirm(`A breeding plan named "${newName}" already exists. Do you want to use this name anyway?`)) {
+						return;
+					}
+				}
+				
+				// Update the name
+				savedDiagrams[selectedDiagramIndex].name = newName;
+				
+				// Save updated array
+				localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+				
+				// Hide rename modal and show confirmation
+				hideModal(renamePlanModal);
+				alert(`Breeding plan renamed from "${oldName}" to "${newName}".`);
+				
+				// Refresh the load modal
+				showLoadModal();
+			}
             
-            function loadSelectedDiagram() {
-                // Get selected diagram
-                const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
-                if (!selectedRadio) {
-                    alert('Please select a breeding plan to load.');
-                    return;
-                }
-                
-                const index = parseInt(selectedRadio.value);
-                const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-                
-                if (index < 0 || index >= savedDiagrams.length) {
-                    alert('Invalid selection.');
-                    return;
-                }
-                
-                // Check if current diagram should be cleared
-                if (nodes.length > 0) {
-                    if (!confirm('Loading a new diagram will replace the current one. Continue?')) {
-                        return;
-                    }
-                }
-                
-                // Load the selected diagram
-                const diagram = savedDiagrams[index];
-                loadDiagram(diagram);
-                
-                // Hide modal
-                hideModal(loadDiagramModal);
-            }
+			function loadSelectedDiagram() {
+			  const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
+			  if (!selectedRadio) {
+				alert('Please select a breeding plan to load.');
+				return;
+			  }
+			  
+			  const index = parseInt(selectedRadio.value);
+			  const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+			  
+			  if (index < 0 || index >= savedDiagrams.length) {
+				alert('Invalid selection.');
+				return;
+			  }
+			  
+			  // Clear the current diagram first
+			  breedingCanvas.querySelectorAll('.breeding-node').forEach(node => node.remove());
+			  connectionsGroup.innerHTML = '';
+			  nodes = [];
+			  connections = [];
+			  
+			  // Load the selected diagram
+			  const diagram = savedDiagrams[index];
+			  loadDiagram(diagram);
+			  
+			  // Hide modal
+			  hideModal(loadDiagramModal);
+			}
             
-            function loadDiagram(diagram) {
-                // Clear existing diagram
-                newDiagram();
-                
-                // Set the node counter to prevent ID conflicts
-                if (diagram.nodes.length > 0) {
-                    const nodeIds = diagram.nodes.map(n => {
-                        const match = n.id.match(/node-(\d+)/);
-                        return match ? parseInt(match[1]) : 0;
-                    });
-                    nodeCounter = Math.max(...nodeIds);
-                }
-                
-                // Create all nodes first
-                diagram.nodes.forEach(nodeData => {
-                    // Create node element
-                    const node = document.createElement('div');
-                    node.id = nodeData.id;
-                    
-                    // Determine node class
-                    let nodeClass = 'breeding-node';
-                    if (nodeData.origin === 'cross') nodeClass += ' cross';
-                    if ((nodeData.type || '').toLowerCase().includes('reg')) nodeClass += ' reg';
-                    if ((nodeData.type || '').toLowerCase().includes('fem')) nodeClass += ' fem';
-                    if ((nodeData.type || '').toLowerCase().includes('auto')) nodeClass += ' auto';
-                    if ((nodeData.type || '').toLowerCase().includes('photo')) nodeClass += ' photo';
-                    if ((nodeData.type || '').toLowerCase().includes('fast')) nodeClass += ' fast';
-                    
-                    node.className = nodeClass;
-                    node.dataset.name = nodeData.name;
-                    node.dataset.type = nodeData.type || '';
-                    
-                    // Type indicators
-                    let typeSpans = '';
-                    if ((nodeData.type || '').toLowerCase().includes('reg')) typeSpans += '<span>REG</span>';
-                    if ((nodeData.type || '').toLowerCase().includes('fem')) typeSpans += '<span>FEM</span>';
-                    if ((nodeData.type || '').toLowerCase().includes('auto')) typeSpans += '<span>AUTO</span>';
-                    if ((nodeData.type || '').toLowerCase().includes('photo')) typeSpans += '<span>PHOTO</span>';
-                    if ((nodeData.type || '').toLowerCase().includes('fast')) typeSpans += '<span>FAST</span>';
-                    
-                    // Set position
-                    if (diagram.positions && diagram.positions[nodeData.id]) {
-                        node.style.left = diagram.positions[nodeData.id].left;
-                        node.style.top = diagram.positions[nodeData.id].top;
-                    } else {
-                        // Default position
-                        node.style.left = '200px';
-                        node.style.top = '200px';
-                    }
-                    
-                    node.innerHTML = `
-                        <div class="node-header">
-                            <div class="node-name">${nodeData.name}</div>
-                            <div class="node-controls">
-                                <div class="node-control" data-action="remove" title="Remove">×</div>
-                            </div>
-                        </div>
-                        <div class="node-content">
-                            <div class="node-type">${typeSpans}</div>
-                            ${nodeData.breeder ? `<div class="node-breeder">Breeder: ${nodeData.breeder}</div>` : ''}
-                            ${nodeData.parent1 || nodeData.parent2 ? `
-                                <div class="node-parents">
-                                    ${nodeData.parent1 ? `<div>Parent 1: ${nodeData.parent1}</div>` : ''}
-                                    ${nodeData.parent2 ? `<div>Parent 2: ${nodeData.parent2}</div>` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-                        <div class="connection-points">
-                            <div class="connection-point" data-node="${nodeData.id}"></div>
-                        </div>
-                    `;
-                    
-                    // Make node draggable
-                    node.addEventListener('mousedown', startDraggingNode);
-                    
-                    // Setup connection point
-                    const connectionPoint = node.querySelector('.connection-point');
-                    connectionPoint.addEventListener('mousedown', startConnecting);
-                    
-                    // Setup remove button
-                    const removeButton = node.querySelector('[data-action="remove"]');
-                    removeButton.addEventListener('click', e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        removeNode(nodeData.id);
-                    });
-                    
-                    // Add to canvas
-                    breedingCanvas.appendChild(node);
-                });
-                
-                // Add all nodes to the state
-                nodes = JSON.parse(JSON.stringify(diagram.nodes));
-                
-                // Create connections
-                diagram.connections.forEach(conn => {
-                    addConnection(conn.source, conn.target);
-                });
-                
-                // Center the view
-                centerView();
-            }
+						
         });
     </script>
 </body>
