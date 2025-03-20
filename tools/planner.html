@@ -320,9 +320,10 @@
         
 		.connection-points {
 			display: flex;
-			justify-content: space-around;
-			padding: 8px 0;
-			margin-top: 5px;
+			justify-content: space-between;
+			padding: 6px 15px;
+			background-color: #333;
+			border-radius: 0 0 6px 6px;
 		}
 
 		/* Connection ports styling */
@@ -356,29 +357,30 @@
 		}
 
 		.connection-point {
-			width: 12px;
-			height: 12px;
+			width: 14px;
+			height: 14px;
 			border-radius: 50%;
 			cursor: pointer;
 			border: 2px solid #fff;
-		}
-
-		.connection-point-female {
-			background-color: #e091b9;
-		}
-
-		.connection-point-male {
-			background-color: #91b7e0;
-		}
-
-		.connection-point:hover {
-			transform: scale(1.2);
-			box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+			position: relative;
 		}
 
 		.connection-point-input {
 			background-color: #4CAF50;
 			top: -5px;
+		}
+
+		.connection-point-female {
+			background-color: #E91E63;
+		}
+
+		.connection-point-male {
+			background-color: #2196F3;
+		}
+
+		.connection-point:hover {
+			transform: scale(1.2);
+			box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 		}
 
 		/* Connection line styling */
@@ -424,19 +426,13 @@
             z-index: 5;
         }
         
-		.connector {
-			stroke-linecap: round;
-			stroke-linejoin: round;
-			filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
-		}
-
-		.connector-female {
-			stroke: #e091b9;
-		}
-
-		.connector-male {
-			stroke: #91b7e0;
-		}
+        .connector {
+            stroke: #b39ddb;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: none;
+            marker-end: url(#arrowhead);
+        }
         
         .connector-highlight {
             stroke: #673ab7;
@@ -1211,11 +1207,14 @@
 				nodeCounter++;
 				const nodeId = `node-${nodeCounter}`;
 				
-				// Get strain data
+				// Get data from strain
 				const strainName = strain.STRAIN || strain.Strain || strain.Name || 'Unnamed';
 				const type = strain['REG / FEM'] || strain.Type || '';
+				const breeder = strain.BREEDER || strain.Breeder || '';
+				const parent1 = strain.PARENT1 || strain.parent1 || '';
+				const parent2 = strain.PARENT2 || strain.parent2 || '';
 				
-				// Parse traits
+				// Parse traits - a strain can have multiple traits
 				const traits = {
 					growthType: type.toLowerCase().includes('auto') ? 'AUTO' : 
 							   type.toLowerCase().includes('photo') ? 'PHOTO' : '',
@@ -1224,57 +1223,24 @@
 					floweringType: type.toLowerCase().includes('fast') ? 'FAST' : ''
 				};
 				
+				// Determine node class
+				let nodeClass = 'breeding-node strain-node';
+				
 				// Create node element
 				const node = document.createElement('div');
 				node.id = nodeId;
-				node.className = 'breeding-node strain-node';
+				node.className = nodeClass;
 				node.dataset.name = strainName;
 				node.dataset.growthType = traits.growthType;
 				node.dataset.sexType = traits.sexType;
 				node.dataset.floweringType = traits.floweringType;
 				
-				// Calculate position - ensure nodes don't stack
-				// Find a free spot on the canvas with a grid-like layout
-				const gridSize = 250; // Space between grid points
-				const existingPositions = nodes.map(n => {
-					const el = document.getElementById(n.id);
-					if (el) {
-						return {
-							x: parseInt(el.style.left || 0),
-							y: parseInt(el.style.top || 0)
-						};
-					}
-					return null;
-				}).filter(p => p);
+				// Set the starting position
+				const x = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 100;
+				const y = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
 				
-				// Start at the center view position
-				const centerX = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 100;
-				const centerY = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
-				
-				let posX = centerX;
-				let posY = centerY;
-				let attemptCount = 0;
-				
-				// Try to find an empty spot in a spiral pattern
-				while (attemptCount < 20) {
-					const isOccupied = existingPositions.some(p => 
-						Math.abs(p.x - posX) < 200 && Math.abs(p.y - posY) < 100
-					);
-					
-					if (!isOccupied) {
-						break;
-					}
-					
-					// Spiral outward
-					const angle = attemptCount * 0.5;
-					const distance = (attemptCount + 1) * 80;
-					posX = centerX + Math.cos(angle) * distance;
-					posY = centerY + Math.sin(angle) * distance;
-					attemptCount++;
-				}
-				
-				node.style.left = `${posX}px`;
-				node.style.top = `${posY}px`;
+				node.style.left = `${x}px`;
+				node.style.top = `${y}px`;
 				
 				// Create trait tags HTML
 				let traitsHTML = '';
@@ -1282,7 +1248,6 @@
 				if (traits.sexType) traitsHTML += `<span class="strain-trait ${traits.sexType.toLowerCase()}">${traits.sexType}</span>`;
 				if (traits.floweringType) traitsHTML += `<span class="strain-trait ${traits.floweringType.toLowerCase()}">${traits.floweringType}</span>`;
 				
-				// Simplified node content - removed breeder info
 				node.innerHTML = `
 					<div class="node-header">
 						<div class="node-name">${strainName}</div>
@@ -1292,10 +1257,26 @@
 					</div>
 					<div class="node-content">
 						<div class="node-traits">${traitsHTML}</div>
+						${breeder ? `<div class="node-breeder">Breeder: ${breeder}</div>` : ''}
+						${parent1 || parent2 ? `
+							<div class="node-parents">
+								${parent1 ? `<div>Parent 1: ${parent1}</div>` : ''}
+								${parent2 ? `<div>Parent 2: ${parent2}</div>` : ''}
+							</div>
+						` : ''}
 					</div>
-					<div class="connection-points">
-						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Use as Female (Mother)"></div>
-						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Use as Male (Father)"></div>
+					<div class="connection-input">
+						<div class="connection-point connection-point-input" data-node="${nodeId}" data-role="input" title="Input"></div>
+					</div>
+					<div class="connection-outputs">
+						<div class="connection-output female">
+							<div class="connection-label">♀</div>
+							<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
+						</div>
+						<div class="connection-output male">
+							<div class="connection-label">♂</div>
+							<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
+						</div>
 					</div>
 				`;
 				
@@ -1303,7 +1284,7 @@
 				node.addEventListener('mousedown', startDraggingNode);
 				
 				// Setup connection points
-				node.querySelectorAll('.connection-point').forEach(point => {
+				node.querySelectorAll('.connection-point-female, .connection-point-male').forEach(point => {
 					point.addEventListener('mousedown', startConnecting);
 				});
 				
@@ -1326,6 +1307,9 @@
 					sexType: traits.sexType,
 					floweringType: traits.floweringType,
 					origin: 'strain',
+					parent1: parent1,
+					parent2: parent2,
+					breeder: breeder,
 					children: [],
 					parents: []
 				});
@@ -1374,7 +1358,7 @@
 				// Create node element
 				const node = document.createElement('div');
 				node.id = nodeId;
-				node.className = 'breeding-node cross-node';
+				node.className = 'breeding-node cross';
 				node.dataset.name = crossData.name;
 				
 				// Store all type information
@@ -1382,43 +1366,30 @@
 				node.dataset.sexType = crossData.sexType || '';
 				node.dataset.floweringType = crossData.floweringType || '';
 				
-				// Calculate position - below and between the parents with offset
+				// Calculate position - below and between the parents
 				const femaleEl = document.getElementById(crossData.femaleId);
 				const maleEl = document.getElementById(crossData.maleId);
 				
-				let posX = 300;
-				let posY = 300;
-				
 				if (femaleEl && maleEl) {
+					const femaleRect = femaleEl.getBoundingClientRect();
+					const maleRect = maleEl.getBoundingClientRect();
+					
 					const femaleLeft = parseInt(femaleEl.style.left || 0);
 					const femaleTop = parseInt(femaleEl.style.top || 0);
 					const maleLeft = parseInt(maleEl.style.left || 0);
 					const maleTop = parseInt(maleEl.style.top || 0);
 					
-					// Position in a triangle relationship instead of directly below
-					posX = femaleLeft + (maleLeft - femaleLeft) * 0.5;
-					posY = Math.max(femaleTop, maleTop) + 150;
+					// Position below and between parents
+					const newLeft = (femaleLeft + maleLeft) / 2;
+					const newTop = Math.max(femaleTop, maleTop) + 150;
 					
-					// Check if this position is already occupied
-					const isPositionOccupied = nodes.some(n => {
-						const el = document.getElementById(n.id);
-						if (el && n.id !== nodeId) {
-							const nodeLeft = parseInt(el.style.left || 0);
-							const nodeTop = parseInt(el.style.top || 0);
-							return Math.abs(nodeLeft - posX) < 100 && Math.abs(nodeTop - posY) < 100;
-						}
-						return false;
-					});
-					
-					// If position is occupied, offset it
-					if (isPositionOccupied) {
-						posX += 120;
-						posY += 50;
-					}
+					node.style.left = `${newLeft}px`;
+					node.style.top = `${newTop}px`;
+				} else {
+					// Fallback position
+					node.style.left = '300px';
+					node.style.top = '300px';
 				}
-				
-				node.style.left = `${posX}px`;
-				node.style.top = `${posY}px`;
 				
 				// Create trait tags HTML
 				let traitsHTML = '';
@@ -1432,7 +1403,6 @@
 					traitsHTML += `<span class="strain-trait ${crossData.floweringType.toLowerCase()}">${crossData.floweringType}</span>`;
 				}
 				
-				// Cleaner node representation with parent info and connection points for further breeding
 				node.innerHTML = `
 					<div class="node-header">
 						<div class="node-name">${crossData.name}</div>
@@ -1443,13 +1413,13 @@
 					<div class="node-content">
 						<div class="node-traits">${traitsHTML}</div>
 						<div class="node-parents">
-							<div>♀: ${crossData.femaleName}</div>
-							<div>♂: ${crossData.maleName}</div>
+							<div>Parent 1: ${crossData.femaleName}</div>
+							<div>Parent 2: ${crossData.maleName}</div>
 						</div>
 					</div>
 					<div class="connection-points">
-						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Use as Female (Mother)"></div>
-						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Use as Male (Father)"></div>
+						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
+						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
 					</div>
 				`;
 				
@@ -1494,7 +1464,7 @@
 				if (femaleParent) femaleParent.children.push(nodeId);
 				if (maleParent) maleParent.children.push(nodeId);
 				
-				// Create connections with right-angle paths
+				// Create connections with proper roles
 				addConnection(crossData.femaleId, nodeId, 'female');
 				addConnection(crossData.maleId, nodeId, 'male');
 				
@@ -1596,51 +1566,48 @@
                 }
             }
             
-			function startDraggingNode(e) {
-				// Don't drag if clicking connection point or control
-				if (e.target.classList.contains('connection-point') || 
-					e.target.classList.contains('node-control')) {
-					return;
-				}
-				
-				e.preventDefault();
-				e.stopPropagation();
-				
-				// Find the node element (could be child of node)
-				const nodeElement = e.target.closest('.breeding-node');
-				if (!nodeElement) return;
-				
-				// Select this node
-				selectNode(nodeElement.id);
-				
-				// Calculate offset within the node
-				const rect = nodeElement.getBoundingClientRect();
-				const offsetX = e.clientX - rect.left;
-				const offsetY = e.clientY - rect.top;
-				
-				function moveNode(moveEvent) {
-					const canvasRect = breedingCanvas.getBoundingClientRect();
-					const newLeft = moveEvent.clientX - canvasRect.left - offsetX;
-					const newTop = moveEvent.clientY - canvasRect.top - offsetY;
-					
-					nodeElement.style.left = `${newLeft}px`;
-					nodeElement.style.top = `${newTop}px`;
-					
-					// Update connections - this updates all connections in real-time
-					updateConnectionsForNode(nodeElement.id);
-				}
-				
-				function endDrag() {
-					document.removeEventListener('mousemove', moveNode);
-					document.removeEventListener('mouseup', endDrag);
-					
-					// Make sure connections are updated one final time
-					updateConnectionsForNode(nodeElement.id);
-				}
-				
-				document.addEventListener('mousemove', moveNode);
-				document.addEventListener('mouseup', endDrag);
-			}
+            function startDraggingNode(e) {
+                // Don't drag if clicking connection point or control
+                if (e.target.classList.contains('connection-point') || 
+                    e.target.classList.contains('node-control')) {
+                    return;
+                }
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Find the node element (could be child of node)
+                const nodeElement = e.target.closest('.breeding-node');
+                if (!nodeElement) return;
+                
+                // Select this node
+                selectNode(nodeElement.id);
+                
+                // Calculate offset within the node
+                const rect = nodeElement.getBoundingClientRect();
+                const offsetX = e.clientX - rect.left;
+                const offsetY = e.clientY - rect.top;
+                
+                function moveNode(moveEvent) {
+                    const canvasRect = breedingCanvas.getBoundingClientRect();
+                    const newLeft = moveEvent.clientX - canvasRect.left - offsetX;
+                    const newTop = moveEvent.clientY - canvasRect.top - offsetY;
+                    
+                    nodeElement.style.left = `${newLeft}px`;
+                    nodeElement.style.top = `${newTop}px`;
+                    
+                    // Update connections
+                    updateConnectionsForNode(nodeElement.id);
+                }
+                
+                function endDrag() {
+                    document.removeEventListener('mousemove', moveNode);
+                    document.removeEventListener('mouseup', endDrag);
+                }
+                
+                document.addEventListener('mousemove', moveNode);
+                document.addEventListener('mouseup', endDrag);
+            }
             
             function selectNode(nodeId) {
                 // Deselect any currently selected node
@@ -1674,13 +1641,12 @@
 				connectingSourceNode = nodeId;
 				connectingRole = role;
 				
-				// Create temporary SVG line with right angles
+				// Create temporary SVG line
 				tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 				tempLine.setAttribute('stroke', role === 'female' ? '#e091b9' : '#91b7e0');
 				tempLine.setAttribute('stroke-width', '2');
 				tempLine.setAttribute('fill', 'none');
-				tempLine.setAttribute('stroke-dasharray', '5,5'); // make it dashed while dragging
-				tempLine.setAttribute('marker-end', `url(#arrow-${role})`);
+				tempLine.setAttribute('marker-end', 'url(#arrowhead)');
 				
 				connectionsGroup.appendChild(tempLine);
 				
@@ -1696,31 +1662,21 @@
 				const sourceNode = document.getElementById(connectingSourceNode);
 				if (!sourceNode) return;
 				
-				const sourceRect = sourceNode.getBoundingClientRect();
+				const sourcePoint = sourceNode.querySelector(`.connection-point-${connectingRole}`);
+				const sourceRect = sourcePoint.getBoundingClientRect();
 				
-				// Source center
-				const startX = sourceRect.left + sourceRect.width/2 - canvasRect.left;
-				const startY = sourceRect.top + sourceRect.height/2 - canvasRect.top;
+				const startX = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
+				const startY = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
 				
-				// Mouse position
 				const endX = e.clientX - canvasRect.left;
 				const endY = e.clientY - canvasRect.top;
 				
-				// Create a right-angled path
-				let pathD;
+				// Create a curved path
+				const controlPointX = (startX + endX) / 2;
+				const controlPointY = (startY + endY + 50) / 2;
 				
-				// Determine direction based on cursor position relative to source
-				if (Math.abs(endX - startX) > Math.abs(endY - startY)) {
-					// More horizontal movement
-					const midX = (startX + endX) / 2;
-					pathD = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
-				} else {
-					// More vertical movement
-					const midY = (startY + endY) / 2;
-					pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
-				}
-				
-				tempLine.setAttribute('d', pathD);
+				const path = `M ${startX} ${startY} Q ${controlPointX} ${controlPointY}, ${endX} ${endY}`;
+				tempLine.setAttribute('d', path);
 			}
 
 			function finishConnection(e) {
@@ -1853,12 +1809,12 @@
 				// Set color based on role
 				const connectionColor = role === 'female' ? '#e091b9' : '#91b7e0';
 				
-				// Create SVG path for connection - we'll use a right-angled path
+				// Create SVG path for connection - we'll use a straight line with directional arrow
 				const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 				path.id = connectionId;
 				path.classList.add('connector');
 				path.setAttribute('stroke', connectionColor);
-				path.setAttribute('stroke-width', '2');
+				path.setAttribute('stroke-width', '3');
 				path.setAttribute('fill', 'none');
 				path.setAttribute('marker-end', 'url(#arrow-' + role + ')');
 				path.setAttribute('data-source', sourceId);
@@ -1900,62 +1856,40 @@
 					return;
 				}
 				
-				// Get the source and target rectangles
-				const sourceRect = sourceNode.getBoundingClientRect();
-				const targetRect = targetNode.getBoundingClientRect();
+				// Get the appropriate connection points based on role
+				const sourcePointClass = connection.role === 'female' ? 'connection-point-female' : 'connection-point-male';
+				const sourcePoint = sourceNode.querySelector(`.${sourcePointClass}`);
+				
+				// For the target, we connect to the input at the top
+				const targetPoint = targetNode.querySelector('.connection-point-input');
+				
+				if (!sourcePoint || !targetPoint) return;
+				
+				// Calculate positions
+				const sourceRect = sourcePoint.getBoundingClientRect();
+				const targetRect = targetPoint.getBoundingClientRect();
 				const canvasRect = breedingCanvas.getBoundingClientRect();
 				
-				// Get the node centers
-				const sourceCenter = {
-					x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
-					y: sourceRect.top + sourceRect.height/2 - canvasRect.top
-				};
+				const startX = sourceRect.left + sourceRect.width/2 - canvasRect.left;
+				const startY = sourceRect.top + sourceRect.height/2 - canvasRect.top;
+				const endX = targetRect.left + targetRect.width/2 - canvasRect.left;
+				const endY = targetRect.top + targetRect.height/2 - canvasRect.top;
 				
-				const targetCenter = {
-					x: targetRect.left + targetRect.width/2 - canvasRect.left,
-					y: targetRect.top + targetRect.height/2 - canvasRect.top
-				};
+				// Create a path with a slight curve - more like ComfyUI
+				// We'll calculate control points to make a nice curve
+				const dx = endX - startX;
+				const dy = endY - startY;
+				const distance = Math.sqrt(dx * dx + dy * dy);
 				
-				// Determine the starting and ending points based on relative positions
-				let startX, startY, endX, endY;
+				// Control points for the curve - about 30% along the path
+				const controlPoint1X = startX + dx * 0.3;
+				const controlPoint1Y = startY + dy * 0.1;
+				const controlPoint2X = startX + dx * 0.7;
+				const controlPoint2Y = startY + dy * 0.9;
 				
-				// Source connection point - depends on relative position to target
-				if (sourceCenter.x < targetCenter.x) { // Source is to the left of target
-					startX = sourceRect.right - canvasRect.left;
-					startY = sourceCenter.y;
-				} else { // Source is to the right of target
-					startX = sourceRect.left - canvasRect.left;
-					startY = sourceCenter.y;
-				}
-				
-				// Target connection point
-				if (targetCenter.x < sourceCenter.x) { // Target is to the left of source
-					endX = targetRect.right - canvasRect.left;
-					endY = targetCenter.y;
-				} else { // Target is to the right of source
-					endX = targetRect.left - canvasRect.left;
-					endY = targetCenter.y;
-				}
-				
-				// Create a path with right angles
-				let pathD;
-				
-				// Determine if we need a vertical or horizontal path first
-				if (Math.abs(targetCenter.x - sourceCenter.x) > Math.abs(targetCenter.y - sourceCenter.y)) {
-					// More horizontal distance than vertical - do a |- shaped path
-					const midX = (startX + endX) / 2;
-					pathD = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
-				} else {
-					// More vertical distance than horizontal - do a -| shaped path
-					const midY = (startY + endY) / 2;
-					pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
-				}
-				
+				// Create the cubic bezier curve path
+				const pathD = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
 				path.setAttribute('d', pathD);
-				
-				// Add a class based on the role for visual distinction
-				path.classList.remove('connector-female', 'connector-male');
-				path.classList.add(`connector-${connection.role}`);
 			}
 
 			function updateAllConnections() {
@@ -1964,14 +1898,14 @@
 				});
 			}
             
-			function updateConnectionsForNode(nodeId) {
-				// Update all connections involving this node
-				connections.forEach(conn => {
-					if (conn.source === nodeId || conn.target === nodeId) {
-						updateConnection(conn);
-					}
-				});
-			}
+            function updateConnectionsForNode(nodeId) {
+                // Update all connections involving this node
+                connections.forEach(conn => {
+                    if (conn.source === nodeId || conn.target === nodeId) {
+                        updateConnection(conn.source, conn.target);
+                    }
+                });
+            }
             
             function removeConnectionsForNode(nodeId) {
                 // Find all connections involving this node
