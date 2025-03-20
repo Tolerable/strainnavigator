@@ -148,6 +148,21 @@
             font-size: 12px;
         }
 
+		.node-traits {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 4px;
+			margin-bottom: 6px;
+		}
+
+		.strain-trait {
+			padding: 2px 6px;
+			border-radius: 3px;
+			font-size: 11px;
+			font-weight: 500;
+			color: white;
+		}
+
 		.strain-trait.photo {
 			background-color: #4db6ac;
 		}
@@ -223,59 +238,31 @@
             height: 2000px;
         }
         
-		/* Node styling for ComfyUI-like appearance */
-		.breeding-node {
-			background-color: #333333;
-			border-radius: 6px;
-			min-width: 160px;
-			box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-			user-select: none;
-			position: absolute;
-			z-index: 10;
-			border: 1px solid #444;
-			color: #fff;
-		}
-
-		.strain-node {
-			border-left: 3px solid #FFB74D;
-		}
-
-		.cross-node {
-			border-left: 3px solid #9C27B0;
-		}
-
-		.node-header {
-			background-color: #222;
-			border-bottom: 1px solid #444;
-			padding: 8px 10px;
-			font-weight: 600;
-			border-radius: 6px 6px 0 0;
-			display: flex;
-			justify-content: space-between;
-		}
-
-		.node-content {
-			padding: 10px;
-		}
-
-		.node-traits {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 5px;
-			margin-bottom: 8px;
-		}
-
-		.strain-trait {
-			padding: 2px 6px;
-			border-radius: 3px;
-			font-size: 11px;
-			font-weight: 500;
-			color: white;
-		}
-
+        .breeding-node {
+            position: absolute;
+            border-radius: 6px;
+            min-width: 160px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            cursor: grab;
+            user-select: none;
+            z-index: 10;
+            background-color: #f8f8f8;
+            color: #333;
+            transition: transform 0.3s ease;
+        }
         
         .breeding-node.selected {
             box-shadow: 0 0 0 3px #ffeb3b;
+        }
+        
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #e0e0e0;
+            border-radius: 6px 6px 0 0;
+            position: relative;
         }
         
         .node-name {
@@ -305,6 +292,10 @@
             background-color: rgba(0, 0, 0, 0.2);
         }
         
+        .node-content {
+            padding: 10px;
+        }
+        
         .node-type {
             font-size: 12px;
             color: #666;
@@ -321,72 +312,30 @@
 		.connection-points {
 			display: flex;
 			justify-content: space-between;
-			padding: 6px 15px;
-			background-color: #333;
+			padding: 5px 10px;
+			background-color: #f0f0f0;
 			border-radius: 0 0 6px 6px;
 		}
 
-		/* Connection ports styling */
-		.connection-input {
-			display: flex;
-			justify-content: center;
-			position: absolute;
-			width: 100%;
-			top: -10px;
-		}
-
-		.connection-outputs {
-			display: flex;
-			justify-content: space-around;
-			padding: 5px 0;
-			margin-top: 5px;
-			border-top: 1px solid #444;
-		}
-
-		.connection-output {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			padding: 0 10px;
-		}
-
-		.connection-label {
-			font-size: 12px;
-			margin-bottom: 3px;
-			color: #bbb;
-		}
-
 		.connection-point {
-			width: 14px;
-			height: 14px;
+			width: 12px;
+			height: 12px;
 			border-radius: 50%;
 			cursor: pointer;
-			border: 2px solid #fff;
-			position: relative;
-		}
-
-		.connection-point-input {
-			background-color: #4CAF50;
-			top: -5px;
+			border: 2px solid white;
 		}
 
 		.connection-point-female {
-			background-color: #E91E63;
+			background-color: #e091b9; /* Pink for female */
 		}
 
 		.connection-point-male {
-			background-color: #2196F3;
+			background-color: #91b7e0; /* Blue for male */
 		}
 
 		.connection-point:hover {
 			transform: scale(1.2);
-			box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-		}
-
-		/* Connection line styling */
-		.connector {
-			stroke-linecap: round;
-			filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
+			box-shadow: 0 0 3px rgba(0,0,0,0.3);
 		}
         
         /* Node types */
@@ -552,15 +501,6 @@
         .btn-secondary:hover {
             background-color: #555;
         }
-
-		.btn-danger {
-			background-color: #d32f2f;
-			color: white;
-		}
-
-		.btn-danger:hover {
-			background-color: #b71c1c;
-		}
         
         .form-group {
             margin-bottom: 15px;
@@ -685,19 +625,15 @@
             
             <div class="breeding-canvas" id="breeding-canvas">
                 <!-- SVG for connections -->
-				<svg class="connection-svg" id="connection-svg">
-					<defs>
-						<marker id="arrow-female" viewBox="0 0 10 10" refX="8" refY="5" 
-								markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-							<path d="M 0 0 L 10 5 L 0 10 z" fill="#E91E63"/>
-						</marker>
-						<marker id="arrow-male" viewBox="0 0 10 10" refX="8" refY="5" 
-								markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-							<path d="M 0 0 L 10 5 L 0 10 z" fill="#2196F3"/>
-						</marker>
-					</defs>
-					<g id="connections-group"></g>
-				</svg>
+                <svg class="connection-svg" id="connection-svg">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                            refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#b39ddb" />
+                        </marker>
+                    </defs>
+                    <g id="connections-group"></g>
+                </svg>
                 <!-- Nodes will be added here -->
             </div>
             
@@ -756,44 +692,20 @@
         </div>
     </div>
     
-	<!-- Load Diagram Modal -->
-	<div class="modal" id="load-diagram-modal">
-		<div class="modal-content">
-			<div class="modal-header">Load Breeding Plan</div>
-			<div class="modal-body">
-				<div id="saved-diagrams-list">
-					Loading saved plans...
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button class="btn btn-danger" id="delete-plan-btn">Delete</button>
-				<button class="btn btn-secondary" id="rename-plan-btn">Rename</button>
-				<button class="btn btn-secondary" id="cancel-load-btn">Cancel</button>
-				<button class="btn btn-primary" id="confirm-load-btn">Load Plan</button>
-			</div>
-		</div>
-	</div>
-
-	<!-- Rename Plan Modal -->
-	<div class="modal" id="rename-plan-modal">
-		<div class="modal-content">
-			<div class="modal-header">Rename Breeding Plan</div>
-			<div class="modal-body">
-				<div class="form-group">
-					<label class="form-label">Current Name</label>
-					<div id="rename-plan-current-name" style="color: #aaa;"></div>
-				</div>
-				<div class="form-group">
-					<label class="form-label">New Name</label>
-					<input type="text" class="form-input" id="rename-plan-input" placeholder="Enter new name">
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button class="btn btn-secondary" id="cancel-rename-btn">Cancel</button>
-				<button class="btn btn-primary" id="confirm-rename-btn">Rename</button>
-			</div>
-		</div>
-	</div>
+    <div class="modal" id="load-diagram-modal">
+        <div class="modal-content">
+            <div class="modal-header">Load Breeding Plan</div>
+            <div class="modal-body">
+                <div id="saved-diagrams-list">
+                    Loading saved plans...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-load-btn">Cancel</button>
+                <button class="btn btn-primary" id="confirm-load-btn">Load Plan</button>
+            </div>
+        </div>
+    </div>
     
     <!-- Context Menu -->
     <div class="context-menu" id="node-context-menu">
@@ -849,8 +761,7 @@
             const savedDiagramsList = document.getElementById('saved-diagrams-list');
             const cancelLoadBtn = document.getElementById('cancel-load-btn');
             const confirmLoadBtn = document.getElementById('confirm-load-btn');
-            const renamePlanModal = document.getElementById('rename-plan-modal');
-			
+            
             // Context Menu
             const nodeContextMenu = document.getElementById('node-context-menu');
             const contextEdit = document.getElementById('context-edit');
@@ -1056,15 +967,6 @@
                 cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
                 confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
                 
-				// Listeners for delete rename 
-				document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
-				document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
-				document.getElementById('cancel-rename-btn').addEventListener('click', () => {
-					hideModal(renamePlanModal);
-					showModal(loadDiagramModal);
-				});
-				document.getElementById('confirm-rename-btn').addEventListener('click', confirmRenamePlan);				
-				
                 // Context menu items
                 contextEdit.addEventListener('click', () => {
                     // Future feature: edit node properties
@@ -1217,26 +1119,27 @@
 				// Parse traits - a strain can have multiple traits
 				const traits = {
 					growthType: type.toLowerCase().includes('auto') ? 'AUTO' : 
-							   type.toLowerCase().includes('photo') ? 'PHOTO' : '',
+								type.toLowerCase().includes('photo') ? 'PHOTO' : '',
 					sexType: type.toLowerCase().includes('reg') ? 'REG' : 
 							type.toLowerCase().includes('fem') ? 'FEM' : '',
 					floweringType: type.toLowerCase().includes('fast') ? 'FAST' : ''
 				};
 				
 				// Determine node class
-				let nodeClass = 'breeding-node strain-node';
+				let nodeClass = 'breeding-node';
 				
 				// Create node element
 				const node = document.createElement('div');
 				node.id = nodeId;
 				node.className = nodeClass;
 				node.dataset.name = strainName;
+				node.dataset.type = type;
 				node.dataset.growthType = traits.growthType;
 				node.dataset.sexType = traits.sexType;
 				node.dataset.floweringType = traits.floweringType;
 				
 				// Set the starting position
-				const x = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 100;
+				const x = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 80;
 				const y = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
 				
 				node.style.left = `${x}px`;
@@ -1265,18 +1168,9 @@
 							</div>
 						` : ''}
 					</div>
-					<div class="connection-input">
-						<div class="connection-point connection-point-input" data-node="${nodeId}" data-role="input" title="Input"></div>
-					</div>
-					<div class="connection-outputs">
-						<div class="connection-output female">
-							<div class="connection-label">♀</div>
-							<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
-						</div>
-						<div class="connection-output male">
-							<div class="connection-label">♂</div>
-							<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
-						</div>
+					<div class="connection-points">
+						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Connect as Female (Mother)"></div>
+						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Connect as Male (Father)"></div>
 					</div>
 				`;
 				
@@ -1284,7 +1178,7 @@
 				node.addEventListener('mousedown', startDraggingNode);
 				
 				// Setup connection points
-				node.querySelectorAll('.connection-point-female, .connection-point-male').forEach(point => {
+				node.querySelectorAll('.connection-point').forEach(point => {
 					point.addEventListener('mousedown', startConnecting);
 				});
 				
@@ -1303,6 +1197,7 @@
 				nodes.push({
 					id: nodeId,
 					name: strainName,
+					type: type,
 					growthType: traits.growthType,
 					sexType: traits.sexType,
 					floweringType: traits.floweringType,
@@ -1332,10 +1227,10 @@
 				
 				// Create cross data
 				const crossData = {
-					femaleId: pendingCrossData.femaleId,
-					maleId: pendingCrossData.maleId,
-					femaleName: pendingCrossData.femaleName,
-					maleName: pendingCrossData.maleName,
+					parent1: pendingCrossData.femaleId,
+					parent2: pendingCrossData.maleId,
+					parent1Name: pendingCrossData.femaleName,
+					parent2Name: pendingCrossData.maleName,
 					name: finalName,
 					growthType: growthType,
 					sexType: seedType,
@@ -1349,45 +1244,50 @@
 				hideModal(nameCrossModal);
 				customCrossName.value = '';
 				pendingCrossData = null;
+				
+				// Force update all connections to ensure visibility
+				setTimeout(() => {
+					connections.forEach(conn => {
+						updateConnection(conn.source, conn.target);
+					});
+				}, 100);
 			}
 
 			function addCrossNodeToCanvas(crossData) {
 				nodeCounter++;
 				const nodeId = `node-${nodeCounter}`;
 				
-				// Create node element
+				// Create node element with proper highlighting for cross
 				const node = document.createElement('div');
 				node.id = nodeId;
 				node.className = 'breeding-node cross';
 				node.dataset.name = crossData.name;
+				node.dataset.type = crossData.type;
+				node.dataset.growthType = crossData.growthType;
+				node.dataset.sexType = crossData.sexType;
+				node.dataset.floweringType = crossData.floweringType;
 				
-				// Store all type information
-				node.dataset.growthType = crossData.growthType || '';
-				node.dataset.sexType = crossData.sexType || '';
-				node.dataset.floweringType = crossData.floweringType || '';
+				// Calculate position between parents but below
+				const parent1El = document.getElementById(crossData.parent1);
+				const parent2El = document.getElementById(crossData.parent2);
 				
-				// Calculate position - below and between the parents
-				const femaleEl = document.getElementById(crossData.femaleId);
-				const maleEl = document.getElementById(crossData.maleId);
-				
-				if (femaleEl && maleEl) {
-					const femaleRect = femaleEl.getBoundingClientRect();
-					const maleRect = maleEl.getBoundingClientRect();
+				if (parent1El && parent2El) {
+					const p1Rect = parent1El.getBoundingClientRect();
+					const p2Rect = parent2El.getBoundingClientRect();
 					
-					const femaleLeft = parseInt(femaleEl.style.left || 0);
-					const femaleTop = parseInt(femaleEl.style.top || 0);
-					const maleLeft = parseInt(maleEl.style.left || 0);
-					const maleTop = parseInt(maleEl.style.top || 0);
+					const p1Left = parseInt(parent1El.style.left);
+					const p1Top = parseInt(parent1El.style.top);
+					const p2Left = parseInt(parent2El.style.left);
+					const p2Top = parseInt(parent2El.style.top);
 					
-					// Position below and between parents
-					const newLeft = (femaleLeft + maleLeft) / 2;
-					const newTop = Math.max(femaleTop, maleTop) + 150;
+					const newLeft = Math.min(p1Left, p2Left) + Math.abs(p1Left - p2Left) / 2;
+					const newTop = Math.max(p1Top, p2Top) + 150;
 					
 					node.style.left = `${newLeft}px`;
 					node.style.top = `${newTop}px`;
 				} else {
 					// Fallback position
-					node.style.left = '300px';
+					node.style.left = '500px';
 					node.style.top = '300px';
 				}
 				
@@ -1413,8 +1313,8 @@
 					<div class="node-content">
 						<div class="node-traits">${traitsHTML}</div>
 						<div class="node-parents">
-							<div>Parent 1: ${crossData.femaleName}</div>
-							<div>Parent 2: ${crossData.maleName}</div>
+							<div>Parent 1: ${crossData.parent1Name}</div>
+							<div>Parent 2: ${crossData.parent2Name}</div>
 						</div>
 					</div>
 					<div class="connection-points">
@@ -1446,27 +1346,35 @@
 				const newNode = {
 					id: nodeId,
 					name: crossData.name,
+					type: crossData.type,
 					growthType: crossData.growthType,
 					sexType: crossData.sexType,
 					floweringType: crossData.floweringType,
 					origin: 'cross',
-					femaleParent: crossData.femaleId,
-					maleParent: crossData.maleId,
-					children: []
+					parent1: crossData.parent1Name,
+					parent2: crossData.parent2Name,
+					children: [],
+					parents: [crossData.parent1, crossData.parent2]
 				};
 				
 				nodes.push(newNode);
 				
 				// Update parent nodes to have this as a child
-				const femaleParent = nodes.find(n => n.id === crossData.femaleId);
-				const maleParent = nodes.find(n => n.id === crossData.maleId);
+				const parent1Node = nodes.find(n => n.id === crossData.parent1);
+				const parent2Node = nodes.find(n => n.id === crossData.parent2);
 				
-				if (femaleParent) femaleParent.children.push(nodeId);
-				if (maleParent) maleParent.children.push(nodeId);
+				if (parent1Node) parent1Node.children.push(nodeId);
+				if (parent2Node) parent2Node.children.push(nodeId);
 				
-				// Create connections with proper roles
-				addConnection(crossData.femaleId, nodeId, 'female');
-				addConnection(crossData.maleId, nodeId, 'male');
+				// Create connections
+				addConnection(crossData.parent1, nodeId);
+				addConnection(crossData.parent2, nodeId);
+				
+				// Make sure connections are visible
+				setTimeout(() => {
+					updateConnection(crossData.parent1, nodeId);
+					updateConnection(crossData.parent2, nodeId);
+				}, 50);
 				
 				selectNode(nodeId);
 				return nodeId;
@@ -1797,29 +1705,32 @@
 				customCrossName.focus();
 			}
             
-			function addConnection(sourceId, targetId, role) {
-				// Create connection id with role information
-				const connectionId = `connection-${sourceId}-${targetId}-${role}`;
+			function addConnection(sourceId, targetId) {
+				// Create connection id
+				const connectionId = `connection-${sourceId}-${targetId}`;
 				
 				// Check if connection already exists
 				if (connections.some(c => c.id === connectionId)) {
 					return;
 				}
 				
-				// Set color based on role
-				const connectionColor = role === 'female' ? '#e091b9' : '#91b7e0';
+				// Determine roles - let's say source is female parent by default
+				const sourceRole = 'female';
+				const targetRole = 'male';
 				
-				// Create SVG path for connection - we'll use a straight line with directional arrow
+				// Determine color based on roles
+				const connectionColor = sourceRole === 'female' ? '#e091b9' : '#91b7e0';
+				
+				// Create SVG path for connection
 				const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 				path.id = connectionId;
 				path.classList.add('connector');
 				path.setAttribute('stroke', connectionColor);
-				path.setAttribute('stroke-width', '3');
+				path.setAttribute('stroke-width', '2');
 				path.setAttribute('fill', 'none');
-				path.setAttribute('marker-end', 'url(#arrow-' + role + ')');
 				path.setAttribute('data-source', sourceId);
 				path.setAttribute('data-target', targetId);
-				path.setAttribute('data-role', role);
+				path.setAttribute('pointer-events', 'none'); // Make sure it doesn't interfere with clicks
 				
 				// Add to SVG
 				connectionsGroup.appendChild(path);
@@ -1829,39 +1740,37 @@
 					id: connectionId,
 					source: sourceId,
 					target: targetId,
-					role: role,
+					sourceRole: sourceRole,
+					targetRole: targetRole,
 					color: connectionColor
 				});
 				
-				// Update connection immediately
-				updateConnection(connectionId);
+				// Immediately update connection path
+				setTimeout(() => updateConnection(sourceId, targetId), 50);
 			}
 
-			function updateConnection(connectionId) {
-				const connection = typeof connectionId === 'string' 
-					? connections.find(c => c.id === connectionId)
-					: connectionId;
-					
-				if (!connection) return;
+			function updateConnection(sourceId, targetId) {
+				const connectionId = `connection-${sourceId}-${targetId}`;
+				const path = document.getElementById(connectionId);
 				
-				const path = document.getElementById(connection.id);
 				if (!path) return;
 				
-				const sourceNode = document.getElementById(connection.source);
-				const targetNode = document.getElementById(connection.target);
+				const sourceNode = document.getElementById(sourceId);
+				const targetNode = document.getElementById(targetId);
 				
 				if (!sourceNode || !targetNode) {
 					// Remove connection if nodes don't exist
-					removeConnection(connection.id);
+					removeConnection(connectionId);
 					return;
 				}
 				
-				// Get the appropriate connection points based on role
-				const sourcePointClass = connection.role === 'female' ? 'connection-point-female' : 'connection-point-male';
-				const sourcePoint = sourceNode.querySelector(`.${sourcePointClass}`);
+				// Find connection in array to get role info
+				const connection = connections.find(c => c.id === connectionId);
+				if (!connection) return;
 				
-				// For the target, we connect to the input at the top
-				const targetPoint = targetNode.querySelector('.connection-point-input');
+				// Get appropriate connection points
+				const sourcePoint = sourceNode.querySelector(`.connection-point-${connection.sourceRole || 'female'}`);
+				const targetPoint = targetNode.querySelector(`.connection-point-${connection.targetRole || 'male'}`);
 				
 				if (!sourcePoint || !targetPoint) return;
 				
@@ -1870,32 +1779,42 @@
 				const targetRect = targetPoint.getBoundingClientRect();
 				const canvasRect = breedingCanvas.getBoundingClientRect();
 				
-				const startX = sourceRect.left + sourceRect.width/2 - canvasRect.left;
-				const startY = sourceRect.top + sourceRect.height/2 - canvasRect.top;
-				const endX = targetRect.left + targetRect.width/2 - canvasRect.left;
-				const endY = targetRect.top + targetRect.height/2 - canvasRect.top;
+				const startX = sourceRect.left + sourceRect.width / 2 - canvasRect.left;
+				const startY = sourceRect.top + sourceRect.height / 2 - canvasRect.top;
 				
-				// Create a path with a slight curve - more like ComfyUI
-				// We'll calculate control points to make a nice curve
+				const endX = targetRect.left + targetRect.width / 2 - canvasRect.left;
+				const endY = targetRect.top + targetRect.height / 2 - canvasRect.top;
+				
+				// Calculate distance and bend of curve
 				const dx = endX - startX;
 				const dy = endY - startY;
 				const distance = Math.sqrt(dx * dx + dy * dy);
 				
-				// Control points for the curve - about 30% along the path
-				const controlPoint1X = startX + dx * 0.3;
-				const controlPoint1Y = startY + dy * 0.1;
-				const controlPoint2X = startX + dx * 0.7;
-				const controlPoint2Y = startY + dy * 0.9;
+				// Use a straight line for very short distances
+				if (distance < 30) {
+					const pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+					path.setAttribute('d', pathD);
+					return;
+				}
 				
-				// Create the cubic bezier curve path
-				const pathD = `M ${startX} ${startY} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${endX} ${endY}`;
+				// Create a curved path - for better visibility, especially when nodes overlap
+				// Use cubic bezier curve for better control of path shape
+				const curvature = 0.4; // Higher value means more curved
+				const midX = (startX + endX) / 2;
+				const midY = (startY + endY) / 2;
+				
+				// Perpendicular offset to create curve
+				const offsetX = -dy * curvature;
+				const offsetY = dx * curvature;
+				
+				const pathD = `M ${startX} ${startY} Q ${midX + offsetX} ${midY + offsetY}, ${endX} ${endY}`;
 				path.setAttribute('d', pathD);
-			}
-
-			function updateAllConnections() {
-				connections.forEach(connection => {
-					updateConnection(connection);
-				});
+				
+				// Set color based on role
+				path.setAttribute('stroke', connection.color || '#b39ddb');
+				
+				// Add an arrowhead marker
+				path.setAttribute('marker-end', 'url(#arrowhead)');
 			}
             
             function updateConnectionsForNode(nodeId) {
@@ -2199,165 +2118,63 @@
                 alert(`Breeding plan "${name}" saved successfully!`);
             }
             
-			function showLoadModal() {
-				// Get saved diagrams
-				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-				
-				if (savedDiagrams.length === 0) {
-					savedDiagramsList.innerHTML = `
-						<div style="padding: 10px; text-align: center; color: #999;">
-							No saved breeding plans found
-						</div>
-					`;
-					confirmLoadBtn.disabled = true;
-					document.getElementById('delete-plan-btn').disabled = true;
-					document.getElementById('rename-plan-btn').disabled = true;
-				} else {
-					// Create list of saved diagrams with options to rename/delete
-					let html = '<div class="saved-plans-list">';
-					
-					savedDiagrams.forEach((diagram, index) => {
-						const date = new Date(diagram.date).toLocaleDateString();
-						const nodeCount = diagram.nodes.length;
-						
-						html += `
-							<div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" 
-								data-index="${index}">
-								<div style="display: flex; justify-content: space-between; align-items: center;">
-									<label style="font-weight: 500; cursor: pointer; flex: 1;">
-										<input type="radio" name="saved-diagram" value="${index}" 
-											${index === 0 ? 'checked' : ''}>
-										${diagram.name}
-									</label>
-									<span style="font-size: 12px; color: #999;">${date}</span>
-								</div>
-								<div style="font-size: 12px; color: #aaa; margin-top: 5px;">
-									${nodeCount} strain${nodeCount !== 1 ? 's' : ''}
-									${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}
-								</div>
-							</div>
-						`;
-					});
-					
-					html += '</div>';
-					savedDiagramsList.innerHTML = html;
-					confirmLoadBtn.disabled = false;
-					document.getElementById('delete-plan-btn').disabled = false;
-					document.getElementById('rename-plan-btn').disabled = false;
-					
-					// Add click handler for selection
-					document.querySelectorAll('.saved-plan-item').forEach(item => {
-						item.addEventListener('click', function() {
-							const radio = this.querySelector('input[type="radio"]');
-							radio.checked = true;
-							selectedDiagramIndex = parseInt(radio.value);
-						});
-					});
-					
-					// Set initial selection
-					selectedDiagramIndex = 0;
-				}
-				
-				showModal(loadDiagramModal);
-			}
-
-			function deleteSavedPlan() {
-				const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
-				if (!selectedRadio) {
-					alert('Please select a breeding plan to delete.');
-					return;
-				}
-				
-				const index = parseInt(selectedRadio.value);
-				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-				
-				if (index < 0 || index >= savedDiagrams.length) {
-					alert('Invalid selection.');
-					return;
-				}
-				
-				const planName = savedDiagrams[index].name;
-				
-				if (confirm(`Are you sure you want to delete the breeding plan "${planName}"?`)) {
-					// Remove the plan from the array
-					savedDiagrams.splice(index, 1);
-					
-					// Save updated array
-					localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
-					
-					// Refresh the list
-					showLoadModal();
-					
-					alert(`Breeding plan "${planName}" has been deleted.`);
-				}
-			}
-
-			function showRenamePlanModal() {
-				const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
-				if (!selectedRadio) {
-					alert('Please select a breeding plan to rename.');
-					return;
-				}
-				
-				const index = parseInt(selectedRadio.value);
-				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-				
-				if (index < 0 || index >= savedDiagrams.length) {
-					alert('Invalid selection.');
-					return;
-				}
-				
-				const plan = savedDiagrams[index];
-				selectedDiagramIndex = index;
-				
-				// Set up rename modal
-				document.getElementById('rename-plan-current-name').textContent = plan.name;
-				document.getElementById('rename-plan-input').value = plan.name;
-				
-				// Show rename modal
-				hideModal(loadDiagramModal);
-				showModal(renamePlanModal);
-				document.getElementById('rename-plan-input').focus();
-			}
-
-			function confirmRenamePlan() {
-				const newName = document.getElementById('rename-plan-input').value.trim();
-				
-				if (!newName) {
-					alert('Please enter a name for your breeding plan.');
-					return;
-				}
-				
-				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-				
-				if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
-					alert('Invalid selection.');
-					return;
-				}
-				
-				const oldName = savedDiagrams[selectedDiagramIndex].name;
-				
-				// Check for name collision (except with itself)
-				const nameExists = savedDiagrams.some((plan, idx) => idx !== selectedDiagramIndex && plan.name === newName);
-				if (nameExists) {
-					if (!confirm(`A breeding plan named "${newName}" already exists. Do you want to use this name anyway?`)) {
-						return;
-					}
-				}
-				
-				// Update the name
-				savedDiagrams[selectedDiagramIndex].name = newName;
-				
-				// Save updated array
-				localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
-				
-				// Hide rename modal and show confirmation
-				hideModal(renamePlanModal);
-				alert(`Breeding plan renamed from "${oldName}" to "${newName}".`);
-				
-				// Refresh the load modal
-				showLoadModal();
-			}
+            function showLoadModal() {
+                // Get saved diagrams
+                const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+                
+                if (savedDiagrams.length === 0) {
+                    savedDiagramsList.innerHTML = `
+                        <div style="padding: 10px; text-align: center; color: #999;">
+                            No saved breeding plans found
+                        </div>
+                    `;
+                    confirmLoadBtn.disabled = true;
+                } else {
+                    // Create list of saved diagrams
+                    let html = '<div class="saved-plans-list">';
+                    
+                    savedDiagrams.forEach((diagram, index) => {
+                        const date = new Date(diagram.date).toLocaleDateString();
+                        const nodeCount = diagram.nodes.length;
+                        
+                        html += `
+                            <div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" 
+                                data-index="${index}">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label style="font-weight: 500; cursor: pointer;">
+                                        <input type="radio" name="saved-diagram" value="${index}" 
+                                            ${index === 0 ? 'checked' : ''}>
+                                        ${diagram.name}
+                                    </label>
+                                    <span style="font-size: 12px; color: #999;">${date}</span>
+                                </div>
+                                <div style="font-size: 12px; color: #aaa; margin-top: 5px;">
+                                    ${nodeCount} strain${nodeCount !== 1 ? 's' : ''}
+                                    ${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    savedDiagramsList.innerHTML = html;
+                    confirmLoadBtn.disabled = false;
+                    
+                    // Add click handler for selection
+                    document.querySelectorAll('.saved-plan-item').forEach(item => {
+                        item.addEventListener('click', function() {
+                            const radio = this.querySelector('input[type="radio"]');
+                            radio.checked = true;
+                            selectedDiagramIndex = parseInt(radio.value);
+                        });
+                    });
+                    
+                    // Set initial selection
+                    selectedDiagramIndex = 0;
+                }
+                
+                showModal(loadDiagramModal);
+            }
             
             function loadSelectedDiagram() {
                 // Get selected diagram
@@ -2492,7 +2309,6 @@
                 // Center the view
                 centerView();
             }
-						
         });
     </script>
 </body>
