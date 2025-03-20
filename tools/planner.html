@@ -1083,10 +1083,6 @@
 			  cancelSaveBtn.addEventListener('click', () => hideModal(saveDiagramModal));
 			  confirmSaveBtn.addEventListener('click', saveDiagram);
 			  
-			  // Load modal - ensure these are direct function references
-			  cancelLoadBtn.addEventListener('click', function() { hideModal(loadDiagramModal); });
-			  confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
-			  
 			  // Listeners for delete rename 
 			  document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
 			  document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
@@ -2089,7 +2085,7 @@
 				// Force update all connections with a slight delay
 				setTimeout(() => {
 					connections.forEach(conn => {
-						updateConnection(conn.source, conn.target);
+						updateConnection(conn);
 					});
 				}, 100);
 				
@@ -2132,47 +2128,6 @@
 					if (childNode) {
 						positionNode(childNode, childX, childY, placedNodes, level + 1);
 						childX += childSpacing;
-					}
-				});
-			}
-
-			function arrangeFromNode(node, x, y, placedNodes, level) {
-				// Mark this node as placed
-				placedNodes[node.id] = { x, y, level };
-				
-				// Position this node
-				const nodeElement = document.getElementById(node.id);
-				if (nodeElement) {
-					nodeElement.style.left = `${x}px`;
-					nodeElement.style.top = `${y}px`;
-				}
-				
-				// If no children, we're done with this branch
-				if (!node.children || node.children.length === 0) return;
-				
-				// Calculate space needed for children
-				const childrenWidth = Math.max(300, node.children.length * nodeSpacing.horizontal);
-				let startX = x - childrenWidth / 2 + nodeSpacing.horizontal / 2;
-				
-				// Position each child
-				node.children.forEach(childId => {
-					const childNode = nodes.find(n => n.id === childId);
-					if (childNode && !placedNodes[childId]) {
-						const childX = startX;
-						const childY = y + nodeSpacing.vertical;
-						
-						arrangeFromNode(childNode, childX, childY, placedNodes, level + 1);
-						startX += nodeSpacing.horizontal;
-					} else if (childNode && placedNodes[childId]) {
-						// If already placed, check if we need to move it lower
-						if (placedNodes[childId].level < level + 1) {
-							placedNodes[childId].level = level + 1;
-							
-							const childElement = document.getElementById(childId);
-							if (childElement) {
-								childElement.style.top = `${y + nodeSpacing.vertical}px`;
-							}
-						}
 					}
 				});
 			}
@@ -2486,22 +2441,28 @@
 				selectedDiagramIndex = 0;
 			  }
 			  
-			  // Reattach event listeners for plan items
-			  setTimeout(() => {
-				document.querySelectorAll('.saved-plan-item').forEach(item => {
-				  item.addEventListener('click', function() {
-					const radio = this.querySelector('input[type="radio"]');
-					radio.checked = true;
-					selectedDiagramIndex = parseInt(radio.value);
-				  });
-				});
-			  }, 10);
+			  // Attach event listeners for plan items
+			  savedDiagramsList.addEventListener('click', function(e) {
+				const item = e.target.closest('.saved-plan-item');
+				if (item) {
+				  const radio = item.querySelector('input[type="radio"]');
+				  radio.checked = true;
+				  selectedDiagramIndex = parseInt(radio.value);
+				}
+			  });
 			  
-			  // Reattach button event listeners
-			  document.getElementById('confirm-load-btn').onclick = loadSelectedDiagram;
-			  document.getElementById('delete-plan-btn').onclick = deleteSavedPlan;
-			  document.getElementById('rename-plan-btn').onclick = showRenamePlanModal;
-			  document.getElementById('cancel-load-btn').onclick = () => hideModal(loadDiagramModal);
+			  // Remove previous event listeners to prevent duplicates
+			  document.getElementById('confirm-load-btn').removeEventListener('click', loadSelectedDiagram);
+			  document.getElementById('delete-plan-btn').removeEventListener('click', deleteSavedPlan);
+			  document.getElementById('rename-plan-btn').removeEventListener('click', showRenamePlanModal);
+			  
+			  // Add fresh event listeners
+			  document.getElementById('confirm-load-btn').addEventListener('click', loadSelectedDiagram);
+			  document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
+			  document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
+			  document.getElementById('cancel-load-btn').addEventListener('click', function() {
+				hideModal(loadDiagramModal);
+			  });
 			  
 			  showModal(loadDiagramModal);
 			}
