@@ -2250,187 +2250,62 @@
                 diagramName.focus();
             }
             
-			function saveDiagram() {
-			  const name = diagramName.value.trim();
-			  const notes = diagramNotes.value.trim();
-			  
-			  if (!name) {
-				alert('Please enter a name for your breeding plan.');
-				return;
-			  }
-			  
-			  // Capture position data for all nodes
-			  const nodePositions = {};
-			  nodes.forEach(node => {
-				const nodeEl = document.getElementById(node.id);
-				if (nodeEl) {
-				  nodePositions[node.id] = {
-					left: nodeEl.style.left,
-					top: nodeEl.style.top
-				  };
-				}
-			  });
-			  
-			  // Ensure cross nodes have parent name information
-			  nodes.forEach(node => {
-				if (node.origin === 'cross') {
-				  if (node.femaleParent) {
-					const femaleNode = nodes.find(n => n.id === node.femaleParent);
-					if (femaleNode) node.femaleName = femaleNode.name;
-				  }
-				  if (node.maleParent) {
-					const maleNode = nodes.find(n => n.id === node.maleParent);
-					if (maleNode) node.maleName = maleNode.name;
-				  }
-				}
-			  });
-			  
-			  // Create save data
-			  const saveData = {
-				name: name,
-				notes: notes,
-				date: new Date().toISOString(),
-				nodes: nodes,
-				connections: connections,
-				positions: nodePositions
-			  };
-			  
-			  // Get existing saved diagrams
-			  let savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-			  
-			  // Check if diagram with this name already exists
-			  const existingIndex = savedDiagrams.findIndex(d => d.name === name);
-			  if (existingIndex >= 0) {
-				if (confirm(`A breeding plan named "${name}" already exists. Overwrite it?`)) {
-				  savedDiagrams[existingIndex] = saveData;
-				} else {
-				  return;
-				}
-			  } else {
-				savedDiagrams.push(saveData);
-			  }
-			  
-			  // Save to localStorage
-			  localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
-			  
-			  // Hide modal and reset
-			  hideModal(saveDiagramModal);
-			  diagramName.value = '';
-			  diagramNotes.value = '';
-			  
-			  alert(`Breeding plan "${name}" saved successfully!`);
-			}
-
-			function loadDiagram(diagram) {
-			  // Clear existing diagram
-			  newDiagram();
-			  
-			  // Set the node counter to prevent ID conflicts
-			  if (diagram.nodes.length > 0) {
-				const nodeIds = diagram.nodes.map(n => {
-				  const match = n.id.match(/node-(\d+)/);
-				  return match ? parseInt(match[1]) : 0;
-				});
-				nodeCounter = Math.max(...nodeIds);
-			  }
-			  
-			  // Create all nodes first
-			  diagram.nodes.forEach(nodeData => {
-				// Create node element
-				const node = document.createElement('div');
-				node.id = nodeData.id;
-				node.className = nodeData.origin === 'strain' ? 'breeding-node strain-node' : 'breeding-node cross-node';
-				node.dataset.name = nodeData.name;
-				node.dataset.growthType = nodeData.growthType || '';
-				node.dataset.sexType = nodeData.sexType || '';
-				node.dataset.floweringType = nodeData.floweringType || '';
-				
-				// Set position
-				if (diagram.positions && diagram.positions[nodeData.id]) {
-				  node.style.left = diagram.positions[nodeData.id].left;
-				  node.style.top = diagram.positions[nodeData.id].top;
-				} else {
-				  node.style.left = '200px';
-				  node.style.top = '200px';
-				}
-				
-				// Create trait tags HTML
-				let traitsHTML = '';
-				if (nodeData.growthType) traitsHTML += `<span class="strain-trait ${nodeData.growthType.toLowerCase()}">${nodeData.growthType}</span>`;
-				if (nodeData.sexType) traitsHTML += `<span class="strain-trait ${nodeData.sexType.toLowerCase()}">${nodeData.sexType}</span>`;
-				if (nodeData.floweringType) traitsHTML += `<span class="strain-trait ${nodeData.floweringType.toLowerCase()}">${nodeData.floweringType}</span>`;
-				
-				// Generate node HTML based on type
-				if (nodeData.origin === 'cross') {
-				  node.innerHTML = `
-					<div class="node-header">
-					  <div class="node-name">${nodeData.name}</div>
-					  <div class="node-controls">
-						<div class="node-control" data-action="remove" title="Remove">×</div>
-					  </div>
-					</div>
-					<div class="node-content">
-					  <div class="node-traits">${traitsHTML}</div>
-					  <div class="node-parents">
-						<div>♀: ${nodeData.femaleName || ''}</div>
-						<div>♂: ${nodeData.maleName || ''}</div>
-					  </div>
-					</div>
-					<div class="connection-points">
-					  <div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
-					  <div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
-					</div>
-				  `;
-				} else {
-				  node.innerHTML = `
-					<div class="node-header">
-					  <div class="node-name">${nodeData.name}</div>
-					  <div class="node-controls">
-						<div class="node-control" data-action="remove" title="Remove">×</div>
-					  </div>
-					</div>
-					<div class="node-content">
-					  <div class="node-traits">${traitsHTML}</div>
-					</div>
-					<div class="connection-points">
-					  <div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
-					  <div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
-					</div>
-				  `;
-				}
-				
-				// Add event listeners
-				node.addEventListener('mousedown', startDraggingNode);
-				
-				node.querySelectorAll('.connection-point').forEach(point => {
-				  point.addEventListener('mousedown', startConnecting);
-				});
-				
-				const removeButton = node.querySelector('[data-action="remove"]');
-				if (removeButton) {
-				  removeButton.addEventListener('click', e => {
-					e.preventDefault();
-					e.stopPropagation();
-					removeNode(nodeData.id);
-				  });
-				}
-				
-				// Add to canvas
-				breedingCanvas.appendChild(node);
-			  });
-			  
-			  // Add nodes to state array with all properties preserved
-			  nodes = JSON.parse(JSON.stringify(diagram.nodes));
-			  
-			  // Recreate all connections
-			  connections = [];
-			  diagram.connections.forEach(conn => {
-				addConnection(conn.source, conn.target, conn.role);
-			  });
-			  
-			  // Center view
-			  centerView();
-			}
+            function saveDiagram() {
+                const name = diagramName.value.trim();
+                const notes = diagramNotes.value.trim();
+                
+                if (!name) {
+                    alert('Please enter a name for your breeding plan.');
+                    return;
+                }
+                
+                // Capture position data for all nodes
+                const nodePositions = {};
+                nodes.forEach(node => {
+                    const nodeEl = document.getElementById(node.id);
+                    if (nodeEl) {
+                        nodePositions[node.id] = {
+                            left: nodeEl.style.left,
+                            top: nodeEl.style.top
+                        };
+                    }
+                });
+                
+                // Create save data
+                const saveData = {
+                    name: name,
+                    notes: notes,
+                    date: new Date().toISOString(),
+                    nodes: nodes,
+                    connections: connections,
+                    positions: nodePositions
+                };
+                
+                // Get existing saved diagrams
+                let savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+                
+                // Check if diagram with this name already exists
+                const existingIndex = savedDiagrams.findIndex(d => d.name === name);
+                if (existingIndex >= 0) {
+                    if (confirm(`A breeding plan named "${name}" already exists. Overwrite it?`)) {
+                        savedDiagrams[existingIndex] = saveData;
+                    } else {
+                        return;
+                    }
+                } else {
+                    savedDiagrams.push(saveData);
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+                
+                // Hide modal and reset
+                hideModal(saveDiagramModal);
+                diagramName.value = '';
+                diagramNotes.value = '';
+                
+                alert(`Breeding plan "${name}" saved successfully!`);
+            }
             
 			function showLoadModal() {
 				// Get saved diagrams
@@ -2623,6 +2498,108 @@
                 hideModal(loadDiagramModal);
             }
             
+            function loadDiagram(diagram) {
+                // Clear existing diagram
+                newDiagram();
+                
+                // Set the node counter to prevent ID conflicts
+                if (diagram.nodes.length > 0) {
+                    const nodeIds = diagram.nodes.map(n => {
+                        const match = n.id.match(/node-(\d+)/);
+                        return match ? parseInt(match[1]) : 0;
+                    });
+                    nodeCounter = Math.max(...nodeIds);
+                }
+                
+                // Create all nodes first
+                diagram.nodes.forEach(nodeData => {
+                    // Create node element
+                    const node = document.createElement('div');
+                    node.id = nodeData.id;
+                    
+                    // Determine node class
+                    let nodeClass = 'breeding-node';
+                    if (nodeData.origin === 'cross') nodeClass += ' cross';
+                    if ((nodeData.type || '').toLowerCase().includes('reg')) nodeClass += ' reg';
+                    if ((nodeData.type || '').toLowerCase().includes('fem')) nodeClass += ' fem';
+                    if ((nodeData.type || '').toLowerCase().includes('auto')) nodeClass += ' auto';
+                    if ((nodeData.type || '').toLowerCase().includes('photo')) nodeClass += ' photo';
+                    if ((nodeData.type || '').toLowerCase().includes('fast')) nodeClass += ' fast';
+                    
+                    node.className = nodeClass;
+                    node.dataset.name = nodeData.name;
+                    node.dataset.type = nodeData.type || '';
+                    
+                    // Type indicators
+                    let typeSpans = '';
+                    if ((nodeData.type || '').toLowerCase().includes('reg')) typeSpans += '<span>REG</span>';
+                    if ((nodeData.type || '').toLowerCase().includes('fem')) typeSpans += '<span>FEM</span>';
+                    if ((nodeData.type || '').toLowerCase().includes('auto')) typeSpans += '<span>AUTO</span>';
+                    if ((nodeData.type || '').toLowerCase().includes('photo')) typeSpans += '<span>PHOTO</span>';
+                    if ((nodeData.type || '').toLowerCase().includes('fast')) typeSpans += '<span>FAST</span>';
+                    
+                    // Set position
+                    if (diagram.positions && diagram.positions[nodeData.id]) {
+                        node.style.left = diagram.positions[nodeData.id].left;
+                        node.style.top = diagram.positions[nodeData.id].top;
+                    } else {
+                        // Default position
+                        node.style.left = '200px';
+                        node.style.top = '200px';
+                    }
+                    
+                    node.innerHTML = `
+                        <div class="node-header">
+                            <div class="node-name">${nodeData.name}</div>
+                            <div class="node-controls">
+                                <div class="node-control" data-action="remove" title="Remove">×</div>
+                            </div>
+                        </div>
+                        <div class="node-content">
+                            <div class="node-type">${typeSpans}</div>
+                            ${nodeData.breeder ? `<div class="node-breeder">Breeder: ${nodeData.breeder}</div>` : ''}
+                            ${nodeData.parent1 || nodeData.parent2 ? `
+                                <div class="node-parents">
+                                    ${nodeData.parent1 ? `<div>Parent 1: ${nodeData.parent1}</div>` : ''}
+                                    ${nodeData.parent2 ? `<div>Parent 2: ${nodeData.parent2}</div>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="connection-points">
+                            <div class="connection-point" data-node="${nodeData.id}"></div>
+                        </div>
+                    `;
+                    
+                    // Make node draggable
+                    node.addEventListener('mousedown', startDraggingNode);
+                    
+                    // Setup connection point
+                    const connectionPoint = node.querySelector('.connection-point');
+                    connectionPoint.addEventListener('mousedown', startConnecting);
+                    
+                    // Setup remove button
+                    const removeButton = node.querySelector('[data-action="remove"]');
+                    removeButton.addEventListener('click', e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeNode(nodeData.id);
+                    });
+                    
+                    // Add to canvas
+                    breedingCanvas.appendChild(node);
+                });
+                
+                // Add all nodes to the state
+                nodes = JSON.parse(JSON.stringify(diagram.nodes));
+                
+                // Create connections
+                diagram.connections.forEach(conn => {
+                    addConnection(conn.source, conn.target);
+                });
+                
+                // Center the view
+                centerView();
+            }
 						
         });
     </script>
