@@ -2322,11 +2322,8 @@
 			}
 
 			function loadDiagram(diagram) {
-			  // Clear existing diagram first
-			  breedingCanvas.querySelectorAll('.breeding-node').forEach(node => node.remove());
-			  connectionsGroup.innerHTML = '';
-			  nodes = [];
-			  connections = [];
+			  // Clear existing diagram
+			  newDiagram();
 			  
 			  // Set the node counter to prevent ID conflicts
 			  if (diagram.nodes.length > 0) {
@@ -2423,15 +2420,13 @@
 			  });
 			  
 			  // Add nodes to state array with all properties preserved
-			  nodes = diagram.nodes.map(n => ({...n}));
+			  nodes = JSON.parse(JSON.stringify(diagram.nodes));
 			  
 			  // Recreate all connections
 			  connections = [];
-			  if (diagram.connections) {
-				diagram.connections.forEach(conn => {
-				  addConnection(conn.source, conn.target, conn.role);
-				});
-			  }
+			  diagram.connections.forEach(conn => {
+				addConnection(conn.source, conn.target, conn.role);
+			  });
 			  
 			  // Center view
 			  centerView();
