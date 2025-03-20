@@ -593,37 +593,19 @@
             outline: none;
         }
         
-		.help-text {
-			position: fixed;
-			bottom: 10px;
-			left: 310px;
-			background-color: rgba(0, 0, 0, 0.7);
-			color: #fff;
-			padding: 10px 30px 10px 10px;
-			border-radius: 4px;
-			font-size: 12px;
-			max-width: 300px;
-			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-			z-index: 50;
-		}
-
-		.help-text-close {
-			position: absolute;
-			right: 5px;
-			top: 5px;
-			width: 20px;
-			height: 20px;
-			cursor: pointer;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			border-radius: 50%;
-			background: rgba(255,255,255,0.2);
-		}
-
-		.help-text-close:hover {
-			background: rgba(255,255,255,0.3);
-		}
+        .help-text {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            max-width: 300px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            z-index: 50;
+        }
         
         /* Context menu */
         .context-menu {
@@ -723,10 +705,9 @@
                 <!-- Nodes will be added here -->
             </div>
             
-			<div class="help-text">
-				Click on strains to add them to the diagram. Connect strains by dragging from one connection point to another. Right-click nodes for more options.
-				<div class="help-text-close">×</div>
-			</div>
+            <div class="help-text">
+                Click on strains to add them to the diagram. Connect strains by dragging from one connection point to another. Right-click nodes for more options.
+            </div>
         </div>
     </div>
     
@@ -1035,58 +1016,50 @@
                 });
             }
             
-			function setupEventListeners() {
-				// Canvas pan events
-				canvasContainer.addEventListener('mousedown', startPan);
-				document.addEventListener('mousemove', doPan);
-				document.addEventListener('mouseup', endPan);
-				
-				// General canvas events
-				canvasContainer.addEventListener('click', handleCanvasClick);
-				canvasContainer.addEventListener('contextmenu', handleContextMenu);
-				document.addEventListener('click', hideContextMenu);
-				
-				// Help text close button
-				const helpTextClose = document.querySelector('.help-text-close');
-				if (helpTextClose) {
-					helpTextClose.addEventListener('click', function() {
-						document.querySelector('.help-text').style.display = 'none';
-					});
-				}
-				
-				// Search & filter
-				searchBtn.addEventListener('click', performSearch);
-				searchInput.addEventListener('keyup', e => {
-					if (e.key === 'Enter') performSearch();
-				});
-				
-				filterTabs.forEach(tab => {
-					tab.addEventListener('click', function() {
-						filterTabs.forEach(t => t.classList.remove('active'));
-						this.classList.add('active');
-						filterStrains(this.dataset.filter);
-					});
-				});
-				
-				// Action buttons
-				newDiagramBtn.addEventListener('click', newDiagram);
-				saveDiagramBtn.addEventListener('click', showSaveModal);
-				loadDiagramBtn.addEventListener('click', showLoadModal);
-				arrangeTreeBtn.addEventListener('click', arrangeTreeLayout);
-				centerViewBtn.addEventListener('click', centerView);
-				
-				// Cross modal
-				cancelCrossBtn.addEventListener('click', () => hideModal(nameCrossModal));
-				createCrossBtn.addEventListener('click', createCross);
-				
-				// Save modal
-				cancelSaveBtn.addEventListener('click', () => hideModal(saveDiagramModal));
-				confirmSaveBtn.addEventListener('click', saveDiagram);
-				
-				// Load modal
-				cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
-				confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
-				
+            function setupEventListeners() {
+                // Canvas pan events
+                canvasContainer.addEventListener('mousedown', startPan);
+                document.addEventListener('mousemove', doPan);
+                document.addEventListener('mouseup', endPan);
+                
+                // General canvas events
+                canvasContainer.addEventListener('click', handleCanvasClick);
+                canvasContainer.addEventListener('contextmenu', handleContextMenu);
+                document.addEventListener('click', hideContextMenu);
+                
+                // Search & filter
+                searchBtn.addEventListener('click', performSearch);
+                searchInput.addEventListener('keyup', e => {
+                    if (e.key === 'Enter') performSearch();
+                });
+                
+                filterTabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        filterTabs.forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                        filterStrains(this.dataset.filter);
+                    });
+                });
+                
+                // Action buttons
+                newDiagramBtn.addEventListener('click', newDiagram);
+                saveDiagramBtn.addEventListener('click', showSaveModal);
+                loadDiagramBtn.addEventListener('click', showLoadModal);
+                arrangeTreeBtn.addEventListener('click', arrangeTreeLayout);
+                centerViewBtn.addEventListener('click', centerView);
+                
+                // Cross modal
+                cancelCrossBtn.addEventListener('click', () => hideModal(nameCrossModal));
+                createCrossBtn.addEventListener('click', createCross);
+                
+                // Save modal
+                cancelSaveBtn.addEventListener('click', () => hideModal(saveDiagramModal));
+                confirmSaveBtn.addEventListener('click', saveDiagram);
+                
+                // Load modal
+                cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
+                confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
+                
 				// Listeners for delete rename 
 				document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
 				document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
@@ -1094,31 +1067,31 @@
 					hideModal(renamePlanModal);
 					showModal(loadDiagramModal);
 				});
-				document.getElementById('confirm-rename-btn').addEventListener('click', confirmRenamePlan);
+				document.getElementById('confirm-rename-btn').addEventListener('click', confirmRenamePlan);				
 				
-				// Context menu items
-				contextEdit.addEventListener('click', () => {
-					// Future feature: edit node properties
-					hideContextMenu();
-				});
-				
-				contextDuplicate.addEventListener('click', () => {
-					if (contextMenuTargetNode) {
-						duplicateNode(contextMenuTargetNode);
-					}
-					hideContextMenu();
-				});
-				
-				contextRemove.addEventListener('click', () => {
-					if (contextMenuTargetNode) {
-						removeNode(contextMenuTargetNode);
-					}
-					hideContextMenu();
-				});
-				
-				// Window resize
-				window.addEventListener('resize', updateSvgSize);
-			}
+                // Context menu items
+                contextEdit.addEventListener('click', () => {
+                    // Future feature: edit node properties
+                    hideContextMenu();
+                });
+                
+                contextDuplicate.addEventListener('click', () => {
+                    if (contextMenuTargetNode) {
+                        duplicateNode(contextMenuTargetNode);
+                    }
+                    hideContextMenu();
+                });
+                
+                contextRemove.addEventListener('click', () => {
+                    if (contextMenuTargetNode) {
+                        removeNode(contextMenuTargetNode);
+                    }
+                    hideContextMenu();
+                });
+                
+                // Window resize
+                window.addEventListener('resize', updateSvgSize);
+            }
             
             // Canvas Pan/Zoom
             function startPan(e) {
@@ -1922,6 +1895,7 @@
 				const targetNode = document.getElementById(connection.target);
 				
 				if (!sourceNode || !targetNode) {
+					// Remove connection if nodes don't exist
 					removeConnection(connection.id);
 					return;
 				}
@@ -1931,73 +1905,57 @@
 				const targetRect = targetNode.getBoundingClientRect();
 				const canvasRect = breedingCanvas.getBoundingClientRect();
 				
-				// Calculate the margin to maintain from the node edge
-				const margin = 15;
+				// Get the node centers
+				const sourceCenter = {
+					x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
+					y: sourceRect.top + sourceRect.height/2 - canvasRect.top
+				};
 				
-				// Determine connection points based on relative positions
-				let startPoint, endPoint;
+				const targetCenter = {
+					x: targetRect.left + targetRect.width/2 - canvasRect.left,
+					y: targetRect.top + targetRect.height/2 - canvasRect.top
+				};
 				
-				// Source node connection point
-				if (sourceRect.left > targetRect.right) { // Source is to the right of target
-					startPoint = {
-						x: sourceRect.left - canvasRect.left - margin,
-						y: sourceRect.top + sourceRect.height/2 - canvasRect.top
-					};
-				} else if (sourceRect.right < targetRect.left) { // Source is to the left of target
-					startPoint = {
-						x: sourceRect.right - canvasRect.left + margin,
-						y: sourceRect.top + sourceRect.height/2 - canvasRect.top
-					};
-				} else if (sourceRect.top > targetRect.bottom) { // Source is below target
-					startPoint = {
-						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
-						y: sourceRect.top - canvasRect.top - margin
-					};
-				} else { // Source is above target
-					startPoint = {
-						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
-						y: sourceRect.bottom - canvasRect.top + margin
-					};
+				// Determine the starting and ending points based on relative positions
+				let startX, startY, endX, endY;
+				
+				// Source connection point - depends on relative position to target
+				if (sourceCenter.x < targetCenter.x) { // Source is to the left of target
+					startX = sourceRect.right - canvasRect.left;
+					startY = sourceCenter.y;
+				} else { // Source is to the right of target
+					startX = sourceRect.left - canvasRect.left;
+					startY = sourceCenter.y;
 				}
 				
-				// Target node connection point
-				if (targetRect.left > sourceRect.right) { // Target is to the right of source
-					endPoint = {
-						x: targetRect.left - canvasRect.left - margin,
-						y: targetRect.top + targetRect.height/2 - canvasRect.top
-					};
-				} else if (targetRect.right < sourceRect.left) { // Target is to the left of source
-					endPoint = {
-						x: targetRect.right - canvasRect.left + margin,
-						y: targetRect.top + targetRect.height/2 - canvasRect.top
-					};
-				} else if (targetRect.top > sourceRect.bottom) { // Target is below source
-					endPoint = {
-						x: targetRect.left + targetRect.width/2 - canvasRect.left,
-						y: targetRect.top - canvasRect.top - margin
-					};
-				} else { // Target is above source
-					endPoint = {
-						x: targetRect.left + targetRect.width/2 - canvasRect.left,
-						y: targetRect.bottom - canvasRect.top + margin
-					};
+				// Target connection point
+				if (targetCenter.x < sourceCenter.x) { // Target is to the left of source
+					endX = targetRect.right - canvasRect.left;
+					endY = targetCenter.y;
+				} else { // Target is to the right of source
+					endX = targetRect.left - canvasRect.left;
+					endY = targetCenter.y;
 				}
 				
-				// Create the path with right angles
+				// Create a path with right angles
 				let pathD;
 				
-				// Determine which type of path to create
-				if (Math.abs(endPoint.x - startPoint.x) > Math.abs(endPoint.y - startPoint.y)) {
-					// More horizontal distance - create a path with horizontal segments first
-					const midX = (startPoint.x + endPoint.x) / 2;
-					pathD = `M ${startPoint.x} ${startPoint.y} L ${midX} ${startPoint.y} L ${midX} ${endPoint.y} L ${endPoint.x} ${endPoint.y}`;
+				// Determine if we need a vertical or horizontal path first
+				if (Math.abs(targetCenter.x - sourceCenter.x) > Math.abs(targetCenter.y - sourceCenter.y)) {
+					// More horizontal distance than vertical - do a |- shaped path
+					const midX = (startX + endX) / 2;
+					pathD = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
 				} else {
-					// More vertical distance - create a path with vertical segments first
-					const midY = (startPoint.y + endPoint.y) / 2;
-					pathD = `M ${startPoint.x} ${startPoint.y} L ${startPoint.x} ${midY} L ${endPoint.x} ${midY} L ${endPoint.x} ${endPoint.y}`;
+					// More vertical distance than horizontal - do a -| shaped path
+					const midY = (startY + endY) / 2;
+					pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
 				}
 				
 				path.setAttribute('d', pathD);
+				
+				// Add a class based on the role for visual distinction
+				path.classList.remove('connector-female', 'connector-male');
+				path.classList.add(`connector-${connection.role}`);
 			}
 
 			function updateAllConnections() {
