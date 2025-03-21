@@ -1088,7 +1088,29 @@
 				// Load diagram modal - FIXED EVENT LISTENERS
 				cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
 				confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
-				document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
+				document.getElementById('delete-plan-btn').addEventListener('click', function() {
+					const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+					
+					if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
+						alert('Please select a breeding plan to delete.');
+						return;
+					}
+					
+					const planName = savedDiagrams[selectedDiagramIndex].name;
+					
+					if (confirm(`Are you sure you want to delete the breeding plan "${planName}"?`)) {
+						// Remove the plan from the array
+						savedDiagrams.splice(selectedDiagramIndex, 1);
+						
+						// Save updated array
+						localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+						
+						// Refresh the list
+						showLoadModal();
+						
+						alert(`Breeding plan "${planName}" has been deleted.`);
+					}
+				});
 				document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
 				
 				// Rename plan modal
@@ -2495,9 +2517,6 @@
 			}
             
 			function showLoadModal() {
-				// Reset the selection index first
-				selectedDiagramIndex = -1;
-				
 				// Get saved diagrams
 				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
 				
@@ -2512,7 +2531,7 @@
 					savedDiagrams.forEach((diagram, index) => {
 						const date = new Date(diagram.date).toLocaleDateString();
 						const nodeCount = diagram.nodes.length;
-						html += `<div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" data-index="${index}"><div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-weight: 500; cursor: pointer; flex: 1;">${diagram.name}</span><span style="font-size: 12px; color: #999;">${date}</span></div><div style="font-size: 12px; color: #aaa; margin-top: 5px;">${nodeCount} strain${nodeCount !== 1 ? 's' : ''} ${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}</div></div>`;
+						html += `<div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" data-index="${index}" onclick="selectPlan(${index})"><div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-weight: 500; cursor: pointer; flex: 1;">${diagram.name}</span><span style="font-size: 12px; color: #999;">${date}</span></div><div style="font-size: 12px; color: #aaa; margin-top: 5px;">${nodeCount} strain${nodeCount !== 1 ? 's' : ''} ${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}</div></div>`;
 					});
 					html += '</div>';
 					savedDiagramsList.innerHTML = html;
@@ -2520,25 +2539,19 @@
 					document.getElementById('delete-plan-btn').disabled = false;
 					document.getElementById('rename-plan-btn').disabled = false;
 					
-					// Set default selection to first item
+					// Set default selection
 					selectedDiagramIndex = 0;
 					
-					// Add click handlers for plan items
-					setTimeout(function() {
-						const planItems = document.querySelectorAll('.saved-plan-item');
-						planItems.forEach((item) => {
-							item.addEventListener('click', function() {
-								// Explicitly convert to integer with parseInt and set selection
-								selectedDiagramIndex = parseInt(this.dataset.index);
-								highlightSelectedPlan();
-							});
-						});
-						// Highlight the first plan by default
-						highlightSelectedPlan();
-					}, 50);
+					// Highlight the first plan
+					setTimeout(highlightSelectedPlan, 50);
 				}
 				
 				showModal(loadDiagramModal);
+			}
+
+			function selectPlan(index) {
+				selectedDiagramIndex = index;
+				highlightSelectedPlan();
 			}
 
 			function highlightSelectedPlan() {
