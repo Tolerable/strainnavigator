@@ -902,7 +902,6 @@
             initializeCanvas();
             loadStrains();
             setupEventListeners();
-            setupDirectControls();
 			
             // Functions
             function initializeCanvas() {
@@ -1072,7 +1071,9 @@
 				// Action buttons
 				newDiagramBtn.addEventListener('click', newDiagram);
 				saveDiagramBtn.addEventListener('click', showSaveModal);
-				loadDiagramBtn.addEventListener('click', showLoadModal);
+				loadDiagramBtn.addEventListener('click', function() {
+					showLoadModal();
+				});
 				arrangeTreeBtn.addEventListener('click', arrangeTreeLayout);
 				centerViewBtn.addEventListener('click', centerView);
 				
@@ -1084,13 +1085,13 @@
 				cancelSaveBtn.addEventListener('click', () => hideModal(saveDiagramModal));
 				confirmSaveBtn.addEventListener('click', saveDiagram);
 				
-				// Load diagram modal - Fix these event listeners
+				// Load diagram modal - FIXED EVENT LISTENERS
 				cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
 				confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
-				
-				// Add direct event listeners for buttons
 				document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
 				document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
+				
+				// Rename plan modal
 				document.getElementById('cancel-rename-btn').addEventListener('click', function() {
 					hideModal(renamePlanModal);
 					showModal(loadDiagramModal);
@@ -2027,30 +2028,6 @@
                 });
             }
 
-			function setupDirectControls() {
-				// Remove existing canvas tools
-				const canvasTools = document.querySelector('.canvas-tools');
-				canvasTools.innerHTML = '';
-				
-				// Create all buttons in one row
-				const buttons = [
-					{ id: 'new-diagram', text: 'New', action: newDiagram },
-					{ id: 'save-diagram', text: 'Save', action: showSaveModal },
-					{ id: 'load-diagram', text: 'Load', action: loadLatestDiagram },
-					{ id: 'delete-diagram', text: 'Delete', action: showDeleteSelector },
-					{ id: 'rename-diagram', text: 'Rename', action: showRenameSelector }
-				];
-				
-				buttons.forEach(btn => {
-					const button = document.createElement('button');
-					button.id = btn.id;
-					button.className = 'canvas-tool';
-					button.textContent = btn.text;
-					button.onclick = btn.action;
-					canvasTools.appendChild(button);
-				});
-			}
-
 			function loadLatestDiagram() {
 				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
 				if (savedDiagrams.length === 0) {
@@ -2518,6 +2495,9 @@
 			}
             
 			function showLoadModal() {
+				// Reset the selection index first
+				selectedDiagramIndex = -1;
+				
 				// Get saved diagrams
 				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
 				
@@ -2540,18 +2520,20 @@
 					document.getElementById('delete-plan-btn').disabled = false;
 					document.getElementById('rename-plan-btn').disabled = false;
 					
-					// Set default selection
+					// Set default selection to first item
 					selectedDiagramIndex = 0;
 					
 					// Add click handlers for plan items
 					setTimeout(function() {
 						const planItems = document.querySelectorAll('.saved-plan-item');
-						planItems.forEach((item, index) => {
+						planItems.forEach((item) => {
 							item.addEventListener('click', function() {
+								// Explicitly convert to integer with parseInt and set selection
 								selectedDiagramIndex = parseInt(this.dataset.index);
 								highlightSelectedPlan();
 							});
 						});
+						// Highlight the first plan by default
 						highlightSelectedPlan();
 					}, 50);
 				}
@@ -2577,6 +2559,8 @@
 					return;
 				}
 				
+				console.log(`Loading diagram at index ${selectedDiagramIndex}`);
+				
 				// Load the selected diagram
 				loadDiagram(savedDiagrams[selectedDiagramIndex]);
 				
@@ -2600,6 +2584,9 @@
 					
 					// Save updated array
 					localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+					
+					// Update the selection index
+					selectedDiagramIndex = -1;
 					
 					// Refresh the list
 					showLoadModal();
