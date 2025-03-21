@@ -1092,7 +1092,7 @@
 				// Load diagram modal - FIXED EVENT LISTENERS
 				cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
 				confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
-				document.getElementById('delete-plan-btn').addEventListener('click', function(e) {
+				document.querySelector('.btn.btn-danger').addEventListener('click', function(e) {
 					e.preventDefault();
 					e.stopPropagation();
 					console.log("Delete button clicked, selected index:", selectedDiagramIndex);
