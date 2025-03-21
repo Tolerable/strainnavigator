@@ -274,10 +274,6 @@
 			display: none; /* Hide the arrow for partner cards */
 		}
 
-		.partner-fade {
-			opacity: 0.5;
-		}
-
 		#partner-link {
 			display: block;
 			text-decoration: none;
@@ -386,9 +382,12 @@
                 display: block;
             }
             
-            .features {
-                grid-template-columns: 1fr;
-            }
+			.features {
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);  /* Keep this as is for 3 columns */
+				gap: 2rem;
+				margin-bottom: 3rem;
+			}
         }
     </style>
 </head>
@@ -478,13 +477,47 @@
 				</div>
 			</a>
 			
-			<a id="partner-link" href="#" class="feature-card-link" target="_blank" rel="noopener noreferrer">
-				<div id="partner-card" class="feature-card partner-card">
-					<div id="partner-img" class="feature-img"></div>
+			<a href="https://www.daydreamergenetics.com" class="feature-card-link" target="_blank" rel="noopener noreferrer">
+				<div class="feature-card partner-card">
+					<div class="feature-img" style="background-image: url('/tools/img/partners/DayDreamerGenetics_social.jpg');"></div>
 					<div class="feature-content">
 						<div>
-							<h3 id="partner-title">Partner Site</h3>
-							<p id="partner-desc">Loading partner information...</p>
+							<h3>Daydreamer Genetics</h3>
+							<p>Preserving Genetic Diversity, One Seed at a Time.</p>
+						</div>
+						<div class="partner-cta">
+							<span class="visit-button">
+								Visit Site <i class="fas fa-external-link-alt"></i>
+							</span>
+						</div>
+					</div>
+				</div>
+			</a>
+
+			<a href="https://greenwrldexclusive.com/" class="feature-card-link" target="_blank" rel="noopener noreferrer">
+				<div class="feature-card partner-card">
+					<div class="feature-img" style="background-image: url('/tools/img/partners/GreenWrld_social.jpg');"></div>
+					<div class="feature-content">
+						<div>
+							<h3>Green World Exclusive</h3>
+							<p>Hunting genetics for a healthier gene pool.</p>
+						</div>
+						<div class="partner-cta">
+							<span class="visit-button">
+								Visit Site <i class="fas fa-external-link-alt"></i>
+							</span>
+						</div>
+					</div>
+				</div>
+			</a>
+
+			<a href="https://greenwrldexclusive.com/" class="feature-card-link" target="_blank" rel="noopener noreferrer">
+				<div class="feature-card partner-card">
+					<div class="feature-img" style="background-image: url('/tools/img/partners/dwarvenforged-preview.jpg');"></div>
+					<div class="feature-content">
+						<div>
+							<h3>DWARVENFORGED PREMIUM GENETICS</h3>
+							<p>Bringing legendary strains to growers at prices that won't break the bank.</p>
 						</div>
 						<div class="partner-cta">
 							<span class="visit-button">
@@ -530,69 +563,6 @@
                 navLinks.classList.remove('active');
             });
         });
-		
-		document.addEventListener('DOMContentLoaded', function() {
-			// Array of partner sites to promote
-			const partnerSites = [
-				{
-					name: "Daydreamer Genetics",
-					description: "Preserving Genetic Diversity, One Seed at a Time. ",
-					imageUrl: "/tools/img/partners/DayDreamerGenetics_social.jpg",
-					siteUrl: "https://www.daydreamergenetics.com"
-				},
-				{
-					name: "Green World Exclusive",
-					description: "Hunting genetics for a healthier gene pool.",
-					imageUrl: "/tools/img/partners/GreenWrld_social.jpg",
-					siteUrl: "https://greenwrldexclusive.com/"
-				},
-				{
-					name: "DWARVENFORGED PREMIUM GENETICS",
-					description: "Bringing legendary strains to growers at prices that won't break the bank.",
-					imageUrl: "/tools/img/partners/dwarvenforged-preview.jpg",
-					siteUrl: "https://greenwrldexclusive.com/"
-				},				
-				// Add more partner sites as needed
-			];
-
-			// Get all elements
-			const partnerCard = document.getElementById('partner-card');
-			const partnerImg = document.getElementById('partner-img');
-			const partnerTitle = document.getElementById('partner-title');
-			const partnerDesc = document.getElementById('partner-desc');
-			const partnerLink = document.getElementById('partner-link');
-			const visitButton = document.getElementById('visit-site-button');
-			
-			let currentIndex = 0;
-			
-			// Function to update the partner card content
-			function updatePartnerCard() {
-				const currentPartner = partnerSites[currentIndex];
-				
-				// Apply fade-out effect
-				partnerCard.classList.add('partner-fade');
-				
-				// Update content after short delay for animation
-				setTimeout(() => {
-					partnerImg.style.backgroundImage = `url('${currentPartner.imageUrl}')`;
-					partnerTitle.textContent = currentPartner.name;
-					partnerDesc.textContent = currentPartner.description;
-					partnerLink.href = currentPartner.siteUrl;
-					
-					// Remove fade-out class
-					partnerCard.classList.remove('partner-fade');
-					
-					// Increment index for next update
-					currentIndex = (currentIndex + 1) % partnerSites.length;
-				}, 300);
-			}
-			
-			// Initial update
-			updatePartnerCard();
-			
-			// Set interval to rotate every 30 seconds
-			setInterval(updatePartnerCard, 30000);
-		});
 		
     </script>
 </body>
