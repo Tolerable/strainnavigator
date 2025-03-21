@@ -1037,83 +1037,87 @@
             }
             
 			function setupEventListeners() {
-			  // Canvas pan events
-			  canvasContainer.addEventListener('mousedown', startPan);
-			  document.addEventListener('mousemove', doPan);
-			  document.addEventListener('mouseup', endPan);
-			  
-			  // General canvas events
-			  canvasContainer.addEventListener('click', handleCanvasClick);
-			  canvasContainer.addEventListener('contextmenu', handleContextMenu);
-			  document.addEventListener('click', hideContextMenu);
-			  
-			  // Help text close button
-			  const helpTextClose = document.querySelector('.help-text-close');
-			  if (helpTextClose) {
-				helpTextClose.addEventListener('click', function() {
-				  document.querySelector('.help-text').style.display = 'none';
-				});
-			  }
-			  
-			  // Search & filter
-			  searchBtn.addEventListener('click', performSearch);
-			  searchInput.addEventListener('keyup', e => {
-				if (e.key === 'Enter') performSearch();
-			  });
-			  
-			  filterTabs.forEach(tab => {
-				tab.addEventListener('click', function() {
-				  filterTabs.forEach(t => t.classList.remove('active'));
-				  this.classList.add('active');
-				  filterStrains(this.dataset.filter);
-				});
-			  });
-			  
-			  // Action buttons
-			  newDiagramBtn.addEventListener('click', newDiagram);
-			  saveDiagramBtn.addEventListener('click', showSaveModal);
-			  loadDiagramBtn.addEventListener('click', showLoadModal);
-			  arrangeTreeBtn.addEventListener('click', arrangeTreeLayout);
-			  centerViewBtn.addEventListener('click', centerView);
-			  
-			  // Cross modal
-			  cancelCrossBtn.addEventListener('click', () => hideModal(nameCrossModal));
-			  createCrossBtn.addEventListener('click', createCross);
-			  
-			  // Save modal
-			  cancelSaveBtn.addEventListener('click', () => hideModal(saveDiagramModal));
-			  confirmSaveBtn.addEventListener('click', saveDiagram);
-			  
-			  // Listeners for delete rename 
-			  document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
-			  document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
-			  document.getElementById('cancel-rename-btn').addEventListener('click', function() {
-				hideModal(renamePlanModal);
-				showModal(loadDiagramModal);
-			  });
-			  document.getElementById('confirm-rename-btn').addEventListener('click', confirmRenamePlan);
-			  
-			  // Context menu items
-			  contextEdit.addEventListener('click', () => {
-				hideContextMenu();
-			  });
-			  
-			  contextDuplicate.addEventListener('click', () => {
-				if (contextMenuTargetNode) {
-				  duplicateNode(contextMenuTargetNode);
+				// Canvas pan events
+				canvasContainer.addEventListener('mousedown', startPan);
+				document.addEventListener('mousemove', doPan);
+				document.addEventListener('mouseup', endPan);
+				
+				// General canvas events
+				canvasContainer.addEventListener('click', handleCanvasClick);
+				canvasContainer.addEventListener('contextmenu', handleContextMenu);
+				document.addEventListener('click', hideContextMenu);
+				
+				// Help text close button
+				const helpTextClose = document.querySelector('.help-text-close');
+				if (helpTextClose) {
+					helpTextClose.addEventListener('click', function() {
+						document.querySelector('.help-text').style.display = 'none';
+					});
 				}
-				hideContextMenu();
-			  });
-			  
-			  contextRemove.addEventListener('click', () => {
-				if (contextMenuTargetNode) {
-				  removeNode(contextMenuTargetNode);
-				}
-				hideContextMenu();
-			  });
-			  
-			  // Window resize
-			  window.addEventListener('resize', updateSvgSize);
+				
+				// Search & filter
+				searchBtn.addEventListener('click', performSearch);
+				searchInput.addEventListener('keyup', e => {
+					if (e.key === 'Enter') performSearch();
+				});
+				
+				filterTabs.forEach(tab => {
+					tab.addEventListener('click', function() {
+						filterTabs.forEach(t => t.classList.remove('active'));
+						this.classList.add('active');
+						filterStrains(this.dataset.filter);
+					});
+				});
+				
+				// Action buttons
+				newDiagramBtn.addEventListener('click', newDiagram);
+				saveDiagramBtn.addEventListener('click', showSaveModal);
+				loadDiagramBtn.addEventListener('click', showLoadModal);
+				arrangeTreeBtn.addEventListener('click', arrangeTreeLayout);
+				centerViewBtn.addEventListener('click', centerView);
+				
+				// Cross modal
+				cancelCrossBtn.addEventListener('click', () => hideModal(nameCrossModal));
+				createCrossBtn.addEventListener('click', createCross);
+				
+				// Save modal
+				cancelSaveBtn.addEventListener('click', () => hideModal(saveDiagramModal));
+				confirmSaveBtn.addEventListener('click', saveDiagram);
+				
+				// Load diagram modal - Fix these event listeners
+				cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
+				confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
+				
+				// Add direct event listeners for buttons
+				document.getElementById('delete-plan-btn').addEventListener('click', deleteSavedPlan);
+				document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
+				document.getElementById('cancel-rename-btn').addEventListener('click', function() {
+					hideModal(renamePlanModal);
+					showModal(loadDiagramModal);
+				});
+				document.getElementById('confirm-rename-btn').addEventListener('click', confirmRenamePlan);
+				
+				// Context menu items
+				contextEdit.addEventListener('click', () => {
+					hideContextMenu();
+				});
+				
+				contextDuplicate.addEventListener('click', () => {
+					if (contextMenuTargetNode) {
+						duplicateNode(contextMenuTargetNode);
+					}
+					hideContextMenu();
+				});
+				
+				contextRemove.addEventListener('click', () => {
+					if (contextMenuTargetNode) {
+						removeNode(contextMenuTargetNode);
+					}
+					hideContextMenu();
+				});
+				
+				// Window resize
+				window.addEventListener('resize', updateSvgSize);
 			}
             
             // Canvas Pan/Zoom
@@ -2514,68 +2518,85 @@
 			}
             
 			function showLoadModal() {
-			  // Get saved diagrams
-			  const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-			  
-			  if (savedDiagrams.length === 0) {
-				savedDiagramsList.innerHTML = `<div style="padding: 10px; text-align: center; color: #999;">No saved breeding plans found</div>`;
-				confirmLoadBtn.disabled = true;
-				document.getElementById('delete-plan-btn').disabled = true;
-				document.getElementById('rename-plan-btn').disabled = true;
-			  } else {
-				// Create list of saved diagrams
-				let html = '<div class="saved-plans-list">';
-				savedDiagrams.forEach((diagram, index) => {
-				  const date = new Date(diagram.date).toLocaleDateString();
-				  const nodeCount = diagram.nodes.length;
-				  html += `<div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" data-index="${index}"><div style="display: flex; justify-content: space-between; align-items: center;"><label style="font-weight: 500; cursor: pointer; flex: 1;"><input type="radio" name="saved-diagram" value="${index}" ${index === 0 ? 'checked' : ''}>${diagram.name}</label><span style="font-size: 12px; color: #999;">${date}</span></div><div style="font-size: 12px; color: #aaa; margin-top: 5px;">${nodeCount} strain${nodeCount !== 1 ? 's' : ''} ${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}</div></div>`;
+				// Get saved diagrams
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (savedDiagrams.length === 0) {
+					savedDiagramsList.innerHTML = `<div style="padding: 10px; text-align: center; color: #999;">No saved breeding plans found</div>`;
+					confirmLoadBtn.disabled = true;
+					document.getElementById('delete-plan-btn').disabled = true;
+					document.getElementById('rename-plan-btn').disabled = true;
+				} else {
+					// Create list of saved diagrams
+					let html = '<div class="saved-plans-list">';
+					savedDiagrams.forEach((diagram, index) => {
+						const date = new Date(diagram.date).toLocaleDateString();
+						const nodeCount = diagram.nodes.length;
+						html += `<div class="saved-plan-item" style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" data-index="${index}"><div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-weight: 500; cursor: pointer; flex: 1;">${diagram.name}</span><span style="font-size: 12px; color: #999;">${date}</span></div><div style="font-size: 12px; color: #aaa; margin-top: 5px;">${nodeCount} strain${nodeCount !== 1 ? 's' : ''} ${diagram.notes ? `<div style="margin-top: 5px; color: #888;">${diagram.notes}</div>` : ''}</div></div>`;
+					});
+					html += '</div>';
+					savedDiagramsList.innerHTML = html;
+					confirmLoadBtn.disabled = false;
+					document.getElementById('delete-plan-btn').disabled = false;
+					document.getElementById('rename-plan-btn').disabled = false;
+					
+					// Set default selection
+					selectedDiagramIndex = 0;
+					
+					// Add click handlers for plan items
+					setTimeout(function() {
+						const planItems = document.querySelectorAll('.saved-plan-item');
+						planItems.forEach((item, index) => {
+							item.addEventListener('click', function() {
+								selectedDiagramIndex = parseInt(this.dataset.index);
+								highlightSelectedPlan();
+							});
+						});
+						highlightSelectedPlan();
+					}, 50);
+				}
+				
+				showModal(loadDiagramModal);
+			}
+
+			function highlightSelectedPlan() {
+				document.querySelectorAll('.saved-plan-item').forEach((item, i) => {
+					if (parseInt(item.dataset.index) === selectedDiagramIndex) {
+						item.style.backgroundColor = '#444';
+					} else {
+						item.style.backgroundColor = '';
+					}
 				});
-				html += '</div>';
-				savedDiagramsList.innerHTML = html;
-				confirmLoadBtn.disabled = false;
-				document.getElementById('delete-plan-btn').disabled = false;
-				document.getElementById('rename-plan-btn').disabled = false;
-				selectedDiagramIndex = 0;
-			  }
-			  
-			  // Click handler for plan items
-			  document.querySelectorAll('.saved-plan-item').forEach(item => {
-				item.onclick = function() {
-				  const radio = this.querySelector('input[type="radio"]');
-				  radio.checked = true;
-				  selectedDiagramIndex = parseInt(radio.value);
-				};
-			  });
-			  
-			  // DIRECT handlers for buttons
-			  document.getElementById('delete-plan-btn').onclick = deleteSavedPlan;
-			  document.getElementById('rename-plan-btn').onclick = showRenamePlanModal;
-			  document.getElementById('cancel-load-btn').onclick = function() { hideModal(loadDiagramModal); };
-			  document.getElementById('confirm-load-btn').onclick = loadSelectedDiagram;
-			  
-			  showModal(loadDiagramModal);
+			}
+
+			function loadSelectedDiagram() {
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
+					alert('Please select a breeding plan to load.');
+					return;
+				}
+				
+				// Load the selected diagram
+				loadDiagram(savedDiagrams[selectedDiagramIndex]);
+				
+				// Hide modal
+				hideModal(loadDiagramModal);
 			}
 
 			function deleteSavedPlan() {
-				const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
-				if (!selectedRadio) {
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
 					alert('Please select a breeding plan to delete.');
 					return;
 				}
 				
-				const index = parseInt(selectedRadio.value);
-				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-				
-				if (index < 0 || index >= savedDiagrams.length) {
-					alert('Invalid selection.');
-					return;
-				}
-				
-				const planName = savedDiagrams[index].name;
+				const planName = savedDiagrams[selectedDiagramIndex].name;
 				
 				if (confirm(`Are you sure you want to delete the breeding plan "${planName}"?`)) {
 					// Remove the plan from the array
-					savedDiagrams.splice(index, 1);
+					savedDiagrams.splice(selectedDiagramIndex, 1);
 					
 					// Save updated array
 					localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
@@ -2588,22 +2609,14 @@
 			}
 
 			function showRenamePlanModal() {
-				const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
-				if (!selectedRadio) {
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
 					alert('Please select a breeding plan to rename.');
 					return;
 				}
 				
-				const index = parseInt(selectedRadio.value);
-				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-				
-				if (index < 0 || index >= savedDiagrams.length) {
-					alert('Invalid selection.');
-					return;
-				}
-				
-				const plan = savedDiagrams[index];
-				selectedDiagramIndex = index;
+				const plan = savedDiagrams[selectedDiagramIndex];
 				
 				// Set up rename modal
 				document.getElementById('rename-plan-current-name').textContent = plan.name;
@@ -2651,36 +2664,8 @@
 				alert(`Breeding plan renamed from "${oldName}" to "${newName}".`);
 				
 				// Refresh the load modal
+				showModal(loadDiagramModal);
 				showLoadModal();
-			}
-            
-			function loadSelectedDiagram() {
-			  const selectedRadio = document.querySelector('input[name="saved-diagram"]:checked');
-			  if (!selectedRadio) {
-				alert('Please select a breeding plan to load.');
-				return;
-			  }
-			  
-			  const index = parseInt(selectedRadio.value);
-			  const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-			  
-			  if (index < 0 || index >= savedDiagrams.length) {
-				alert('Invalid selection.');
-				return;
-			  }
-			  
-			  // Clear the current diagram first
-			  breedingCanvas.querySelectorAll('.breeding-node').forEach(node => node.remove());
-			  connectionsGroup.innerHTML = '';
-			  nodes = [];
-			  connections = [];
-			  
-			  // Load the selected diagram
-			  const diagram = savedDiagrams[index];
-			  loadDiagram(diagram);
-			  
-			  // Hide modal
-			  hideModal(loadDiagramModal);
 			}
             
 						
