@@ -793,7 +793,6 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button class="btn btn-danger" id="delete-plan-btn">Delete</button>
 				<button class="btn btn-secondary" id="rename-plan-btn">Rename</button>
 				<button class="btn btn-secondary" id="cancel-load-btn">Cancel</button>
 				<button class="btn btn-primary" id="confirm-load-btn">Load Plan</button>
@@ -1092,34 +1091,6 @@
 				// Load diagram modal buttons
 				cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
 				confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
-				
-				// Delete and rename buttons - direct handlers
-				document.getElementById('delete-plan-btn').onclick = function() {
-					const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-					if (savedDiagrams.length === 0) {
-						alert('No saved breeding plans to delete.');
-						return;
-					}
-					
-					if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
-						selectedDiagramIndex = 0;
-					}
-					
-					const planName = savedDiagrams[selectedDiagramIndex].name;
-					
-					if (confirm(`Are you sure you want to delete the breeding plan "${planName}"?`)) {
-						savedDiagrams.splice(selectedDiagramIndex, 1);
-						localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
-						alert(`Breeding plan "${planName}" has been deleted.`);
-						
-						if (savedDiagrams.length === 0) {
-							hideModal(loadDiagramModal);
-						} else {
-							selectedDiagramIndex = 0;
-							showLoadModal();
-						}
-					}
-				};
 				
 				document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
 				
@@ -2069,50 +2040,6 @@
 				loadDiagram(savedDiagrams[savedDiagrams.length - 1]);
 			}
 
-			function showDeleteSelector() {
-				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-				if (savedDiagrams.length === 0) {
-					alert('No saved breeding plans found');
-					return;
-				}
-				
-				// Create selector element
-				const selector = document.createElement('div');
-				selector.className = 'plan-selector';
-				selector.style = 'position: absolute; top: 50px; left: 10px; background: #333; padding: 10px; border-radius: 4px; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.5);';
-				
-				savedDiagrams.forEach((plan, index) => {
-					const item = document.createElement('div');
-					item.innerText = plan.name;
-					item.style = 'padding: 8px; cursor: pointer; border-bottom: 1px solid #444;';
-					
-					item.onclick = function() {
-						if (confirm(`Delete plan "${plan.name}"?`)) {
-							savedDiagrams.splice(index, 1);
-							localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
-							selector.remove();
-						}
-					};
-					
-					selector.appendChild(item);
-				});
-				
-				const closeBtn = document.createElement('div');
-				closeBtn.innerText = 'Cancel';
-				closeBtn.style = 'padding: 8px; text-align: center; cursor: pointer; border-top: 1px solid #444;';
-				closeBtn.onclick = () => selector.remove();
-				selector.appendChild(closeBtn);
-				
-				document.body.appendChild(selector);
-				
-				document.addEventListener('mousedown', function closeSelector(e) {
-					if (!selector.contains(e.target)) {
-						selector.remove();
-						document.removeEventListener('mousedown', closeSelector);
-					}
-				});
-			}
-
 			function showRenameSelector() {
 				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
 				if (savedDiagrams.length === 0) {
@@ -2546,7 +2473,7 @@
 				if (savedDiagrams.length === 0) {
 					savedDiagramsList.innerHTML = `<div style="padding: 10px; text-align: center; color: #999;">No saved breeding plans found</div>`;
 					confirmLoadBtn.disabled = true;
-					document.getElementById('delete-plan-btn').disabled = true;
+					
 					document.getElementById('rename-plan-btn').disabled = true;
 				} else {
 					// Create list of saved diagrams
@@ -2576,7 +2503,7 @@
 					
 					savedDiagramsList.innerHTML = html;
 					confirmLoadBtn.disabled = false;
-					document.getElementById('delete-plan-btn').disabled = false;
+					
 					document.getElementById('rename-plan-btn').disabled = false;
 				}
 				
@@ -2595,33 +2522,6 @@
 					});
 				});
 				
-				// Ensure delete button works by re-setting the onclick handler
-				document.getElementById('delete-plan-btn').onclick = function() {
-					const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-					if (savedDiagrams.length === 0) {
-						alert('No saved breeding plans to delete.');
-						return;
-					}
-					
-					if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
-						selectedDiagramIndex = 0;
-					}
-					
-					const planName = savedDiagrams[selectedDiagramIndex].name;
-					
-					if (confirm(`Are you sure you want to delete the breeding plan "${planName}"?`)) {
-						savedDiagrams.splice(selectedDiagramIndex, 1);
-						localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
-						alert(`Breeding plan "${planName}" has been deleted.`);
-						
-						if (savedDiagrams.length === 0) {
-							hideModal(loadDiagramModal);
-						} else {
-							selectedDiagramIndex = 0;
-							showLoadModal();
-						}
-					}
-				};
 			}
 
 			function selectPlan(index) {
@@ -2657,51 +2557,6 @@
 				
 				// Hide modal
 				hideModal(loadDiagramModal);
-			}
-
-			function deleteSavedPlan(e) {
-				e.preventDefault();
-				e.stopPropagation();
-				
-				console.log("Delete function called with selected index:", selectedDiagramIndex);
-				
-				// Get the current list of saved diagrams
-				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-				
-				// Safety check - if no plans exist, inform user
-				if (savedDiagrams.length === 0) {
-					alert('No saved breeding plans to delete.');
-					return;
-				}
-				
-				// If no selection or invalid selection, use the first plan
-				if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
-					selectedDiagramIndex = 0;
-				}
-				
-				// Get the name of the plan to delete
-				const planName = savedDiagrams[selectedDiagramIndex].name;
-				
-				// Confirm deletion with user
-				if (confirm(`Are you sure you want to delete the breeding plan "${planName}"?`)) {
-					// Remove the plan from the array
-					savedDiagrams.splice(selectedDiagramIndex, 1);
-					
-					// Save updated array back to localStorage
-					localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
-					
-					// Show success message
-					alert(`Breeding plan "${planName}" has been deleted.`);
-					
-					// If there are no more plans, close the modal
-					if (savedDiagrams.length === 0) {
-						hideModal(loadDiagramModal);
-					} else {
-						// Otherwise refresh the modal list
-						selectedDiagramIndex = 0; // Reset selection to first item
-						showLoadModal();
-					}
-				}
 			}
 
 			function showRenamePlanModal() {
