@@ -1061,8 +1061,18 @@
 				hideModal(document.getElementById('delete-plan-modal'));
 				alert(`Breeding plan "${deletedPlanName}" has been deleted.`);
 				
-				// Reset canvas if the current diagram was deleted
-				newDiagram();
+				// Explicitly clear the canvas - more thorough cleanup
+				// Clear all nodes from the DOM
+				breedingCanvas.querySelectorAll('.breeding-node').forEach(node => node.remove());
+				
+				// Clear all connections
+				connectionsGroup.innerHTML = '';
+				
+				// Reset state variables
+				nodes = [];
+				connections = [];
+				nodeCounter = 0;
+				selectedNode = null;
 				
 				// Refresh the load modal
 				showLoadModal();
