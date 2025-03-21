@@ -677,6 +677,18 @@
                 <input type="text" id="search-input" placeholder="Search strains...">
                 <button id="search-btn">Search</button>
             </div>
+			
+			<div class="sheet-url-container" style="padding: 10px; border-bottom: 1px solid #444;">
+				<div style="margin-bottom: 8px; font-weight: 500;">Google Sheet URL</div>
+				<div style="display: flex; margin-bottom: 8px;">
+					<input type="text" id="sheet-url-input" class="form-input" style="flex: 1;" 
+						   placeholder="Enter Google Sheets URL...">
+					<button id="load-sheet-btn" class="btn btn-primary" style="margin-left: 5px;">Load</button>
+				</div>
+				<div id="sheet-url-info" style="font-size: 12px; color: #aaa;">
+					Required columns: STRAIN, REG / FEM, BREEDER, COUNT, PARENT1, PARENT2
+				</div>
+			</div>
             
             <div class="filter-tabs">
                 <div class="filter-tab active" data-filter="all">ALL</div>
@@ -733,6 +745,23 @@
 			</div>
         </div>
     </div>
+
+	<!-- Saved Sheets Modal -->
+	<div class="modal" id="saved-sheets-modal">
+		<div class="modal-content">
+			<div class="modal-header">Manage Strain Collections</div>
+			<div class="modal-body">
+				<div id="saved-sheets-list">
+					Loading saved strain collections...
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-danger" id="delete-sheet-btn">Delete</button>
+				<button class="btn btn-secondary" id="cancel-sheets-btn">Cancel</button>
+				<button class="btn btn-primary" id="load-sheet-from-list-btn">Load Collection</button>
+			</div>
+		</div>
+	</div>
     
 	<!-- Name Cross Modal -->
 	<div class="modal" id="name-cross-modal">
@@ -921,9 +950,12 @@
             let isPanning = false;
             let panStart = { x: 0, y: 0 };
             let canvasOffset = { x: 0, y: 0 };
-            
+			let activeSheetId = sheetId; // Default sheet ID
+			let savedSheets = []; // To store multiple sheets
+			
             // Initialize
             initializeCanvas();
+			initializeSheetManager();
             loadStrains();
             setupEventListeners();
 			
@@ -950,12 +982,93 @@
                 connectionsSvg.setAttribute('width', breedingCanvas.clientWidth);
                 connectionsSvg.setAttribute('height', breedingCanvas.clientHeight);
             }
-            
-            function loadStrains() {
-                strainList.innerHTML = '<div class="strain-item"><div class="strain-info"><div class="strain-name">Loading strains...</div></div></div>';
-                
-                const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
-                
+
+			function initializeSheetManager() {
+				// Load any saved sheets from localStorage
+				savedSheets = JSON.parse(localStorage.getItem('breedingPlannerSheets') || '[]');
+				
+				// Add the default sheet if not already saved
+				if (!savedSheets.some(sheet => sheet.id === sheetId)) {
+					savedSheets.push({
+						id: sheetId,
+						name: 'Default Strain Collection',
+						url: `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`,
+						isDefault: true
+					});
+					saveSheetsList();
+				}
+				
+				// Setup UI elements
+				const sheetUrlInput = document.getElementById('sheet-url-input');
+				const loadSheetBtn = document.getElementById('load-sheet-btn');
+				
+				loadSheetBtn.addEventListener('click', function() {
+					loadCustomSheet();
+				});
+				
+				sheetUrlInput.addEventListener('keyup', function(e) {
+					if (e.key === 'Enter') {
+						loadCustomSheet();
+					}
+				});
+			}
+
+			function loadCustomSheet() {
+				const sheetUrlInput = document.getElementById('sheet-url-input');
+				const url = sheetUrlInput.value.trim();
+				
+				if (!url) {
+					alert('Please enter a valid Google Sheets URL');
+					return;
+				}
+				
+				// Extract sheet ID from URL
+				let newSheetId = '';
+				const regex = /\/d\/([a-zA-Z0-9-_]+)/;
+				const match = url.match(regex);
+				
+				if (match && match[1]) {
+					newSheetId = match[1];
+				} else {
+					alert('Invalid Google Sheets URL. Please use a sharing URL from Google Sheets.');
+					return;
+				}
+				
+				// Check if this sheet is already saved
+				const existingSheet = savedSheets.find(sheet => sheet.id === newSheetId);
+				
+				if (!existingSheet) {
+					// Add new sheet to saved sheets
+					const sheetName = prompt('Enter a name for this strain collection:', 'My Strain Collection');
+					if (!sheetName) return;
+					
+					savedSheets.push({
+						id: newSheetId,
+						name: sheetName,
+						url: `https://docs.google.com/spreadsheets/d/${newSheetId}/export?format=csv`,
+						isDefault: false
+					});
+					
+					saveSheetsList();
+				}
+				
+				// Set as active sheet and load strains
+				activeSheetId = newSheetId;
+				loadStrainsFromSheet(newSheetId);
+				
+				// Clear input
+				sheetUrlInput.value = '';
+			}
+
+			function saveSheetsList() {
+				localStorage.setItem('breedingPlannerSheets', JSON.stringify(savedSheets));
+			}
+
+			function loadStrainsFromSheet(sheetId) {
+				strainList.innerHTML = '<div class="strain-item"><div class="strain-info"><div class="strain-name">Loading strains...</div></div></div>';
+				
+				const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+				
 				fetch(csvUrl)
 					.then(response => {
 						if (!response.ok) throw new Error('Network error');
@@ -964,12 +1077,18 @@
 					.then(csv => {
 						allStrains = parseCSV(csv);
 						renderStrainList(allStrains);
-						updateExistingNodesWithParents(); // Add this line
+						updateExistingNodesWithParents();
 					})
 					.catch(error => {
 						console.error('Error loading data:', error);
 						strainList.innerHTML = '<div class="strain-item"><div class="strain-info"><div class="strain-name">Error loading strains</div></div></div>';
+						alert('Error loading sheet. Please check that the Google Sheet is publicly shared with "Anyone with the link" and try again.');
 					});
+			}
+            
+			function loadStrains() {
+				// Now just call the other function with the active sheet ID
+				loadStrainsFromSheet(activeSheetId);
 			}
             
             function parseCSV(csv) {
@@ -1118,6 +1237,59 @@
             }
             
 			function setupEventListeners() {
+			
+				const sidebarHeader = document.querySelector('.sidebar-header');
+				const manageSheetBtn = document.createElement('button');
+				manageSheetBtn.className = 'btn btn-secondary';
+				manageSheetBtn.style = 'position: absolute; right: 10px; top: 10px; padding: 4px 8px; font-size: 12px;';
+				manageSheetBtn.innerText = 'Manage Collections';
+				manageSheetBtn.addEventListener('click', showSavedSheetsModal);
+				sidebarHeader.style.position = 'relative';
+				sidebarHeader.appendChild(manageSheetBtn);
+
+				document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
+					hideModal(document.getElementById('saved-sheets-modal'));
+				});
+
+				document.getElementById('load-sheet-from-list-btn').addEventListener('click', function() {
+					if (selectedSheetIndex >= 0 && selectedSheetIndex < savedSheets.length) {
+						const selectedSheet = savedSheets[selectedSheetIndex];
+						activeSheetId = selectedSheet.id;
+						loadStrainsFromSheet(selectedSheet.id);
+						hideModal(document.getElementById('saved-sheets-modal'));
+					}
+				});
+
+				document.getElementById('delete-sheet-btn').addEventListener('click', function() {
+					if (selectedSheetIndex >= 0 && selectedSheetIndex < savedSheets.length) {
+						const selectedSheet = savedSheets[selectedSheetIndex];
+						
+						// Don't allow deleting the default sheet
+						if (selectedSheet.isDefault) {
+							alert('Cannot delete the default strain collection.');
+							return;
+						}
+						
+						if (confirm(`Are you sure you want to delete the strain collection "${selectedSheet.name}"?`)) {
+							// If deleting the active sheet, switch to default
+							if (selectedSheet.id === activeSheetId) {
+								const defaultSheet = savedSheets.find(s => s.isDefault);
+								if (defaultSheet) {
+									activeSheetId = defaultSheet.id;
+									loadStrainsFromSheet(defaultSheet.id);
+								}
+							}
+							
+							// Remove from saved sheets
+							savedSheets.splice(selectedSheetIndex, 1);
+							saveSheetsList();
+							
+							// Refresh modal
+							showSavedSheetsModal();
+						}
+					}
+				});
+			
 				// Canvas pan events
 				canvasContainer.addEventListener('mousedown', startPan);
 				document.addEventListener('mousemove', doPan);
@@ -1208,6 +1380,71 @@
 				
 				// Window resize
 				window.addEventListener('resize', updateSvgSize);
+			}
+
+			function showSavedSheetsModal() {
+				const savedSheetsList = document.getElementById('saved-sheets-list');
+				savedSheetsList.innerHTML = '';
+				
+				if (savedSheets.length === 0) {
+					savedSheetsList.innerHTML = `<div style="padding: 10px; text-align: center; color: #999;">No saved strain collections found</div>`;
+					document.getElementById('load-sheet-from-list-btn').disabled = true;
+					document.getElementById('delete-sheet-btn').disabled = true;
+				} else {
+					let html = '';
+					savedSheets.forEach((sheet, index) => {
+						const isActive = sheet.id === activeSheetId;
+						const isSelected = index === 0;
+						
+						html += `
+							<div class="saved-sheet-item${isSelected ? ' selected-plan' : ''}" 
+								 style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" 
+								 data-index="${index}">
+								<div style="display: flex; justify-content: space-between; align-items: center;">
+									<span style="font-weight: 500; cursor: pointer; flex: 1;">${sheet.name}</span>
+									${isActive ? '<span style="font-size: 12px; color: #4CAF50;">[Active]</span>' : ''}
+								</div>
+								<div style="font-size: 12px; color: #aaa; margin-top: 5px;">
+									ID: ${sheet.id.substring(0, 10)}...
+									${sheet.isDefault ? ' (Default)' : ''}
+								</div>
+							</div>
+						`;
+					});
+					
+					savedSheetsList.innerHTML = html;
+					document.getElementById('load-sheet-from-list-btn').disabled = false;
+					document.getElementById('delete-sheet-btn').disabled = false;
+				}
+				
+				// Show modal
+				showModal(document.getElementById('saved-sheets-modal'));
+				
+				// Add click handlers for sheet items
+				const sheetItems = document.querySelectorAll('.saved-sheet-item');
+				sheetItems.forEach(item => {
+					item.addEventListener('click', function(e) {
+						e.preventDefault();
+						e.stopPropagation();
+						selectSavedSheet(parseInt(this.dataset.index));
+					});
+				});
+			}
+
+			let selectedSheetIndex = 0;
+
+			function selectSavedSheet(index) {
+				selectedSheetIndex = index;
+				
+				document.querySelectorAll('.saved-sheet-item').forEach(item => {
+					if (parseInt(item.dataset.index) === selectedSheetIndex) {
+						item.classList.add('selected-plan');
+						item.style.backgroundColor = '#444';
+					} else {
+						item.classList.remove('selected-plan');
+						item.style.backgroundColor = '';
+					}
+				});
 			}
             
             // Canvas Pan/Zoom
