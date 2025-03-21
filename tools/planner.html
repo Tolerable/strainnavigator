@@ -793,9 +793,30 @@
 				</div>
 			</div>
 			<div class="modal-footer">
+				<button class="btn btn-danger" id="delete-plan-btn">Delete</button>
 				<button class="btn btn-secondary" id="rename-plan-btn">Rename</button>
 				<button class="btn btn-secondary" id="cancel-load-btn">Cancel</button>
 				<button class="btn btn-primary" id="confirm-load-btn">Load Plan</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Delete Plan Confirmation Modal -->
+	<div class="modal" id="delete-plan-modal">
+		<div class="modal-content">
+			<div class="modal-header">Delete Breeding Plan</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label class="form-label">Are you sure you want to delete this breeding plan?</label>
+					<div id="delete-plan-name" style="color: #fff; font-weight: bold;"></div>
+				</div>
+				<div class="form-group">
+					<label class="form-label" style="color: #f44336;">This action cannot be undone.</label>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary" id="cancel-delete-btn">Cancel</button>
+				<button class="btn btn-danger" id="confirm-delete-btn">Delete</button>
 			</div>
 		</div>
 	</div>
@@ -999,6 +1020,53 @@
                 results.push(currentValue);
                 return results;
             }
+
+			// Show delete plan confirmation modal
+			function showDeletePlanModal() {
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
+					alert('Please select a breeding plan to delete.');
+					return;
+				}
+				
+				const plan = savedDiagrams[selectedDiagramIndex];
+				
+				// Set up delete modal
+				document.getElementById('delete-plan-name').textContent = plan.name;
+				
+				// Show delete modal
+				hideModal(loadDiagramModal);
+				showModal(document.getElementById('delete-plan-modal'));
+			}
+
+			// Confirm delete plan
+			function confirmDeletePlan() {
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
+					alert('Invalid selection.');
+					return;
+				}
+				
+				const deletedPlanName = savedDiagrams[selectedDiagramIndex].name;
+				
+				// Remove the plan from the array
+				savedDiagrams.splice(selectedDiagramIndex, 1);
+				
+				// Save updated array
+				localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+				
+				// Hide delete modal and show confirmation
+				hideModal(document.getElementById('delete-plan-modal'));
+				alert(`Breeding plan "${deletedPlanName}" has been deleted.`);
+				
+				// Reset canvas if the current diagram was deleted
+				newDiagram();
+				
+				// Refresh the load modal
+				showLoadModal();
+			}
             
             function renderStrainList(strains) {
                 if (!strains.length) {
@@ -1101,6 +1169,13 @@
 					showModal(loadDiagramModal);
 				});
 				document.getElementById('confirm-rename-btn').addEventListener('click', confirmRenamePlan);
+
+				document.getElementById('delete-plan-btn').addEventListener('click', showDeletePlanModal);
+				document.getElementById('cancel-delete-btn').addEventListener('click', function() {
+					hideModal(document.getElementById('delete-plan-modal'));
+					showModal(loadDiagramModal);
+				});
+				document.getElementById('confirm-delete-btn').addEventListener('click', confirmDeletePlan);
 				
 				// Context menu items
 				contextEdit.addEventListener('click', () => {
@@ -2545,6 +2620,7 @@
 					confirmLoadBtn.disabled = true;
 					
 					document.getElementById('rename-plan-btn').disabled = true;
+					document.getElementById('delete-plan-btn').disabled = true; // Add this line
 				} else {
 					// Create list of saved diagrams
 					let html = '';
@@ -2575,6 +2651,7 @@
 					confirmLoadBtn.disabled = false;
 					
 					document.getElementById('rename-plan-btn').disabled = false;
+					document.getElementById('delete-plan-btn').disabled = false; // Add this line
 				}
 				
 				showModal(loadDiagramModal);
@@ -2591,7 +2668,6 @@
 						highlightSelectedPlan();
 					});
 				});
-				
 			}
 
 			function selectPlan(index) {
