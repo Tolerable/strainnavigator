@@ -1313,7 +1313,22 @@
 				if (traits.sexType) traitsHTML += `<span class="strain-trait ${traits.sexType.toLowerCase()}">${traits.sexType}</span>`;
 				if (traits.floweringType) traitsHTML += `<span class="strain-trait ${traits.floweringType.toLowerCase()}">${traits.floweringType}</span>`;
 				
-				// Simplified node content - removed breeder info
+				// Check if parent info exists in strain data
+				const parent1 = strain.PARENT1 || strain.parent1 || '';
+				const parent2 = strain.PARENT2 || strain.parent2 || '';
+				
+				// Create parent info HTML if parents exist
+				let parentHTML = '';
+				if (parent1 || parent2) {
+					parentHTML = `
+						<div class="node-parents">
+							${parent1 ? `<div>♀: ${parent1}</div>` : ''}
+							${parent2 ? `<div>♂: ${parent2}</div>` : ''}
+						</div>
+					`;
+				}
+				
+				// Node content with parent information if available
 				node.innerHTML = `
 					<div class="node-header">
 						<div class="node-name">${strainName}</div>
@@ -1323,6 +1338,7 @@
 					</div>
 					<div class="node-content">
 						<div class="node-traits">${traitsHTML}</div>
+						${parentHTML}
 					</div>
 					<div class="connection-points">
 						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Use as Female (Mother)"></div>
