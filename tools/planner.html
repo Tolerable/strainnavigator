@@ -1092,7 +1092,7 @@
 				// Load diagram modal - FIXED EVENT LISTENERS
 				cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
 				confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
-				document.querySelector('.btn.btn-danger').addEventListener('click', function(e) {
+				document.getElementById('delete-plan-btn').addEventListener('click', function(e) {
 					e.preventDefault();
 					e.stopPropagation();
 					console.log("Delete button clicked, selected index:", selectedDiagramIndex);
@@ -1121,7 +1121,7 @@
 						// Show confirmation
 						alert(`Breeding plan "${planName}" has been deleted.`);
 						
-						// If no more plans, close the modal
+						// If there are no more plans, close the modal
 						if (savedDiagrams.length === 0) {
 							hideModal(loadDiagramModal);
 						} else {
@@ -2595,6 +2595,17 @@
 						highlightSelectedPlan();
 					});
 				});
+				
+				// Add event listener for delete button
+				const deleteButton = document.getElementById('delete-plan-btn');
+				if (deleteButton) {
+					// Remove existing listeners by cloning
+					const newDeleteButton = deleteButton.cloneNode(true);
+					deleteButton.parentNode.replaceChild(newDeleteButton, deleteButton);
+					
+					// Add new listener
+					newDeleteButton.addEventListener('click', deleteSavedPlan);
+				}
 			}
 
 			function selectPlan(index) {
