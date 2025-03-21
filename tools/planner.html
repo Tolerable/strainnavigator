@@ -935,20 +935,21 @@
                 
                 const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
                 
-                fetch(csvUrl)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network error');
-                        return response.text();
-                    })
-                    .then(csv => {
-                        allStrains = parseCSV(csv);
-                        renderStrainList(allStrains);
-                    })
-                    .catch(error => {
-                        console.error('Error loading data:', error);
-                        strainList.innerHTML = '<div class="strain-item"><div class="strain-info"><div class="strain-name">Error loading strains</div></div></div>';
-                    });
-            }
+				fetch(csvUrl)
+					.then(response => {
+						if (!response.ok) throw new Error('Network error');
+						return response.text();
+					})
+					.then(csv => {
+						allStrains = parseCSV(csv);
+						renderStrainList(allStrains);
+						updateExistingNodesWithParents(); // Add this line
+					})
+					.catch(error => {
+						console.error('Error loading data:', error);
+						strainList.innerHTML = '<div class="strain-item"><div class="strain-info"><div class="strain-name">Error loading strains</div></div></div>';
+					});
+			}
             
             function parseCSV(csv) {
                 const lines = csv.split('\n');
@@ -1379,6 +1380,59 @@
 				
 				selectNode(nodeId);
 				return nodeId;
+			}
+
+			function updateExistingNodesWithParents() {
+				// Find all strain nodes
+				const strainNodes = nodes.filter(node => node.origin === 'strain');
+				
+				// For each strain node, update parent information
+				strainNodes.forEach(nodeData => {
+					// Get the node element
+					const nodeElement = document.getElementById(nodeData.id);
+					if (!nodeElement) return; // Skip if element doesn't exist
+					
+					// Check if node already has parent information displayed
+					const existingParentInfo = nodeElement.querySelector('.node-parents');
+					if (existingParentInfo) return; // Skip if already has parent info
+					
+					// Find strain data for this node by name
+					const matchingStrain = allStrains.find(strain => 
+						(strain.STRAIN || strain.Strain || strain.Name) === nodeData.name
+					);
+					
+					if (!matchingStrain) return; // Skip if matching strain not found
+					
+					// Get parent information
+					const parent1 = matchingStrain.PARENT1 || matchingStrain.parent1 || '';
+					const parent2 = matchingStrain.PARENT2 || matchingStrain.parent2 || '';
+					
+					// Skip if no parent information
+					if (!parent1 && !parent2) return;
+					
+					// Create parent info HTML
+					const parentHTML = `
+						<div class="node-parents">
+							${parent1 ? `<div>♀: ${parent1}</div>` : ''}
+							${parent2 ? `<div>♂: ${parent2}</div>` : ''}
+						</div>
+					`;
+					
+					// Find the node-content div to add parents to
+					const nodeContent = nodeElement.querySelector('.node-content');
+					if (nodeContent) {
+						// Create temporary container for the HTML
+						const tempContainer = document.createElement('div');
+						tempContainer.innerHTML = parentHTML;
+						
+						// Append the parent information to node content
+						while (tempContainer.firstChild) {
+							nodeContent.appendChild(tempContainer.firstChild);
+						}
+					}
+				});
+				
+				console.log('Updated existing nodes with parent information');
 			}
             
 			function createCross() {
