@@ -2774,15 +2774,48 @@
                 centerCanvas();
             }
             
-            function showSaveModal() {
-                if (nodes.length === 0) {
-                    alert('Nothing to save. Add some strains to your diagram first.');
-                    return;
-                }
-                
-                showModal(saveDiagramModal);
-                diagramName.focus();
-            }
+			function showSaveModal() {
+				if (nodes.length === 0) {
+					alert('Nothing to save. Add some strains to your diagram first.');
+					return;
+				}
+				
+				// Check if this diagram is already saved by comparing node contents
+				// with saved diagrams
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				let currentDiagramName = '';
+				let currentDiagramNotes = '';
+				
+				// Look through saved diagrams to see if current one matches any
+				if (savedDiagrams.length > 0) {
+					// Check for matching node count first as a quick filter
+					const currentNodeIds = nodes.map(n => n.id).sort().join(',');
+					
+					for (const diagram of savedDiagrams) {
+						if (diagram.nodes && diagram.nodes.length === nodes.length) {
+							const savedNodeIds = diagram.nodes.map(n => n.id).sort().join(',');
+							if (savedNodeIds === currentNodeIds) {
+								currentDiagramName = diagram.name;
+								currentDiagramNotes = diagram.notes || '';
+								break;
+							}
+						}
+					}
+				}
+				
+				// Populate the form with current diagram name and notes if found
+				diagramName.value = currentDiagramName;
+				diagramNotes.value = currentDiagramNotes;
+				
+				// Show the modal
+				showModal(saveDiagramModal);
+				diagramName.focus();
+				
+				// If we found a matching diagram, highlight the text field so user can easily change it
+				if (currentDiagramName) {
+					diagramName.select();
+				}
+			}
             
 			function saveDiagram() {
 			  const name = diagramName.value.trim();
