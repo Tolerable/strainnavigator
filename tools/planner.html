@@ -680,23 +680,61 @@
             background-color: #444;
             margin: 4px 0;
         }
+		
+		/* Status styling */
+		.breeding-node.status-planned { border-left: 3px solid #FFB74D; }
+		.breeding-node.status-in-progress { border-left: 3px solid #42A5F5; }
+		.breeding-node.status-completed { border-left: 3px solid #66BB6A; }
+
+		.status-indicator {
+			display: flex;
+			align-items: center;
+			margin-top: 8px;
+			padding-top: 8px;
+			border-top: 1px solid #444;
+			font-size: 12px;
+		}
+
+		.status-dot {
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			margin-right: 6px;
+		}
+
+		.status-dot.planned { background-color: #FFB74D; }
+		.status-dot.in-progress { background-color: #42A5F5; }
+		.status-dot.completed { background-color: #66BB6A; }
+
+		.status-toggle {
+			margin-left: auto;
+			cursor: pointer;
+			color: #aaa;
+			font-size: 11px;
+			text-decoration: underline;
+		}
+
+		.status-toggle:hover {
+			color: #fff;
+		}
+		
     </style>
 </head>
 <body>
-    <header>
-        <h2>StrainNavigator Breeding Planner</h2>
-    </header>
-    
-    <div class="main-container">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h3>Strain Collection</h3>
-            </div>
-            
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="Search strains...">
-                <button id="search-btn">Search</button>
-            </div>
+<header>
+    <h2>StrainNavigator Breeding Planner</h2>
+</header>
+
+	<div class="main-container">
+		<div class="sidebar">
+			<div class="sidebar-header">
+				<h3>Strain Collection</h3>
+			</div>
+			
+			<div class="search-box">
+				<input type="text" id="search-input" placeholder="Search strains...">
+				<button id="search-btn">Search</button>
+			</div>
 			
 			<div class="sheet-url-container" style="padding: 10px; border-bottom: 1px solid #444;">
 				<div style="margin-bottom: 8px; font-weight: 500;">Google Sheet URL</div>
@@ -709,40 +747,40 @@
 					Required columns: STRAIN, REG / FEM, BREEDER, COUNT, PARENT1, PARENT2
 				</div>
 			</div>
-            
-            <div class="filter-tabs">
-                <div class="filter-tab active" data-filter="all">ALL</div>
-                <div class="filter-tab" data-filter="reg">REG</div>
-                <div class="filter-tab" data-filter="fem">FEM</div>
-                <div class="filter-tab" data-filter="auto">AUTO</div>
-                <div class="filter-tab" data-filter="photo">PHOTO</div>
-                <div class="filter-tab" data-filter="fast">FAST</div>
-            </div>
-            
-            <div class="strain-list" id="strain-list">
-                <!-- Strains will be loaded here -->
-                <div class="strain-item">
-                    <div class="strain-info">
-                        <div class="strain-name">Loading strains...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="canvas-container" id="canvas-container">
-            <div class="canvas-tools">
-                <button class="canvas-tool" id="new-diagram">New</button>
-                <button class="canvas-tool" id="save-diagram">Save</button>
-                <button class="canvas-tool" id="load-diagram">Load</button>
-            </div>
-            
-            <div class="arrange-options">
-                <button class="canvas-tool" id="arrange-tree">Arrange Tree</button>
-                <button class="canvas-tool" id="center-view">Center View</button>
-            </div>
-            
-            <div class="breeding-canvas" id="breeding-canvas">
-                <!-- SVG for connections -->
+			
+			<div class="filter-tabs">
+				<div class="filter-tab active" data-filter="all">ALL</div>
+				<div class="filter-tab" data-filter="reg">REG</div>
+				<div class="filter-tab" data-filter="fem">FEM</div>
+				<div class="filter-tab" data-filter="auto">AUTO</div>
+				<div class="filter-tab" data-filter="photo">PHOTO</div>
+				<div class="filter-tab" data-filter="fast">FAST</div>
+			</div>
+			
+			<div class="strain-list" id="strain-list">
+				<!-- Strains will be loaded here -->
+				<div class="strain-item">
+					<div class="strain-info">
+						<div class="strain-name">Loading strains...</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="canvas-container" id="canvas-container">
+			<div class="canvas-tools">
+				<button class="canvas-tool" id="new-diagram">New</button>
+				<button class="canvas-tool" id="save-diagram">Save</button>
+				<button class="canvas-tool" id="load-diagram">Load</button>
+			</div>
+			
+			<div class="arrange-options">
+				<button class="canvas-tool" id="arrange-tree">Arrange Tree</button>
+				<button class="canvas-tool" id="center-view">Center View</button>
+			</div>
+			
+			<div class="breeding-canvas" id="breeding-canvas">
+				<!-- SVG for connections -->
 				<svg class="connection-svg" id="connection-svg">
 					<defs>
 						<marker id="arrow-female" viewBox="0 0 10 10" refX="8" refY="5" 
@@ -756,15 +794,15 @@
 					</defs>
 					<g id="connections-group"></g>
 				</svg>
-                <!-- Nodes will be added here -->
-            </div>
-            
+				<!-- Nodes will be added here -->
+			</div>
+			
 			<div class="help-text">
 				Click on strains to add them to the diagram. Connect strains by dragging from one connection point to another. Right-click nodes for more options.
 				<div class="help-text-close">×</div>
 			</div>
-        </div>
-    </div>
+		</div>
+	</div>
 
 	<!-- Saved Sheets Modal -->
 	<div class="modal" id="saved-sheets-modal">
@@ -782,7 +820,7 @@
 			</div>
 		</div>
 	</div>
-    
+
 	<!-- Name Cross Modal -->
 	<div class="modal" id="name-cross-modal">
 		<div class="modal-content">
@@ -802,6 +840,40 @@
 				</div>
 				<div class="form-group" id="cross-type-container">
 					<!-- Type selection will be inserted here -->
+					<div class="type-selection">
+						<div class="type-group">
+							<label><strong>Growth Type:</strong></label>
+							<div>
+								<label><input type="radio" name="growth-type" value="AUTO"> AUTO</label>
+								<label><input type="radio" name="growth-type" value="PHOTO" checked> PHOTO</label>
+							</div>
+						</div>
+						
+						<div class="type-group">
+							<label><strong>Seed Type:</strong></label>
+							<div>
+								<label><input type="radio" name="seed-type" value="REG" checked> REG</label>
+								<label><input type="radio" name="seed-type" value="FEM"> FEM</label>
+							</div>
+						</div>
+						
+						<div class="type-group">
+							<label><strong>Flowering Type:</strong></label>
+							<div>
+								<label><input type="checkbox" name="flowering-type" value="FAST"> FAST</label>
+							</div>
+						</div>
+						
+						<!-- New status selection -->
+						<div class="type-group">
+							<label><strong>Status:</strong></label>
+							<div>
+								<label><input type="radio" name="cross-status" value="planned" checked> Planned</label>
+								<label><input type="radio" name="cross-status" value="in-progress"> In Progress</label>
+								<label><input type="radio" name="cross-status" value="completed"> Completed</label>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 			<div class="modal-footer">
@@ -810,28 +882,28 @@
 			</div>
 		</div>
 	</div>
-    
-    <!-- Save/Load Modals -->
-    <div class="modal" id="save-diagram-modal">
-        <div class="modal-content">
-            <div class="modal-header">Save Breeding Plan</div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Plan Name</label>
-                    <input type="text" class="form-input" id="diagram-name" placeholder="Enter a name for this breeding plan">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Notes (optional)</label>
-                    <textarea class="form-input" id="diagram-notes" rows="4" placeholder="Enter any notes about this breeding plan"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancel-save-btn">Cancel</button>
-                <button class="btn btn-primary" id="confirm-save-btn">Save Plan</button>
-            </div>
-        </div>
-    </div>
-    
+
+	<!-- Save/Load Modals -->
+	<div class="modal" id="save-diagram-modal">
+		<div class="modal-content">
+			<div class="modal-header">Save Breeding Plan</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<label class="form-label">Plan Name</label>
+					<input type="text" class="form-input" id="diagram-name" placeholder="Enter a name for this breeding plan">
+				</div>
+				<div class="form-group">
+					<label class="form-label">Notes (optional)</label>
+					<textarea class="form-input" id="diagram-notes" rows="4" placeholder="Enter any notes about this breeding plan"></textarea>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary" id="cancel-save-btn">Cancel</button>
+				<button class="btn btn-primary" id="confirm-save-btn">Save Plan</button>
+			</div>
+		</div>
+	</div>
+
 	<!-- Load Diagram Modal -->
 	<div class="modal" id="load-diagram-modal">
 		<div class="modal-content">
@@ -890,14 +962,14 @@
 			</div>
 		</div>
 	</div>
-    
-    <!-- Context Menu -->
-    <div class="context-menu" id="node-context-menu">
-        <div class="menu-item" id="context-edit">Edit Node</div>
-        <div class="menu-item" id="context-duplicate">Duplicate</div>
-        <div class="menu-divider"></div>
-        <div class="menu-item" id="context-remove">Remove Node</div>
-    </div>
+
+	<!-- Context Menu -->
+	<div class="context-menu" id="node-context-menu">
+		<div class="menu-item" id="context-edit">Edit Node</div>
+		<div class="menu-item" id="context-duplicate">Duplicate</div>
+		<div class="menu-divider"></div>
+		<div class="menu-item" id="context-remove">Remove Node</div>
+	</div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1291,6 +1363,8 @@
 				// 	hideModal(document.getElementById('saved-sheets-modal'));
 				// });
 
+				setupStatusToggle();
+	
 				document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
 					hideModal(document.getElementById('saved-sheets-modal'));
 					// Do NOT do anything else after hiding the modal
@@ -1491,6 +1565,54 @@
 				
 				// Window resize
 				window.addEventListener('resize', updateSvgSize);
+			}
+
+			function setupStatusToggle() {
+				// Use event delegation to handle dynamically created status toggles
+				document.addEventListener('click', function(e) {
+					if (!e.target.classList.contains('status-toggle')) return;
+					
+					e.preventDefault();
+					e.stopPropagation();
+					
+					const nodeId = e.target.dataset.node;
+					const node = document.getElementById(nodeId);
+					const nodeData = nodes.find(n => n.id === nodeId);
+					
+					if (!node || !nodeData) return;
+					
+					// Get current status
+					const currentStatus = nodeData.status || 'planned';
+					
+					// Define the status cycle
+					const statusCycle = ['planned', 'in-progress', 'completed'];
+					
+					// Find the next status in the cycle
+					const currentIndex = statusCycle.indexOf(currentStatus);
+					const nextIndex = (currentIndex + 1) % statusCycle.length;
+					const newStatus = statusCycle[nextIndex];
+					
+					// Update the node data
+					nodeData.status = newStatus;
+					
+					// Update the node display
+					node.dataset.status = newStatus;
+					
+					// Update the node class
+					node.className = node.className.replace(/status-\w+/, `status-${newStatus}`);
+					
+					// Update the status indicator
+					const statusDot = node.querySelector('.status-dot');
+					if (statusDot) {
+						statusDot.className = `status-dot ${newStatus}`;
+					}
+					
+					// Update the status text
+					const statusText = statusDot?.nextElementSibling;
+					if (statusText) {
+						statusText.textContent = `Status: ${newStatus.replace('-', ' ').charAt(0).toUpperCase() + newStatus.replace('-', ' ').slice(1)}`;
+					}
+				});
 			}
 
 			function showSavedSheetsModal() {
@@ -1978,6 +2100,9 @@
 				const seedType = document.querySelector('input[name="seed-type"]:checked')?.value || 'REG';
 				const floweringType = document.querySelector('input[name="flowering-type"]:checked') ? 'FAST' : '';
 				
+				// Get selected status - NEW
+				const status = document.querySelector('input[name="cross-status"]:checked')?.value || 'planned';
+				
 				// Create cross data
 				const crossData = {
 					femaleId: pendingCrossData.femaleId,
@@ -1987,7 +2112,8 @@
 					name: finalName,
 					growthType: growthType,
 					sexType: seedType,
-					floweringType: floweringType
+					floweringType: floweringType,
+					status: status  // NEW
 				};
 				
 				// Add cross node to canvas
@@ -2006,13 +2132,14 @@
 				// Create node element
 				const node = document.createElement('div');
 				node.id = nodeId;
-				node.className = 'breeding-node cross-node';
+				node.className = `breeding-node cross-node status-${crossData.status || 'planned'}`;
 				node.dataset.name = crossData.name;
 				
 				// Store all type information
 				node.dataset.growthType = crossData.growthType || '';
 				node.dataset.sexType = crossData.sexType || '';
 				node.dataset.floweringType = crossData.floweringType || '';
+				node.dataset.status = crossData.status || 'planned';  // NEW
 				
 				// Calculate position - below and between the parents with offset
 				const femaleEl = document.getElementById(crossData.femaleId);
@@ -2064,7 +2191,7 @@
 					traitsHTML += `<span class="strain-trait ${crossData.floweringType.toLowerCase()}">${crossData.floweringType}</span>`;
 				}
 				
-				// Cleaner node representation with parent info and connection points for further breeding
+				// Update node HTML to include status indicator
 				node.innerHTML = `
 					<div class="node-header">
 						<div class="node-name">${crossData.name}</div>
@@ -2077,6 +2204,11 @@
 						<div class="node-parents">
 							<div>♀: ${crossData.femaleName}</div>
 							<div>♂: ${crossData.maleName}</div>
+						</div>
+						<div class="status-indicator">
+							<div class="status-dot ${crossData.status || 'planned'}"></div>
+							<div>Status: ${(crossData.status || 'planned').replace('-', ' ').charAt(0).toUpperCase() + (crossData.status || 'planned').replace('-', ' ').slice(1)}</div>
+							<div class="status-toggle" data-node="${nodeId}">Change</div>
 						</div>
 					</div>
 					<div class="connection-points">
@@ -2095,22 +2227,25 @@
 				
 				// Setup remove button
 				const removeButton = node.querySelector('[data-action="remove"]');
-				removeButton.addEventListener('click', e => {
-					e.preventDefault();
-					e.stopPropagation();
-					removeNode(nodeId);
-				});
+				if (removeButton) {
+					removeButton.addEventListener('click', e => {
+						e.preventDefault();
+						e.stopPropagation();
+						removeNode(nodeId);
+					});
+				}
 				
 				// Add to canvas
 				breedingCanvas.appendChild(node);
 				
-				// Add to nodes array
+				// Add to nodes array with status property
 				const newNode = {
 					id: nodeId,
 					name: crossData.name,
 					growthType: crossData.growthType,
 					sexType: crossData.sexType,
 					floweringType: crossData.floweringType,
+					status: crossData.status || 'planned',  // NEW
 					origin: 'cross',
 					femaleParent: crossData.femaleId,
 					maleParent: crossData.maleId,
@@ -2132,6 +2267,54 @@
 				
 				selectNode(nodeId);
 				return nodeId;
+			}
+
+			function setupStatusToggle() {
+				// Use event delegation to handle dynamically created status toggles
+				document.addEventListener('click', function(e) {
+					if (!e.target.classList.contains('status-toggle')) return;
+					
+					e.preventDefault();
+					e.stopPropagation();
+					
+					const nodeId = e.target.dataset.node;
+					const node = document.getElementById(nodeId);
+					const nodeData = nodes.find(n => n.id === nodeId);
+					
+					if (!node || !nodeData) return;
+					
+					// Get current status
+					const currentStatus = nodeData.status || 'planned';
+					
+					// Define the status cycle
+					const statusCycle = ['planned', 'in-progress', 'completed'];
+					
+					// Find the next status in the cycle
+					const currentIndex = statusCycle.indexOf(currentStatus);
+					const nextIndex = (currentIndex + 1) % statusCycle.length;
+					const newStatus = statusCycle[nextIndex];
+					
+					// Update the node data
+					nodeData.status = newStatus;
+					
+					// Update the node display
+					node.dataset.status = newStatus;
+					
+					// Update the node class
+					node.className = node.className.replace(/status-\w+/, `status-${newStatus}`);
+					
+					// Update the status indicator
+					const statusDot = node.querySelector('.status-dot');
+					if (statusDot) {
+						statusDot.className = `status-dot ${newStatus}`;
+					}
+					
+					// Update the status text
+					const statusText = statusDot?.nextElementSibling;
+					if (statusText) {
+						statusText.textContent = `Status: ${newStatus.replace('-', ' ').charAt(0).toUpperCase() + newStatus.replace('-', ' ').slice(1)}`;
+					}
+				});
 			}
             
             function duplicateNode(nodeId) {
@@ -3210,11 +3393,20 @@
 				// Create node element
 				const node = document.createElement('div');
 				node.id = nodeData.id;
-				node.className = nodeData.origin === 'strain' ? 'breeding-node strain-node' : 'breeding-node cross-node';
+				
+				// Add status class if it exists (NEW CODE)
+				if (nodeData.origin === 'strain') {
+				  node.className = 'breeding-node strain-node';
+				} else {
+				  // For cross nodes, include status in class
+				  node.className = `breeding-node cross-node status-${nodeData.status || 'planned'}`;
+				}
+				
 				node.dataset.name = nodeData.name;
 				node.dataset.growthType = nodeData.growthType || '';
 				node.dataset.sexType = nodeData.sexType || '';
 				node.dataset.floweringType = nodeData.floweringType || '';
+				node.dataset.status = nodeData.status || 'planned'; // NEW CODE
 				
 				// Set position
 				if (diagram.positions && diagram.positions[nodeData.id]) {
@@ -3233,6 +3425,7 @@
 				
 				// Generate node HTML based on type
 				if (nodeData.origin === 'cross') {
+				  // Add status indicator for cross nodes (NEW CODE)
 				  node.innerHTML = `
 					<div class="node-header">
 					  <div class="node-name">${nodeData.name}</div>
@@ -3245,6 +3438,11 @@
 					  <div class="node-parents">
 						<div>♀: ${nodeData.femaleName || ''}</div>
 						<div>♂: ${nodeData.maleName || ''}</div>
+					  </div>
+					  <div class="status-indicator">
+						<div class="status-dot ${nodeData.status || 'planned'}"></div>
+						<div>Status: ${(nodeData.status || 'planned').replace('-', ' ').charAt(0).toUpperCase() + (nodeData.status || 'planned').replace('-', ' ').slice(1)}</div>
+						<div class="status-toggle" data-node="${nodeData.id}">Change</div>
 					  </div>
 					</div>
 					<div class="connection-points">
