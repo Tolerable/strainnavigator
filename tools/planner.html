@@ -1324,12 +1324,8 @@
 							savedSheets.splice(selectedSheetIndex, 1);
 							saveSheetsList();
 							
-							// Close modal completely before reopening
+							// Hide modal after completion
 							hideModal(document.getElementById('saved-sheets-modal'));
-							setTimeout(function() {
-								// Reopen modal with fresh state
-								showSavedSheetsModal();
-							}, 100);
 						}
 					}
 				});
@@ -1387,19 +1383,77 @@
 				cancelLoadBtn.addEventListener('click', () => hideModal(loadDiagramModal));
 				confirmLoadBtn.addEventListener('click', loadSelectedDiagram);
 				
-				document.getElementById('rename-plan-btn').addEventListener('click', showRenamePlanModal);
+				document.getElementById('rename-plan-btn').addEventListener('click', function() {
+					if (selectedSheetIndex < 0 || selectedSheetIndex >= savedSheets.length) {
+						alert('Please select a strain collection to rename.');
+						return;
+					}
+					
+					const selectedSheet = savedSheets[selectedSheetIndex];
+					
+					// Set up rename modal
+					document.getElementById('rename-plan-current-name').textContent = selectedSheet.name;
+					document.getElementById('rename-plan-input').value = selectedSheet.name;
+					
+					// Hide sheets modal THEN show rename modal
+					hideModal(document.getElementById('saved-sheets-modal'));
+					showModal(document.getElementById('rename-plan-modal'));
+				});
 				
 				// Rename plan modal
 				document.getElementById('cancel-rename-btn').addEventListener('click', function() {
-					hideModal(renamePlanModal);
-					showModal(loadDiagramModal);
+					hideModal(document.getElementById('rename-plan-modal'));
+					// Don't show any other modal after canceling
 				});
-				document.getElementById('confirm-rename-btn').addEventListener('click', confirmRenamePlan);
+				
+				document.getElementById('confirm-rename-btn').addEventListener('click', function() {
+					const newName = document.getElementById('rename-plan-input').value.trim();
+					
+					if (!newName) {
+						alert('Please enter a name for your strain collection.');
+						return;
+					}
+					
+					if (selectedSheetIndex < 0 || selectedSheetIndex >= savedSheets.length) {
+						alert('Invalid selection.');
+						return;
+					}
+					
+					const oldName = savedSheets[selectedSheetIndex].name;
+					
+					// Update the name
+					savedSheets[selectedSheetIndex].name = newName;
+					
+					// Save updated array
+					saveSheetsList();
+					
+					// Hide rename modal
+					hideModal(document.getElementById('rename-plan-modal'));
+					
+					// Show confirmation
+					alert(`Strain collection renamed from "${oldName}" to "${newName}".`);
+				});
 
-				document.getElementById('delete-plan-btn').addEventListener('click', showDeletePlanModal);
+				document.getElementById('delete-plan-btn').addEventListener('click', function() {
+					const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+					
+					if (selectedDiagramIndex < 0 || selectedDiagramIndex >= savedDiagrams.length) {
+						alert('Please select a breeding plan to delete.');
+						return;
+					}
+					
+					const plan = savedDiagrams[selectedDiagramIndex];
+					
+					// Set up delete modal
+					document.getElementById('delete-plan-name').textContent = plan.name;
+					
+					// Hide load modal then show delete modal
+					hideModal(document.getElementById('load-diagram-modal'));
+					showModal(document.getElementById('delete-plan-modal'));
+				});
+
 				document.getElementById('cancel-delete-btn').addEventListener('click', function() {
 					hideModal(document.getElementById('delete-plan-modal'));
-					showModal(loadDiagramModal);
 				});
 				document.getElementById('confirm-delete-btn').addEventListener('click', confirmDeletePlan);
 				
