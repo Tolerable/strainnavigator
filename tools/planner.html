@@ -2871,21 +2871,36 @@
 					return;
 				}
 				
-				// Check if this diagram is already saved by comparing node contents
-				// with saved diagrams
+				// Get saved diagrams
 				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
 				let currentDiagramName = '';
 				let currentDiagramNotes = '';
 				
-				// Look through saved diagrams to see if current one matches any
-				if (savedDiagrams.length > 0) {
-					// Check for matching node count first as a quick filter
-					const currentNodeIds = nodes.map(n => n.id).sort().join(',');
+				// First check: if a diagram was loaded, remember its name
+				// We can do this by checking if selectedDiagramIndex is set and valid
+				if (selectedDiagramIndex >= 0 && selectedDiagramIndex < savedDiagrams.length) {
+					currentDiagramName = savedDiagrams[selectedDiagramIndex].name;
+					currentDiagramNotes = savedDiagrams[selectedDiagramIndex].notes || '';
+				} 
+				// Fallback: look for a match based on nodes if no diagram was explicitly loaded
+				else if (savedDiagrams.length > 0) {
+					// This is the old matching logic as a fallback
+					const currentStrainNames = nodes
+						.filter(n => n.origin === 'strain')
+						.map(n => n.name)
+						.sort()
+						.join(',');
 					
 					for (const diagram of savedDiagrams) {
-						if (diagram.nodes && diagram.nodes.length === nodes.length) {
-							const savedNodeIds = diagram.nodes.map(n => n.id).sort().join(',');
-							if (savedNodeIds === currentNodeIds) {
+						if (diagram.nodes) {
+							const savedStrainNames = diagram.nodes
+								.filter(n => n.origin === 'strain')
+								.map(n => n.name)
+								.sort()
+								.join(',');
+							
+							// If most of the strains match (allowing for small changes)
+							if (currentStrainNames === savedStrainNames) {
 								currentDiagramName = diagram.name;
 								currentDiagramNotes = diagram.notes || '';
 								break;
