@@ -1241,11 +1241,18 @@
 
 				const exportImageBtn = document.createElement('button');
 				exportImageBtn.className = 'canvas-tool';
-				exportImageBtn.id = 'export-image';
-				exportImageBtn.innerText = 'Export Image';
+				exportImageBtn.id = 'save-image';
+				exportImageBtn.innerText = 'Save Image';
 				document.querySelector('.canvas-tools').appendChild(exportImageBtn);
-				
-				exportImageBtn.addEventListener('click', exportCanvasAsImage);
+
+				const copyImageBtn = document.createElement('button');
+				copyImageBtn.className = 'canvas-tool';
+				copyImageBtn.id = 'copy-image';
+				copyImageBtn.innerText = 'Copy Image';
+				document.querySelector('.canvas-tools').appendChild(copyImageBtn);
+
+				exportImageBtn.addEventListener('click', saveCanvasAsImage);
+				copyImageBtn.addEventListener('click', copyCanvasToClipboard);
 
 				const cleanupBtn = document.createElement('button');
 				cleanupBtn.className = 'canvas-tool';
@@ -2917,8 +2924,8 @@
 			}
 
 			// Function to export the canvas as an image
-			function exportCanvasAsImage() {
-				// Check for orphaned nodes far from the main diagram
+			function renderCanvasImage(callback) {
+				// Find the bounding box of all nodes
 				let minX = Infinity, minY = Infinity;
 				let maxX = -Infinity, maxY = -Infinity;
 				
@@ -2979,7 +2986,22 @@
 					useCORS: true,
 					scale: 2 // Higher resolution
 				}).then(renderedCanvas => {
-					// Convert canvas to image
+					// Call the callback function with the rendered canvas
+					callback(renderedCanvas);
+					
+					// Clean up
+					document.body.removeChild(tempContainer);
+				}).catch(error => {
+					console.error('Error generating image:', error);
+					alert('Error generating image. Please try again.');
+					document.body.removeChild(tempContainer);
+				});
+			}
+
+			// Function to save canvas as image file
+			function saveCanvasAsImage() {
+				renderCanvasImage(function(renderedCanvas) {
+					// Save to file
 					const imageUrl = renderedCanvas.toDataURL('image/png');
 					
 					// Create download link for automatic download
@@ -2990,6 +3012,13 @@
 					downloadLink.click();
 					document.body.removeChild(downloadLink);
 					
+					alert('Image saved to file!');
+				});
+			}
+
+			// Function to copy canvas to clipboard
+			function copyCanvasToClipboard() {
+				renderCanvasImage(function(renderedCanvas) {
 					// Copy to clipboard
 					renderedCanvas.toBlob(function(blob) {
 						try {
@@ -2998,28 +3027,21 @@
 								const item = new ClipboardItem({ 'image/png': blob });
 								navigator.clipboard.write([item]).then(
 									() => {
-										alert('Image saved and copied to clipboard!');
+										alert('Image copied to clipboard!');
 									},
 									(error) => {
 										console.error('Could not copy to clipboard: ', error);
-										alert('Image saved! (Clipboard copy not supported in this browser)');
+										alert('Clipboard copy not supported in this browser. Try the Save Image button instead.');
 									}
 								);
 							} else {
-								alert('Image saved! (Clipboard copy not supported in this browser)');
+								alert('Clipboard copy not supported in this browser. Try the Save Image button instead.');
 							}
 						} catch (error) {
 							console.error('Error copying to clipboard: ', error);
-							alert('Image saved! (Clipboard copy not supported in this browser)');
+							alert('Clipboard copy not supported in this browser. Try the Save Image button instead.');
 						}
 					});
-					
-					// Clean up
-					document.body.removeChild(tempContainer);
-				}).catch(error => {
-					console.error('Error generating image:', error);
-					alert('Error generating image. Please try again.');
-					document.body.removeChild(tempContainer);
 				});
 			}
 
