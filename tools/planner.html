@@ -717,6 +717,11 @@
 		.status-toggle:hover {
 			color: #fff;
 		}
+
+		#auto-save-indicator {
+			opacity: 0;
+			pointer-events: none;
+		}
 		
     </style>
 </head>
@@ -2314,7 +2319,85 @@
 					if (statusText) {
 						statusText.textContent = `Status: ${newStatus.replace('-', ' ').charAt(0).toUpperCase() + newStatus.replace('-', ' ').slice(1)}`;
 					}
+					
+					// Auto-save the breeding plan with updated status
+					autoSaveBreedingPlan();
 				});
+			}
+
+			function autoSaveBreedingPlan() {
+				// If we don't have a current plan loaded, don't try to auto-save
+				if (selectedDiagramIndex < 0) return;
+				
+				// Get existing saved diagrams
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				// If there are no saved diagrams or the selected index is invalid, do nothing
+				if (savedDiagrams.length === 0 || selectedDiagramIndex >= savedDiagrams.length) return;
+				
+				// Get the currently loaded diagram
+				const currentDiagram = savedDiagrams[selectedDiagramIndex];
+				
+				// Capture position data for all nodes
+				const nodePositions = {};
+				nodes.forEach(node => {
+					const nodeEl = document.getElementById(node.id);
+					if (nodeEl) {
+						nodePositions[node.id] = {
+							left: nodeEl.style.left,
+							top: nodeEl.style.top
+						};
+					}
+				});
+				
+				// Update save data
+				const saveData = {
+					name: currentDiagram.name,
+					notes: currentDiagram.notes || '',
+					date: new Date().toISOString(),
+					nodes: nodes,
+					connections: connections,
+					positions: nodePositions
+				};
+				
+				// Update the diagram in the saved list
+				savedDiagrams[selectedDiagramIndex] = saveData;
+				
+				// Save to localStorage
+				localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+				
+				// Optional - show a brief auto-save indicator
+				showAutoSaveIndicator();
+			}
+
+			function showAutoSaveIndicator() {
+				// Create or get the auto-save indicator element
+				let indicator = document.getElementById('auto-save-indicator');
+				
+				if (!indicator) {
+					indicator = document.createElement('div');
+					indicator.id = 'auto-save-indicator';
+					indicator.style.position = 'fixed';
+					indicator.style.bottom = '10px';
+					indicator.style.right = '10px';
+					indicator.style.backgroundColor = 'rgba(45, 94, 50, 0.8)';
+					indicator.style.color = 'white';
+					indicator.style.padding = '8px 12px';
+					indicator.style.borderRadius = '4px';
+					indicator.style.fontSize = '12px';
+					indicator.style.transition = 'opacity 0.5s';
+					indicator.style.zIndex = '1000';
+					document.body.appendChild(indicator);
+				}
+				
+				// Show the indicator
+				indicator.textContent = 'Changes saved';
+				indicator.style.opacity = '1';
+				
+				// Hide after 2 seconds
+				setTimeout(() => {
+					indicator.style.opacity = '0';
+				}, 2000);
 			}
             
             function duplicateNode(nodeId) {
@@ -3107,102 +3190,104 @@
 			}
             
 			function saveDiagram() {
-			  const name = diagramName.value.trim();
-			  const notes = diagramNotes.value.trim();
-			  
-			  if (!name) {
-				alert('Please enter a name for your breeding plan.');
-				return;
-			  }
-			  
-			  // Capture position data for all nodes
-			  const nodePositions = {};
-			  
-			  // Remove any orphaned nodes before saving
-			  const connectedNodeIds = new Set();
-			  connections.forEach(conn => {
-				connectedNodeIds.add(conn.source);
-				connectedNodeIds.add(conn.target);
-			  });
-			  
-			  // Filter out any nodes with no connections (orphaned nodes)
-			  // Except if it's the only node in the diagram
-			  const nodesToSave = nodes.length === 1 ? 
-				nodes : 
-				nodes.filter(node => connectedNodeIds.has(node.id));
-			  
-			  nodesToSave.forEach(node => {
-				const nodeEl = document.getElementById(node.id);
-				if (nodeEl) {
-				  nodePositions[node.id] = {
-					left: nodeEl.style.left,
-					top: nodeEl.style.top
-				  };
-				  
-				  // Save parent information for strain nodes
-				  if (node.origin === 'strain') {
-					// Find matching strain in allStrains
-					const matchingStrain = allStrains.find(strain => 
-					  (strain.STRAIN || strain.Strain || strain.Name) === node.name
-					);
-					
-					if (matchingStrain) {
-					  node.parent1 = matchingStrain.PARENT1 || matchingStrain.parent1 || '';
-					  node.parent2 = matchingStrain.PARENT2 || matchingStrain.parent2 || '';
+				const name = diagramName.value.trim();
+				const notes = diagramNotes.value.trim();
+				
+				if (!name) {
+					alert('Please enter a name for your breeding plan.');
+					return;
+				}
+				
+				// Capture position data for all nodes
+				const nodePositions = {};
+				
+				// Remove any orphaned nodes before saving
+				const connectedNodeIds = new Set();
+				connections.forEach(conn => {
+					connectedNodeIds.add(conn.source);
+					connectedNodeIds.add(conn.target);
+				});
+				
+				// Filter out any nodes with no connections (orphaned nodes)
+				// Except if it's the only node in the diagram
+				const nodesToSave = nodes.length === 1 ? 
+					nodes : 
+					nodes.filter(node => connectedNodeIds.has(node.id));
+				
+				nodesToSave.forEach(node => {
+					const nodeEl = document.getElementById(node.id);
+					if (nodeEl) {
+						nodePositions[node.id] = {
+							left: nodeEl.style.left,
+							top: nodeEl.style.top
+						};
+						
+						// Save parent information for strain nodes
+						if (node.origin === 'strain') {
+							// Find matching strain in allStrains
+							const matchingStrain = allStrains.find(strain => 
+								(strain.STRAIN || strain.Strain || strain.Name) === node.name
+							);
+							
+							if (matchingStrain) {
+								node.parent1 = matchingStrain.PARENT1 || matchingStrain.parent1 || '';
+								node.parent2 = matchingStrain.PARENT2 || matchingStrain.parent2 || '';
+							}
+						}
 					}
-				  }
+				});
+				
+				// Ensure cross nodes have parent name information
+				nodesToSave.forEach(node => {
+					if (node.origin === 'cross') {
+						if (node.femaleParent) {
+							const femaleNode = nodesToSave.find(n => n.id === node.femaleParent);
+							if (femaleNode) node.femaleName = femaleNode.name;
+						}
+						if (node.maleParent) {
+							const maleNode = nodesToSave.find(n => n.id === node.maleParent);
+							if (maleNode) node.maleName = maleNode.name;
+						}
+					}
+				});
+				
+				// Create save data
+				const saveData = {
+					name: name,
+					notes: notes,
+					date: new Date().toISOString(),
+					nodes: nodesToSave,
+					connections: connections,
+					positions: nodePositions
+				};
+				
+				// Get existing saved diagrams
+				let savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				// Check if diagram with this name already exists
+				const existingIndex = savedDiagrams.findIndex(d => d.name === name);
+				if (existingIndex >= 0) {
+					// Only ask for confirmation if it's not the currently loaded diagram
+					const isCurrentDiagram = savedDiagrams[existingIndex].nodes.length === nodes.length;
+					if (!isCurrentDiagram && !confirm(`A breeding plan named "${name}" already exists. Overwrite it?`)) {
+						return;
+					}
+					savedDiagrams[existingIndex] = saveData;
+					selectedDiagramIndex = existingIndex; // Update the selected diagram index
+				} else {
+					savedDiagrams.push(saveData);
+					selectedDiagramIndex = savedDiagrams.length - 1; // Set to the newly added diagram
 				}
-			  });
-			  
-			  // Ensure cross nodes have parent name information
-			  nodesToSave.forEach(node => {
-				if (node.origin === 'cross') {
-				  if (node.femaleParent) {
-					const femaleNode = nodesToSave.find(n => n.id === node.femaleParent);
-					if (femaleNode) node.femaleName = femaleNode.name;
-				  }
-				  if (node.maleParent) {
-					const maleNode = nodesToSave.find(n => n.id === node.maleParent);
-					if (maleNode) node.maleName = maleNode.name;
-				  }
-				}
-			  });
-			  
-			  // Create save data
-			  const saveData = {
-				name: name,
-				notes: notes,
-				date: new Date().toISOString(),
-				nodes: nodesToSave,
-				connections: connections,
-				positions: nodePositions
-			  };
-			  
-			  // Get existing saved diagrams
-			  let savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-			  
-			  // Check if diagram with this name already exists
-			  const existingIndex = savedDiagrams.findIndex(d => d.name === name);
-			  if (existingIndex >= 0) {
-				// Only ask for confirmation if it's not the currently loaded diagram
-				const isCurrentDiagram = savedDiagrams[existingIndex].nodes.length === nodes.length;
-				if (!isCurrentDiagram && !confirm(`A breeding plan named "${name}" already exists. Overwrite it?`)) {
-				  return;
-				}
-				savedDiagrams[existingIndex] = saveData;
-			  } else {
-				savedDiagrams.push(saveData);
-			  }
-			  
-			  // Save to localStorage
-			  localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
-			  
-			  // Hide modal and reset
-			  hideModal(saveDiagramModal);
-			  diagramName.value = '';
-			  diagramNotes.value = '';
-			  
-			  alert(`Breeding plan "${name}" saved successfully!`);
+				
+				// Save to localStorage
+				localStorage.setItem('breedingDiagrams', JSON.stringify(savedDiagrams));
+				
+				// Hide modal and reset
+				hideModal(saveDiagramModal);
+				diagramName.value = '';
+				diagramNotes.value = '';
+				
+				alert(`Breeding plan "${name}" saved successfully!`);
 			}
 
 			// Function to export the canvas as an image
