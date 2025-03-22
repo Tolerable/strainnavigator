@@ -1287,8 +1287,15 @@
 				manageSheetBtn.addEventListener('click', showSavedSheetsModal);
 				sidebarHeader.appendChild(manageSheetBtn);
 				
+				// document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
+				// 	hideModal(document.getElementById('saved-sheets-modal'));
+				// });
+
 				document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
 					hideModal(document.getElementById('saved-sheets-modal'));
+					// Do NOT do anything else after hiding the modal
+					// Make sure no other modal is shown
+					selectedSheetIndex = -1; // Reset the selection after canceling
 				});
 
 				document.getElementById('load-sheet-from-list-btn').addEventListener('click', function() {
