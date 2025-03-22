@@ -1284,8 +1284,12 @@
 							savedSheets.splice(selectedSheetIndex, 1);
 							saveSheetsList();
 							
-							// Refresh modal
-							showSavedSheetsModal();
+							// Close modal completely before reopening
+							hideModal(document.getElementById('saved-sheets-modal'));
+							setTimeout(function() {
+								// Reopen modal with fresh state
+								showSavedSheetsModal();
+							}, 100);
 						}
 					}
 				});
@@ -1445,6 +1449,104 @@
 						item.style.backgroundColor = '';
 					}
 				});
+			}
+
+			// Add these separate modal functions for sheet management
+			function showSheetDeleteConfirmation() {
+				if (selectedSheetIndex < 0 || selectedSheetIndex >= savedSheets.length) {
+					alert('Please select a strain collection to delete.');
+					return;
+				}
+				
+				const selectedSheet = savedSheets[selectedSheetIndex];
+				
+				// Don't allow deleting the default sheet
+				if (selectedSheet.isDefault) {
+					alert('Cannot delete the default strain collection.');
+					return;
+				}
+				
+				// Use a different modal for delete confirmation
+				const deleteSheetModal = document.getElementById('delete-plan-modal');
+				document.getElementById('delete-plan-name').textContent = selectedSheet.name;
+				
+				// Hide the sheets modal and show delete confirmation
+				hideModal(document.getElementById('saved-sheets-modal'));
+				showModal(deleteSheetModal);
+			}
+
+			function confirmDeleteSheet() {
+				if (selectedSheetIndex < 0 || selectedSheetIndex >= savedSheets.length) {
+					alert('Invalid selection.');
+					return;
+				}
+				
+				const selectedSheet = savedSheets[selectedSheetIndex];
+				
+				// If deleting the active sheet, switch to default
+				if (selectedSheet.id === activeSheetId) {
+					const defaultSheet = savedSheets.find(s => s.isDefault);
+					if (defaultSheet) {
+						activeSheetId = defaultSheet.id;
+						loadStrainsFromSheet(defaultSheet.id);
+					}
+				}
+				
+				// Remove from saved sheets
+				savedSheets.splice(selectedSheetIndex, 1);
+				saveSheetsList();
+				
+				// Hide delete modal
+				hideModal(document.getElementById('delete-plan-modal'));
+				
+				// Show success message
+				alert(`Strain collection "${selectedSheet.name}" has been deleted.`);
+			}
+
+			function showSheetRenameModal() {
+				if (selectedSheetIndex < 0 || selectedSheetIndex >= savedSheets.length) {
+					alert('Please select a strain collection to rename.');
+					return;
+				}
+				
+				const selectedSheet = savedSheets[selectedSheetIndex];
+				
+				// Set up rename modal
+				const renameModal = document.getElementById('rename-plan-modal');
+				document.getElementById('rename-plan-current-name').textContent = selectedSheet.name;
+				document.getElementById('rename-plan-input').value = selectedSheet.name;
+				
+				// Hide sheets modal and show rename modal
+				hideModal(document.getElementById('saved-sheets-modal'));
+				showModal(renameModal);
+			}
+
+			function confirmRenameSheet() {
+				const newName = document.getElementById('rename-plan-input').value.trim();
+				
+				if (!newName) {
+					alert('Please enter a name for your strain collection.');
+					return;
+				}
+				
+				if (selectedSheetIndex < 0 || selectedSheetIndex >= savedSheets.length) {
+					alert('Invalid selection.');
+					return;
+				}
+				
+				const oldName = savedSheets[selectedSheetIndex].name;
+				
+				// Update the name
+				savedSheets[selectedSheetIndex].name = newName;
+				
+				// Save updated array
+				saveSheetsList();
+				
+				// Hide rename modal
+				hideModal(document.getElementById('rename-plan-modal'));
+				
+				// Show confirmation
+				alert(`Strain collection renamed from "${oldName}" to "${newName}".`);
 			}
             
             // Canvas Pan/Zoom
