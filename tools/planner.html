@@ -2828,7 +2828,21 @@
 			  
 			  // Capture position data for all nodes
 			  const nodePositions = {};
-			  nodes.forEach(node => {
+			  
+			  // Remove any orphaned nodes before saving
+			  const connectedNodeIds = new Set();
+			  connections.forEach(conn => {
+				connectedNodeIds.add(conn.source);
+				connectedNodeIds.add(conn.target);
+			  });
+			  
+			  // Filter out any nodes with no connections (orphaned nodes)
+			  // Except if it's the only node in the diagram
+			  const nodesToSave = nodes.length === 1 ? 
+				nodes : 
+				nodes.filter(node => connectedNodeIds.has(node.id));
+			  
+			  nodesToSave.forEach(node => {
 				const nodeEl = document.getElementById(node.id);
 				if (nodeEl) {
 				  nodePositions[node.id] = {
@@ -2852,14 +2866,14 @@
 			  });
 			  
 			  // Ensure cross nodes have parent name information
-			  nodes.forEach(node => {
+			  nodesToSave.forEach(node => {
 				if (node.origin === 'cross') {
 				  if (node.femaleParent) {
-					const femaleNode = nodes.find(n => n.id === node.femaleParent);
+					const femaleNode = nodesToSave.find(n => n.id === node.femaleParent);
 					if (femaleNode) node.femaleName = femaleNode.name;
 				  }
 				  if (node.maleParent) {
-					const maleNode = nodes.find(n => n.id === node.maleParent);
+					const maleNode = nodesToSave.find(n => n.id === node.maleParent);
 					if (maleNode) node.maleName = maleNode.name;
 				  }
 				}
@@ -2870,7 +2884,7 @@
 				name: name,
 				notes: notes,
 				date: new Date().toISOString(),
-				nodes: nodes,
+				nodes: nodesToSave,
 				connections: connections,
 				positions: nodePositions
 			  };
@@ -2881,11 +2895,12 @@
 			  // Check if diagram with this name already exists
 			  const existingIndex = savedDiagrams.findIndex(d => d.name === name);
 			  if (existingIndex >= 0) {
-				if (confirm(`A breeding plan named "${name}" already exists. Overwrite it?`)) {
-				  savedDiagrams[existingIndex] = saveData;
-				} else {
+				// Only ask for confirmation if it's not the currently loaded diagram
+				const isCurrentDiagram = savedDiagrams[existingIndex].nodes.length === nodes.length;
+				if (!isCurrentDiagram && !confirm(`A breeding plan named "${name}" already exists. Overwrite it?`)) {
 				  return;
 				}
+				savedDiagrams[existingIndex] = saveData;
 			  } else {
 				savedDiagrams.push(saveData);
 			  }
@@ -3049,11 +3064,28 @@
 				  const match = n.id.match(/node-(\d+)/);
 				  return match ? parseInt(match[1]) : 0;
 				});
-				nodeCounter = Math.max(...nodeIds);
+				nodeCounter = Math.max(...nodeIds, 0);
 			  }
 			  
+			  // Find all valid connected nodes
+			  const connectedNodeIds = new Set();
+			  if (diagram.connections) {
+				diagram.connections.forEach(conn => {
+				  connectedNodeIds.add(conn.source);
+				  connectedNodeIds.add(conn.target);
+				});
+			  }
+			  
+			  // If there's only one node, it won't have connections but we should still load it
+			  const shouldFilterOrphans = diagram.nodes.length > 1 && diagram.connections && diagram.connections.length > 0;
+			  
+			  // Only load nodes that have connections, unless it's the only node
+			  const nodesToLoad = shouldFilterOrphans ? 
+				diagram.nodes.filter(node => connectedNodeIds.has(node.id)) : 
+				diagram.nodes;
+			  
 			  // Create all nodes first
-			  diagram.nodes.forEach(nodeData => {
+			  nodesToLoad.forEach(nodeData => {
 				// Create node element
 				const node = document.createElement('div');
 				node.id = nodeData.id;
@@ -3150,13 +3182,16 @@
 			  });
 			  
 			  // Add nodes to state array with all properties preserved
-			  nodes = diagram.nodes.map(n => ({...n}));
+			  nodes = nodesToLoad.map(n => ({...n}));
 			  
 			  // Recreate all connections
 			  connections = [];
 			  if (diagram.connections) {
 				diagram.connections.forEach(conn => {
-				  addConnection(conn.source, conn.target, conn.role);
+				  // Only create connections if both nodes exist
+				  if (nodes.some(n => n.id === conn.source) && nodes.some(n => n.id === conn.target)) {
+					addConnection(conn.source, conn.target, conn.role);
+				  }
 				});
 			  }
 
