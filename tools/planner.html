@@ -2975,6 +2975,9 @@
 				  addConnection(conn.source, conn.target, conn.role);
 				});
 			  }
+
+			  // Update parent information for strain nodes
+			  updateExistingNodesWithParents();
 			  
 			  // Center view
 			  centerView();
