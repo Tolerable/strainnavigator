@@ -21,7 +21,7 @@
         header {
             background: linear-gradient(135deg, #1a3c20, #2d5e32);
             color: white;
-            padding: 10px 20px;
+            padding: 5px 20px;
             text-align: center;
         }
         
@@ -40,11 +40,27 @@
             overflow: hidden;
         }
         
-        .sidebar-header {
-            padding: 10px;
-            border-bottom: 1px solid #444;
-            background-color: #282828;
-        }
+		.sidebar-header {
+			padding: 10px;
+			border-bottom: 1px solid #444;
+			background-color: #282828;
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.sidebar-header h3 {
+			margin: 0;
+			font-size: 16px;
+		}
+
+		/* For the manage button */
+		.sidebar-header .btn-secondary {
+			position: static; /* Remove absolute positioning */
+			padding: 4px 8px;
+			font-size: 12px;
+		}
         
         .search-box {
             display: flex;
@@ -81,9 +97,9 @@
 			overflow-x: hidden;
 			justify-content: space-between;
 		}
-        
+
 		.filter-tab {
-			padding: 8px 0; 
+			padding: 8px 0;
 			cursor: pointer;
 			white-space: nowrap;
 			font-size: 12px;
@@ -1267,10 +1283,8 @@
 				const sidebarHeader = document.querySelector('.sidebar-header');
 				const manageSheetBtn = document.createElement('button');
 				manageSheetBtn.className = 'btn btn-secondary';
-				manageSheetBtn.style = 'position: absolute; right: 10px; top: 10px; padding: 4px 8px; font-size: 12px;';
-				manageSheetBtn.innerText = 'Manage Collections';
+				manageSheetBtn.innerText = 'MANAGE';
 				manageSheetBtn.addEventListener('click', showSavedSheetsModal);
-				sidebarHeader.style.position = 'relative';
 				sidebarHeader.appendChild(manageSheetBtn);
 				
 				document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
