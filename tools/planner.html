@@ -1246,7 +1246,14 @@
 				document.querySelector('.canvas-tools').appendChild(exportImageBtn);
 				
 				exportImageBtn.addEventListener('click', exportCanvasAsImage);
-				
+
+				const cleanupBtn = document.createElement('button');
+				cleanupBtn.className = 'canvas-tool';
+				cleanupBtn.id = 'cleanup-nodes';
+				cleanupBtn.innerText = 'Find Orphans';
+				document.querySelector('.canvas-tools').appendChild(cleanupBtn);
+				cleanupBtn.addEventListener('click', cleanupOrphanedNodes);
+
 				const sidebarHeader = document.querySelector('.sidebar-header');
 				const manageSheetBtn = document.createElement('button');
 				manageSheetBtn.className = 'btn btn-secondary';
@@ -2863,7 +2870,7 @@
 
 			// Function to export the canvas as an image
 			function exportCanvasAsImage() {
-				// Find the bounding box of all nodes
+				// Check for orphaned nodes far from the main diagram
 				let minX = Infinity, minY = Infinity;
 				let maxX = -Infinity, maxY = -Infinity;
 				
@@ -2892,16 +2899,6 @@
 				// Calculate width and height
 				const width = maxX - minX;
 				const height = maxY - minY;
-				
-				// Create a canvas element
-				const canvas = document.createElement('canvas');
-				canvas.width = width;
-				canvas.height = height;
-				const ctx = canvas.getContext('2d');
-				
-				// Fill background
-				ctx.fillStyle = '#2d2d2d';
-				ctx.fillRect(0, 0, width, height);
 				
 				// Create a temporary container to hold the content
 				const tempContainer = document.createElement('div');
@@ -2937,13 +2934,37 @@
 					// Convert canvas to image
 					const imageUrl = renderedCanvas.toDataURL('image/png');
 					
-					// Create download link
+					// Create download link for automatic download
 					const downloadLink = document.createElement('a');
 					downloadLink.href = imageUrl;
 					downloadLink.download = 'breeding-plan.png';
 					document.body.appendChild(downloadLink);
 					downloadLink.click();
 					document.body.removeChild(downloadLink);
+					
+					// Copy to clipboard
+					renderedCanvas.toBlob(function(blob) {
+						try {
+							// Modern clipboard API
+							if (navigator.clipboard && navigator.clipboard.write) {
+								const item = new ClipboardItem({ 'image/png': blob });
+								navigator.clipboard.write([item]).then(
+									() => {
+										alert('Image saved and copied to clipboard!');
+									},
+									(error) => {
+										console.error('Could not copy to clipboard: ', error);
+										alert('Image saved! (Clipboard copy not supported in this browser)');
+									}
+								);
+							} else {
+								alert('Image saved! (Clipboard copy not supported in this browser)');
+							}
+						} catch (error) {
+							console.error('Error copying to clipboard: ', error);
+							alert('Image saved! (Clipboard copy not supported in this browser)');
+						}
+					});
 					
 					// Clean up
 					document.body.removeChild(tempContainer);
@@ -2952,6 +2973,34 @@
 					alert('Error generating image. Please try again.');
 					document.body.removeChild(tempContainer);
 				});
+			}
+
+			function cleanupOrphanedNodes() {
+				// Find nodes that aren't connected to anything
+				const orphanedNodes = nodes.filter(node => {
+					// Check if node has no connections
+					return !connections.some(conn => 
+						conn.source === node.id || conn.target === node.id
+					);
+				});
+				
+				if (orphanedNodes.length > 0) {
+					if (confirm(`Found ${orphanedNodes.length} disconnected node(s). Would you like to center view on them?`)) {
+						// Find the position of the first orphaned node
+						const orphanNode = document.getElementById(orphanedNodes[0].id);
+						if (orphanNode) {
+							const left = parseInt(orphanNode.style.left || '0');
+							const top = parseInt(orphanNode.style.top || '0');
+							
+							// Center the view on this node
+							canvasOffset.x = canvasContainer.clientWidth / 2 - left - 100;
+							canvasOffset.y = canvasContainer.clientHeight / 2 - top - 60;
+							updateCanvasPosition();
+						}
+					}
+				} else {
+					alert('No disconnected nodes found.');
+				}
 			}
 
 			function loadDiagram(diagram) {
