@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <title>Strain Breeding Planner</title>
     <style>
         body {
@@ -1246,7 +1247,9 @@
 				manageSheetBtn.addEventListener('click', showSavedSheetsModal);
 				sidebarHeader.style.position = 'relative';
 				sidebarHeader.appendChild(manageSheetBtn);
-
+				
+				exportImageBtn.addEventListener('click', exportCanvasAsImage);
+				
 				document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
 					hideModal(document.getElementById('saved-sheets-modal'));
 				});
@@ -1334,6 +1337,12 @@
 				});
 				arrangeTreeBtn.addEventListener('click', arrangeTreeLayout);
 				centerViewBtn.addEventListener('click', centerView);
+
+				const exportImageBtn = document.createElement('button');
+				exportImageBtn.className = 'canvas-tool';
+				exportImageBtn.id = 'export-image';
+				exportImageBtn.innerText = 'Export Image';
+				document.querySelector('.canvas-tools').appendChild(exportImageBtn);
 				
 				// Cross modal
 				cancelCrossBtn.addEventListener('click', () => hideModal(nameCrossModal));
@@ -2850,6 +2859,99 @@
 			  diagramNotes.value = '';
 			  
 			  alert(`Breeding plan "${name}" saved successfully!`);
+			}
+
+			// Function to export the canvas as an image
+			function exportCanvasAsImage() {
+				// Find the bounding box of all nodes
+				let minX = Infinity, minY = Infinity;
+				let maxX = -Infinity, maxY = -Infinity;
+				
+				nodes.forEach(node => {
+					const nodeEl = document.getElementById(node.id);
+					if (nodeEl) {
+						const left = parseInt(nodeEl.style.left || '0');
+						const top = parseInt(nodeEl.style.top || '0');
+						const width = nodeEl.offsetWidth || 200;
+						const height = nodeEl.offsetHeight || 100;
+						
+						minX = Math.min(minX, left);
+						minY = Math.min(minY, top);
+						maxX = Math.max(maxX, left + width);
+						maxY = Math.max(maxY, top + height);
+					}
+				});
+				
+				// Add padding
+				const padding = 30;
+				minX -= padding;
+				minY -= padding;
+				maxX += padding;
+				maxY += padding;
+				
+				// Calculate width and height
+				const width = maxX - minX;
+				const height = maxY - minY;
+				
+				// Create a canvas element
+				const canvas = document.createElement('canvas');
+				canvas.width = width;
+				canvas.height = height;
+				const ctx = canvas.getContext('2d');
+				
+				// Fill background
+				ctx.fillStyle = '#2d2d2d';
+				ctx.fillRect(0, 0, width, height);
+				
+				// Create a temporary container to hold the content
+				const tempContainer = document.createElement('div');
+				tempContainer.style.position = 'absolute';
+				tempContainer.style.left = '0';
+				tempContainer.style.top = '0';
+				tempContainer.style.width = `${width}px`;
+				tempContainer.style.height = `${height}px`;
+				tempContainer.style.overflow = 'hidden';
+				tempContainer.style.pointerEvents = 'none';
+				tempContainer.style.zIndex = '-1000';
+				document.body.appendChild(tempContainer);
+				
+				// Clone the breeding canvas
+				const clonedCanvas = breedingCanvas.cloneNode(true);
+				clonedCanvas.style.transform = `translate(${-minX}px, ${-minY}px)`;
+				clonedCanvas.style.position = 'absolute';
+				
+				// Remove all UI elements from the clone that shouldn't be in the image
+				clonedCanvas.querySelectorAll('.canvas-tools, .arrange-options, .help-text').forEach(el => {
+					el.remove();
+				});
+				
+				tempContainer.appendChild(clonedCanvas);
+				
+				// Use html2canvas library to capture the content
+				html2canvas(tempContainer, {
+					backgroundColor: '#2d2d2d',
+					allowTaint: true,
+					useCORS: true,
+					scale: 2 // Higher resolution
+				}).then(renderedCanvas => {
+					// Convert canvas to image
+					const imageUrl = renderedCanvas.toDataURL('image/png');
+					
+					// Create download link
+					const downloadLink = document.createElement('a');
+					downloadLink.href = imageUrl;
+					downloadLink.download = 'breeding-plan.png';
+					document.body.appendChild(downloadLink);
+					downloadLink.click();
+					document.body.removeChild(downloadLink);
+					
+					// Clean up
+					document.body.removeChild(tempContainer);
+				}).catch(error => {
+					console.error('Error generating image:', error);
+					alert('Error generating image. Please try again.');
+					document.body.removeChild(tempContainer);
+				});
 			}
 
 			function loadDiagram(diagram) {
