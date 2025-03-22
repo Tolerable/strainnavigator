@@ -1295,8 +1295,14 @@
 					if (selectedSheetIndex >= 0 && selectedSheetIndex < savedSheets.length) {
 						const selectedSheet = savedSheets[selectedSheetIndex];
 						activeSheetId = selectedSheet.id;
-						loadStrainsFromSheet(selectedSheet.id);
+						
+						// Hide modal first
 						hideModal(document.getElementById('saved-sheets-modal'));
+						
+						// Then load strains
+						loadStrainsFromSheet(selectedSheet.id);
+					} else {
+						alert('Please select a strain collection first.');
 					}
 				});
 
