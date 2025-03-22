@@ -1238,7 +1238,15 @@
             }
             
 			function setupEventListeners() {
-			
+
+				const exportImageBtn = document.createElement('button');
+				exportImageBtn.className = 'canvas-tool';
+				exportImageBtn.id = 'export-image';
+				exportImageBtn.innerText = 'Export Image';
+				document.querySelector('.canvas-tools').appendChild(exportImageBtn);
+				
+				exportImageBtn.addEventListener('click', exportCanvasAsImage);
+				
 				const sidebarHeader = document.querySelector('.sidebar-header');
 				const manageSheetBtn = document.createElement('button');
 				manageSheetBtn.className = 'btn btn-secondary';
@@ -1247,8 +1255,6 @@
 				manageSheetBtn.addEventListener('click', showSavedSheetsModal);
 				sidebarHeader.style.position = 'relative';
 				sidebarHeader.appendChild(manageSheetBtn);
-				
-				exportImageBtn.addEventListener('click', exportCanvasAsImage);
 				
 				document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
 					hideModal(document.getElementById('saved-sheets-modal'));
@@ -1338,12 +1344,6 @@
 				arrangeTreeBtn.addEventListener('click', arrangeTreeLayout);
 				centerViewBtn.addEventListener('click', centerView);
 
-				const exportImageBtn = document.createElement('button');
-				exportImageBtn.className = 'canvas-tool';
-				exportImageBtn.id = 'export-image';
-				exportImageBtn.innerText = 'Export Image';
-				document.querySelector('.canvas-tools').appendChild(exportImageBtn);
-				
 				// Cross modal
 				cancelCrossBtn.addEventListener('click', () => hideModal(nameCrossModal));
 				createCrossBtn.addEventListener('click', createCross);
