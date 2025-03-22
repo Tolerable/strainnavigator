@@ -74,20 +74,23 @@
 			background-color: #444;
 		}
         
-        .filter-tabs {
-            display: flex;
-            overflow-x: auto;
-            border-bottom: 1px solid #444;
-            background-color: #282828;
-        }
+		.filter-tabs {
+			display: flex;
+			border-bottom: 1px solid #444;
+			background-color: #282828;
+			overflow-x: hidden;
+			justify-content: space-between;
+		}
         
-        .filter-tab {
-            padding: 8px 12px;
-            cursor: pointer;
-            white-space: nowrap;
-            font-size: 12px;
-            font-weight: 500;
-        }
+		.filter-tab {
+			padding: 8px 0; 
+			cursor: pointer;
+			white-space: nowrap;
+			font-size: 12px;
+			font-weight: 500;
+			flex: 1;
+			text-align: center;
+		}
         
         .filter-tab.active {
             background-color: #5d4a7e;
