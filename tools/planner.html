@@ -2786,6 +2786,19 @@
 					left: nodeEl.style.left,
 					top: nodeEl.style.top
 				  };
+				  
+				  // Save parent information for strain nodes
+				  if (node.origin === 'strain') {
+					// Find matching strain in allStrains
+					const matchingStrain = allStrains.find(strain => 
+					  (strain.STRAIN || strain.Strain || strain.Name) === node.name
+					);
+					
+					if (matchingStrain) {
+					  node.parent1 = matchingStrain.PARENT1 || matchingStrain.parent1 || '';
+					  node.parent2 = matchingStrain.PARENT2 || matchingStrain.parent2 || '';
+					}
+				  }
 				}
 			  });
 			  
@@ -2903,6 +2916,17 @@
 					</div>
 				  `;
 				} else {
+				  // Create parent info HTML if parent data exists in the saved node
+				  let parentHTML = '';
+				  if (nodeData.parent1 || nodeData.parent2) {
+					parentHTML = `
+					  <div class="node-parents">
+						${nodeData.parent1 ? `<div>♀: ${nodeData.parent1}</div>` : ''}
+						${nodeData.parent2 ? `<div>♂: ${nodeData.parent2}</div>` : ''}
+					  </div>
+					`;
+				  }
+				  
 				  node.innerHTML = `
 					<div class="node-header">
 					  <div class="node-name">${nodeData.name}</div>
@@ -2912,6 +2936,7 @@
 					</div>
 					<div class="node-content">
 					  <div class="node-traits">${traitsHTML}</div>
+					  ${parentHTML}
 					</div>
 					<div class="connection-points">
 					  <div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
