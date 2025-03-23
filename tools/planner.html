@@ -1212,14 +1212,24 @@
 					
 					// Process each header field
 					headers.forEach((header, index) => {
-						// Standardize common header variations
+						// Normalize header name for storage
 						let key = header;
 						const headerLower = header.toLowerCase();
 						
-						// Handle parent column headers with spaces
-						if (headerLower === 'parent 1') key = 'PARENT1';
-						else if (headerLower === 'parent 2') key = 'PARENT2';
-						else if (headerLower === 'reg / fem' || headerLower === 'reg/fem') key = 'REG / FEM';
+						// Handle header variations
+						if (headerLower === 'parent 1') {
+							key = 'PARENT1';
+						} else if (headerLower === 'parent 2') {
+							key = 'PARENT2';
+						} else if (headerLower === 'reg / fem' || headerLower === 'reg/fem') {
+							key = 'REG / FEM';
+						} else if (headerLower === 'strain' || headerLower === 'name') {
+							key = 'STRAIN';
+						} else if (headerLower === 'breeder' || headerLower === 'seedbank' || headerLower === 'breeder name') {
+							key = 'BREEDER';
+						} else if (headerLower === 'count' || headerLower === 'quantity' || headerLower === 'amount') {
+							key = 'COUNT';
+						}
 						
 						// Assign value if available
 						if (index < values.length) {
