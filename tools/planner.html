@@ -1194,33 +1194,6 @@
 				loadStrainsFromSheet(activeSheetId);
 			}
             
-            function parseCSV(csv) {
-                const lines = csv.split('\n');
-                const headers = lines[0].split(',').map(header => header.trim());
-                
-                const result = [];
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    
-                    // Handle quoted fields with commas
-                    const values = parseCSVLine(lines[i]);
-                    
-                    if (values.length < 2 || !values[0].trim()) continue;
-                    if (values[0].trim().toUpperCase() === 'STRAIN' || values[0].trim() === 'Unnamed Seed') continue;
-                    
-                    const entry = {};
-                    for (let j = 0; j < headers.length; j++) {
-                        entry[headers[j]] = j < values.length ? values[j].trim() : '';
-                    }
-                    
-                    // Generate unique ID
-                    entry.id = `strain-${i}`;
-                    result.push(entry);
-                }
-                
-                return result;
-            }
-            
 			function parseCSV(csv) {
 				const lines = csv.split('\n');
 				const headers = lines[0].split(',').map(header => header.trim());
