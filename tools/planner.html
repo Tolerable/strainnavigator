@@ -1056,7 +1056,6 @@
             initializeCanvas();
 			initializeSheetManager();
             loadStrains();
-			migrateBreedingPlans();
             setupEventListeners();
 			
             // Functions
@@ -2389,48 +2388,6 @@
 				
 				// Optional - show a brief auto-save indicator
 				showAutoSaveIndicator();
-			}
-
-			function migrateBreedingPlans() {
-				// Get existing saved diagrams
-				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
-				
-				// Check if any diagrams need migration (don't have collectionId)
-				const needsMigration = savedDiagrams.some(diagram => !diagram.collectionId);
-				
-				if (needsMigration) {
-					console.log('Migrating breeding plans to new format...');
-					
-					// Get all available collections
-					const collections = savedSheets.map(sheet => sheet.id);
-					
-					// Create new array for migrated diagrams
-					let migratedDiagrams = [];
-					
-					// For each diagram without a collectionId, duplicate it for all collections
-					savedDiagrams.forEach(diagram => {
-						if (!diagram.collectionId) {
-							// Create a copy for each collection
-							collections.forEach(collectionId => {
-								migratedDiagrams.push({
-									...diagram,
-									name: `${diagram.name} (from migration)`,
-									collectionId: collectionId
-								});
-							});
-						} else {
-							// Already has a collection ID, keep as is
-							migratedDiagrams.push(diagram);
-						}
-					});
-					
-					// Save migrated diagrams
-					localStorage.setItem('breedingDiagrams', JSON.stringify(migratedDiagrams));
-					
-					// Show notification
-					alert('Your breeding plans have been duplicated across all collections. Please delete any plans that don\'t belong to each collection.');
-					console.log('Migration complete - plans duplicated across all collections');
-				}
 			}
 
 			function showAutoSaveIndicator() {
