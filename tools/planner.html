@@ -1056,6 +1056,7 @@
             initializeCanvas();
 			initializeSheetManager();
             loadStrains();
+			migrateBreedingPlans();
             setupEventListeners();
 			
             // Functions
@@ -2388,6 +2389,34 @@
 				
 				// Optional - show a brief auto-save indicator
 				showAutoSaveIndicator();
+			}
+
+			function migrateBreedingPlans() {
+				// Get existing saved diagrams
+				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
+				
+				// Check if any diagrams need migration (don't have collectionId)
+				const needsMigration = savedDiagrams.some(diagram => !diagram.collectionId);
+				
+				if (needsMigration) {
+					console.log('Migrating breeding plans to new format...');
+					
+					// Add collectionId to all diagrams that don't have one
+					// Use the active collection as default
+					const migratedDiagrams = savedDiagrams.map(diagram => {
+						if (!diagram.collectionId) {
+							return {
+								...diagram,
+								collectionId: activeSheetId
+							};
+						}
+						return diagram;
+					});
+					
+					// Save migrated diagrams
+					localStorage.setItem('breedingDiagrams', JSON.stringify(migratedDiagrams));
+					console.log('Migration complete - all plans are now associated with collections');
+				}
 			}
 
 			function showAutoSaveIndicator() {
