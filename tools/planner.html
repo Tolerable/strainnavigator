@@ -2354,6 +2354,9 @@
 				// Get the currently loaded diagram
 				const currentDiagram = savedDiagrams[selectedDiagramIndex];
 				
+				// Make sure the diagram belongs to current collection
+				if (currentDiagram.collectionId !== activeSheetId) return;
+				
 				// Capture position data for all nodes
 				const nodePositions = {};
 				nodes.forEach(node => {
@@ -2373,7 +2376,8 @@
 					date: new Date().toISOString(),
 					nodes: nodes,
 					connections: connections,
-					positions: nodePositions
+					positions: nodePositions,
+					collectionId: activeSheetId  // Ensure collection ID is maintained
 				};
 				
 				// Update the diagram in the saved list
@@ -3271,32 +3275,36 @@
 					}
 				});
 				
-				// Create save data
+				// Create save data with collection ID
 				const saveData = {
 					name: name,
 					notes: notes,
 					date: new Date().toISOString(),
 					nodes: nodesToSave,
 					connections: connections,
-					positions: nodePositions
+					positions: nodePositions,
+					collectionId: activeSheetId  // NEW: Store the collection ID
 				};
 				
 				// Get existing saved diagrams
 				let savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
 				
-				// Check if diagram with this name already exists
-				const existingIndex = savedDiagrams.findIndex(d => d.name === name);
+				// Check if diagram with this name already exists IN THIS COLLECTION
+				const existingIndex = savedDiagrams.findIndex(d => 
+					d.name === name && d.collectionId === activeSheetId
+				);
+				
 				if (existingIndex >= 0) {
 					// Only ask for confirmation if it's not the currently loaded diagram
 					const isCurrentDiagram = savedDiagrams[existingIndex].nodes.length === nodes.length;
-					if (!isCurrentDiagram && !confirm(`A breeding plan named "${name}" already exists. Overwrite it?`)) {
+					if (!isCurrentDiagram && !confirm(`A breeding plan named "${name}" already exists in this collection. Overwrite it?`)) {
 						return;
 					}
 					savedDiagrams[existingIndex] = saveData;
-					selectedDiagramIndex = existingIndex; // Update the selected diagram index
+					selectedDiagramIndex = existingIndex;
 				} else {
 					savedDiagrams.push(saveData);
-					selectedDiagramIndex = savedDiagrams.length - 1; // Set to the newly added diagram
+					selectedDiagramIndex = savedDiagrams.length - 1;
 				}
 				
 				// Save to localStorage
@@ -3635,16 +3643,20 @@
 				// Get saved diagrams
 				const savedDiagrams = JSON.parse(localStorage.getItem('breedingDiagrams') || '[]');
 				
-				if (savedDiagrams.length === 0) {
-					savedDiagramsList.innerHTML = `<div style="padding: 10px; text-align: center; color: #999;">No saved breeding plans found</div>`;
+				// Filter diagrams for current collection only
+				const collectionDiagrams = savedDiagrams.filter(diagram => 
+					diagram.collectionId === activeSheetId
+				);
+				
+				if (collectionDiagrams.length === 0) {
+					savedDiagramsList.innerHTML = `<div style="padding: 10px; text-align: center; color: #999;">No saved breeding plans found for this collection</div>`;
 					confirmLoadBtn.disabled = true;
-					
 					document.getElementById('rename-plan-btn').disabled = true;
-					document.getElementById('delete-plan-btn').disabled = true; // Add this line
+					document.getElementById('delete-plan-btn').disabled = true;
 				} else {
-					// Create list of saved diagrams
+					// Create list of saved diagrams for this collection
 					let html = '';
-					savedDiagrams.forEach((diagram, index) => {
+					collectionDiagrams.forEach((diagram, index) => {
 						const date = new Date(diagram.date).toLocaleDateString();
 						const nodeCount = diagram.nodes.length;
 						
@@ -3654,7 +3666,7 @@
 						html += `
 							<div class="saved-plan-item${isSelected}" 
 								 style="padding: 10px; border-bottom: 1px solid #444; cursor: pointer;" 
-								 data-index="${index}">
+								 data-index="${savedDiagrams.indexOf(diagram)}">
 								<div style="display: flex; justify-content: space-between; align-items: center;">
 									<span style="font-weight: 500; cursor: pointer; flex: 1;">${diagram.name}</span>
 									<span style="font-size: 12px; color: #999;">${date}</span>
@@ -3669,9 +3681,8 @@
 					
 					savedDiagramsList.innerHTML = html;
 					confirmLoadBtn.disabled = false;
-					
 					document.getElementById('rename-plan-btn').disabled = false;
-					document.getElementById('delete-plan-btn').disabled = false; // Add this line
+					document.getElementById('delete-plan-btn').disabled = false;
 				}
 				
 				showModal(loadDiagramModal);
