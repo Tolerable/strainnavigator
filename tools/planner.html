@@ -1194,6 +1194,30 @@
 				loadStrainsFromSheet(activeSheetId);
 			}
             
+			// First, add the missing parseCSVLine function
+			function parseCSVLine(line) {
+				let results = [];
+				let currentValue = '';
+				let inQuotes = false;
+				
+				for (let i = 0; i < line.length; i++) {
+					const char = line[i];
+					
+					if (char === '"') {
+						inQuotes = !inQuotes;
+					} else if (char === ',' && !inQuotes) {
+						results.push(currentValue);
+						currentValue = '';
+					} else {
+						currentValue += char;
+					}
+				}
+				
+				results.push(currentValue);
+				return results;
+			}
+
+			// Then, use our simplified parseCSV function
 			function parseCSV(csv) {
 				const lines = csv.split('\n');
 				
