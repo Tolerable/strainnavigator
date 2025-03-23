@@ -1047,7 +1047,9 @@
             let isPanning = false;
             let panStart = { x: 0, y: 0 };
             let canvasOffset = { x: 0, y: 0 };
-			let activeSheetId = sheetId; // Default sheet ID
+
+			// Check for saved active sheet ID
+			let activeSheetId = localStorage.getItem('breedingPlannerActiveSheetId') || sheetId;
 			let savedSheets = []; // To store multiple sheets
 			
             // Initialize
@@ -1175,6 +1177,10 @@
 						allStrains = parseCSV(csv);
 						renderStrainList(allStrains);
 						updateExistingNodesWithParents();
+						
+						// Save active sheet ID to localStorage
+						activeSheetId = sheetId;
+						saveActiveSheetId();
 					})
 					.catch(error => {
 						console.error('Error loading data:', error);
@@ -3187,6 +3193,10 @@
 				if (currentDiagramName) {
 					diagramName.select();
 				}
+			}
+
+			function saveActiveSheetId() {
+				localStorage.setItem('breedingPlannerActiveSheetId', activeSheetId);
 			}
             
 			function saveDiagram() {
