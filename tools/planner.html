@@ -1196,51 +1196,33 @@
             
 			function parseCSV(csv) {
 				const lines = csv.split('\n');
-				const headers = lines[0].split(',').map(header => header.trim());
+				
+				// Skip the header row - we'll assume a fixed column structure
+				// Expected columns in order: STRAIN, REG/FEM, BREEDER, COUNT, PARENT1, PARENT2
 				
 				const result = [];
+				// Start from line 1 (skipping header)
 				for (let i = 1; i < lines.length; i++) {
 					if (!lines[i].trim()) continue;
 					
 					// Handle quoted fields with commas
 					const values = parseCSVLine(lines[i]);
 					
+					// Skip if first value is empty or matches header
 					if (values.length < 2 || !values[0].trim()) continue;
 					if (values[0].trim().toUpperCase() === 'STRAIN' || values[0].trim() === 'Unnamed Seed') continue;
 					
-					const entry = {};
+					// Create entry with fixed column mapping regardless of headers
+					const entry = {
+						'STRAIN': values[0]?.trim() || '',
+						'REG / FEM': values[1]?.trim() || '',
+						'BREEDER': values[2]?.trim() || '',
+						'COUNT': values[3]?.trim() || '',
+						'PARENT1': values[4]?.trim() || '',
+						'PARENT2': values[5]?.trim() || '',
+						'id': `strain-${i}`
+					};
 					
-					// Process each header field
-					headers.forEach((header, index) => {
-						// Normalize header name for storage
-						let key = header;
-						const headerLower = header.toLowerCase();
-						
-						// Handle header variations
-						if (headerLower === 'parent 1') {
-							key = 'PARENT1';
-						} else if (headerLower === 'parent 2') {
-							key = 'PARENT2';
-						} else if (headerLower === 'reg / fem' || headerLower === 'reg/fem') {
-							key = 'REG / FEM';
-						} else if (headerLower === 'strain' || headerLower === 'name') {
-							key = 'STRAIN';
-						} else if (headerLower === 'breeder' || headerLower === 'seedbank' || headerLower === 'breeder name') {
-							key = 'BREEDER';
-						} else if (headerLower === 'count' || headerLower === 'quantity' || headerLower === 'amount') {
-							key = 'COUNT';
-						}
-						
-						// Assign value if available
-						if (index < values.length) {
-							entry[key] = values[index].trim();
-						} else {
-							entry[key] = '';
-						}
-					});
-					
-					// Generate unique ID
-					entry.id = `strain-${i}`;
 					result.push(entry);
 				}
 				
