@@ -1115,6 +1115,17 @@
 				});
 			}
 
+			function toggleMinimalView() {
+			  isMinimalView = !isMinimalView;
+			  document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
+			  updateToggleButton();
+			  
+			  // Add delay before arranging tree to allow class changes to take effect
+			  setTimeout(() => {
+				arrangeTreeLayout(); // Re-arrange the entire tree when toggling view
+			  }, 100);
+			}
+
 			function loadCustomSheet() {
 				const sheetUrlInput = document.getElementById('sheet-url-input');
 				const url = sheetUrlInput.value.trim();
@@ -1251,36 +1262,46 @@
 				const styleElement = document.createElement('style');
 				styleElement.id = 'minimal-view-styles';
 				styleElement.textContent = `
-					.minimal-view .breeding-node .node-content {
-						display: none;
-					}
-					
-					.minimal-view .breeding-node .connection-points {
-						margin-top: 0;
-					}
-					
-					.minimal-view .breeding-node {
-						min-width: 120px;
-					}
-					
-					.minimal-view .strain-node.status-completed::after,
-					.minimal-view .cross-node.status-completed::after,
-					.minimal-view .strain-node.status-in-progress::after,
-					.minimal-view .cross-node.status-in-progress::after,
-					.minimal-view .strain-node.status-planned::after,
-					.minimal-view .cross-node.status-planned::after {
-						content: "";
-						position: absolute;
-						right: 5px;
-						top: 5px;
-						width: 8px;
-						height: 8px;
-						border-radius: 50%;
-					}
-					
-					.minimal-view .status-completed::after { background-color: #66BB6A; }
-					.minimal-view .status-in-progress::after { background-color: #42A5F5; }
-					.minimal-view .status-planned::after { background-color: #FFB74D; }
+				  .minimal-view .breeding-node .node-content {
+					display: none;
+				  }
+				  
+				  .minimal-view .breeding-node .connection-points {
+					margin-top: 0;
+				  }
+				  
+				  .minimal-view .breeding-node {
+					min-width: 120px;
+				  }
+				  
+				  /* New styles for cleaner connection points */
+				  .minimal-view .connection-point {
+					height: 4px;
+					width: 12px;
+					border-radius: 0;
+				  }
+				  
+				  .minimal-view .connection-point-female {
+					border-color: #e091b9;
+				  }
+				  
+				  .minimal-view .connection-point-male {
+					border-color: #91b7e0;
+				  }
+				  
+				  .minimal-view .node-header {
+					font-size: 12px;
+					padding: 4px 8px;
+				  }
+				  
+				  .minimal-view .connection-points {
+					padding: 3px 0;
+				  }
+				  
+				  /* Status indicators */
+				  .minimal-view .status-completed::after { background-color: #66BB6A; }
+				  .minimal-view .status-in-progress::after { background-color: #42A5F5; }
+				  .minimal-view .status-planned::after { background-color: #FFB74D; }
 				`;
 				document.head.appendChild(styleElement);
 				
@@ -1290,12 +1311,10 @@
 					document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
 					updateToggleButton();
 					
-					// Update all connections with a slight delay to adjust to new node sizes
+					// Add this: Re-arrange the tree when toggling view modes
 					setTimeout(() => {
-						if (typeof updateAllConnections === 'function') {
-							updateAllConnections();
-						}
-					}, 100);
+						arrangeTreeLayout();
+					}, 200);
 				});
 			}
 
