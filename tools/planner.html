@@ -1221,6 +1221,11 @@
 			}
 
 			function addMinimalViewToggle() {
+				// Check if the toggle already exists
+				if (document.getElementById('toggle-minimal-view')) {
+					return; // Don't create duplicates
+				}
+				
 				const minimalViewBtn = document.createElement('button');
 				minimalViewBtn.className = 'canvas-tool';
 				minimalViewBtn.id = 'toggle-minimal-view';
@@ -1244,6 +1249,7 @@
 				
 				// Add CSS for minimal view
 				const styleElement = document.createElement('style');
+				styleElement.id = 'minimal-view-styles';
 				styleElement.textContent = `
 					.minimal-view .breeding-node .node-content {
 						display: none;
@@ -1284,8 +1290,12 @@
 					document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
 					updateToggleButton();
 					
-					// Update all connections to adjust to new node sizes
-					updateAllConnections();
+					// Update all connections with a slight delay to adjust to new node sizes
+					setTimeout(() => {
+						if (typeof updateAllConnections === 'function') {
+							updateAllConnections();
+						}
+					}, 100);
 				});
 			}
 
