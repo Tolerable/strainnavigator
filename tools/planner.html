@@ -1057,7 +1057,10 @@
 			initializeSheetManager();
             loadStrains();
             setupEventListeners();
-			
+
+			// Add minimal view toggle
+			addMinimalViewToggle();
+	
             // Functions
             function initializeCanvas() {
                 // Set initial canvas position
@@ -1215,6 +1218,75 @@
 				
 				results.push(currentValue);
 				return results;
+			}
+
+			function addMinimalViewToggle() {
+				const minimalViewBtn = document.createElement('button');
+				minimalViewBtn.className = 'canvas-tool';
+				minimalViewBtn.id = 'toggle-minimal-view';
+				minimalViewBtn.innerHTML = 'Minimal View <span class="toggle-indicator">◻</span>';
+				document.querySelector('.canvas-tools').appendChild(minimalViewBtn);
+				
+				// Track state
+				let isMinimalView = false;
+				
+				// Toggle button style based on state
+				function updateToggleButton() {
+					const indicator = minimalViewBtn.querySelector('.toggle-indicator');
+					if (isMinimalView) {
+						indicator.textContent = '☑';
+						minimalViewBtn.style.backgroundColor = '#5d4a7e';
+					} else {
+						indicator.textContent = '◻';
+						minimalViewBtn.style.backgroundColor = '';
+					}
+				}
+				
+				// Add CSS for minimal view
+				const styleElement = document.createElement('style');
+				styleElement.textContent = `
+					.minimal-view .breeding-node .node-content {
+						display: none;
+					}
+					
+					.minimal-view .breeding-node .connection-points {
+						margin-top: 0;
+					}
+					
+					.minimal-view .breeding-node {
+						min-width: 120px;
+					}
+					
+					.minimal-view .strain-node.status-completed::after,
+					.minimal-view .cross-node.status-completed::after,
+					.minimal-view .strain-node.status-in-progress::after,
+					.minimal-view .cross-node.status-in-progress::after,
+					.minimal-view .strain-node.status-planned::after,
+					.minimal-view .cross-node.status-planned::after {
+						content: "";
+						position: absolute;
+						right: 5px;
+						top: 5px;
+						width: 8px;
+						height: 8px;
+						border-radius: 50%;
+					}
+					
+					.minimal-view .status-completed::after { background-color: #66BB6A; }
+					.minimal-view .status-in-progress::after { background-color: #42A5F5; }
+					.minimal-view .status-planned::after { background-color: #FFB74D; }
+				`;
+				document.head.appendChild(styleElement);
+				
+				// Toggle event handler
+				minimalViewBtn.addEventListener('click', function() {
+					isMinimalView = !isMinimalView;
+					document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
+					updateToggleButton();
+					
+					// Update all connections to adjust to new node sizes
+					updateAllConnections();
+				});
 			}
 
 			// Then, use our simplified parseCSV function
