@@ -722,6 +722,18 @@
 			opacity: 0;
 			pointer-events: none;
 		}
+
+		.minimal-view .connector {
+			stroke-width: 3px !important; /* Thicker lines */
+		}
+
+		.minimal-view .connector-female {
+			stroke-dasharray: none;
+		}
+
+		.minimal-view .connector-male {
+			stroke-dasharray: none;
+		}
 		
     </style>
 </head>
@@ -1311,10 +1323,10 @@
 					document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
 					updateToggleButton();
 					
-					// Add this: Re-arrange the tree when toggling view modes
+					// Update connections only, don't rearrange nodes
 					setTimeout(() => {
-						arrangeTreeLayout();
-					}, 200);
+						updateAllConnections();
+					}, 100);
 				});
 			}
 
