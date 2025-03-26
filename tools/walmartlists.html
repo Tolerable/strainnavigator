@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Front Yard (LIVE BIRD & CRITTER CAMS) Registry</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #1d4ed8;
+            --text-color: #333;
+            --light-bg: #f9fafb;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo {
+            width: 100px;
+            height: 100px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        
+        .title-container {
+            text-align: left;
+        }
+        
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            margin: 20px 0;
+            font-style: italic;
+            color: #666;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .item-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .item-image {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            padding: 15px;
+            background-color: #fff;
+        }
+        
+        .item-info {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .item-name {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .item-price {
+            font-weight: bold;
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .item-status {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            margin-top: 15px;
+        }
+        
+        .purchased {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .action-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .action-btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        select, input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+        
+        .badge {
+            background-color: #10b981;
+            color: white;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">T</div>
+                <div class="title-container">
+                    <h1>The Front Yard (LIVE BIRD & CRITTER CAMS)</h1>
+                    <p>Walmart Registry</p>
+                </div>
+            </div>
+            <p class="description">
+                "Any seed, feed, cat treats or items donated are directly used to feed, assist or increase awareness for the animals seen on and off camera. You are welcome to send as little or as much of what you believe they would enjoy or need. We and they appreciate any and all kindness shown. Thank you!"
+            </p>
+        </header>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label for="sort">Sort by:</label>
+                <select id="sort">
+                    <option value="name">Name</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="needed" selected>Still Needed</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <input type="text" id="search" placeholder="Search items...">
+            </div>
+        </div>
+        
+        <div id="items-container" class="items-grid">
+            <div class="loading">Loading registry items...</div>
+        </div>
+        
+        <footer>
+            <p>Registry ID: 967cb320-83ca-4e52-b25a-38cf32e3f228</p>
+            <p>Last updated: <span id="last-updated"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        // Registry data - This would normally be fetched from an API
+        // Since we can't directly fetch from Walmart's API due to CORS, we'll use this static data
+        const registryItems = [
+            {
+                id: 1,
+                name: "Audubon Park Sunflower Hearts Dry Wild Bird Food, 15 lb Bag",
+                price: 32.53,
+                pricePerUnit: "$2.17/lb",
+                image: "https://i5.walmartimages.com/asr/536c9f01-0cf2-448e-ac53-e2f24dd77a9e.b31e2d74c8e6d7831d48240d37b7045b.jpeg",
+                purchased: 1,
+                totalNeeded: 12
+            },
+            {
+                id: 2,
+                name: "Audubon Park Sunflower Spicy Blend Wild Bird Food, Dry, 1 Count per Pack, 5 lb. Bag",
+                price: 9.58,
+                pricePerUnit: "$1.92/lb",
+                image: "https://i5.walmartimages.com/asr/f0c7a92a-1de1-474f-a0f7-62bcc33b16e0.1c2c1ca59d9d8d0fa45ab7c4f29ef9b6.jpeg",
+                purchased: 0,
+                totalNeeded: 20
+            },
+            {
+                id: 3,
+                name: "C&S Woodpecker Suet Treat, for Wild Birds, 11 Ounces, Pack of 12",
+                price: 10.84,
+                pricePerUnit: null,
+                image: "https://i5.walmartimages.com/asr/da6df965-a6a4-4f4a-b83b-e00dcbb3dde5.75fe08a3deb1ea92b8f424ecbfed92a3.jpeg",
+                purchased: 4,
+                totalNeeded: 20
+            },
+            {
+                id: 4,
+                name: "Pennington Shelled Peanuts Wildlife and Wild Bird Food, 5 lb. Bag, 1 Pack, Dry",
+                price: 10.97,
+                pricePerUnit: "$2.19/lb",
+                image: "https://i5.walmartimages.com/asr/a051bc5a-d806-43ac-8d7f-f8ac520cd1b6.6aee62dea7f7ac49c2b8ca9c5b1c3923.jpeg",
+                purchased: 2,
+                totalNeeded: 20
+            }
+        ];
+
+        // Function to render items
+        function renderItems(items) {
+            const container = document.getElementById('items-container');
+            
+            if (items.length === 0) {
+                container.innerHTML = '<div class="loading">No items found</div>';
+                return;
+            }
+            
+            container.innerHTML = items.map(item => `
+                <div class="item-card">
+                    <img src="${item.image}" alt="${item.name}" class="item-image">
+                    <div class="item-info">
+                        <h3 class="item-name">${item.name}</h3>
+                        <div class="item-price">
+                            $${item.price.toFixed(2)} ${item.pricePerUnit ? `<span style="font-size: 0.8rem; color: #666;">(${item.pricePerUnit})</span>` : ''}
+                        </div>
+                        <div class="item-status">
+                            <span class="purchased">${item.purchased} of ${item.totalNeeded} purchased</span>
+                            <a href="https://www.walmart.com/registry/ER/967cb320-83ca-4e52-b25a-38cf32e3f228" class="action-btn" target="_blank">Purchase</a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Function to sort items
+        function sortItems(items, sortBy) {
+            const sortedItems = [...items];
+            
+            switch(sortBy) {
+                case 'name':
+                    sortedItems.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'price-low':
+                    sortedItems.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-high':
+                    sortedItems.sort((a, b) => b.price - a.price);
+                    break;
+                case 'needed':
+                    sortedItems.sort((a, b) => {
+                        const aNeeded = a.totalNeeded - a.purchased;
+                        const bNeeded = b.totalNeeded - b.purchased;
+                        return bNeeded - aNeeded;
+                    });
+                    break;
+            }
+            
+            return sortedItems;
+        }
+
+        // Function to filter items
+        function filterItems(items, searchTerm) {
+            if (!searchTerm) return items;
+            
+            searchTerm = searchTerm.toLowerCase();
+            return items.filter(item => 
+                item.name.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        // Event listeners
+        document.getElementById('sort').addEventListener('change', function() {
+            const searchTerm = document.getElementById('search').value;
+            const filteredItems = filterItems(registryItems, searchTerm);
+            const sortedItems = sortItems(filteredItems, this.value);
+            renderItems(sortedItems);
+        });
+
+        document.getElementById('search').addEventListener('input', function() {
+            const sortBy = document.getElementById('sort').value;
+            const filteredItems = filterItems(registryItems, this.value);
+            const sortedItems = sortItems(filteredItems, sortBy);
+            renderItems(sortedItems);
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            // Set current date for last updated
+            const now = new Date();
+            document.getElementById('last-updated').textContent = now.toLocaleDateString();
+            
+            // Initial render
+            const sortBy = document.getElementById('sort').value;
+            const sortedItems = sortItems(registryItems, sortBy);
+            renderItems(sortedItems);
+        });
+    </script>
+</body>
+</html>
