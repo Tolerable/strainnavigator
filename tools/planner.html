@@ -723,16 +723,33 @@
 			pointer-events: none;
 		}
 
-		.minimal-view .connector {
-			stroke-width: 3px !important; /* Thicker lines */
-		}
-
 		.minimal-view .connector-female {
 			stroke-dasharray: none;
 		}
 
 		.minimal-view .connector-male {
 			stroke-dasharray: none;
+		}
+
+		.minimal-view .connector {
+			stroke-width: 3px;
+		}
+
+		.minimal-view .breeding-node {
+			min-width: 120px;
+			min-height: 30px; /* Set minimum height */
+		}
+
+		// Improve connection points in minimal view
+		.minimal-view .connection-points {
+			padding: 2px 0;
+			margin-top: 1px;
+		}
+
+		.minimal-view .connection-point {
+			height: 4px;
+			width: 12px;
+			border-radius: 1px;
 		}
 		
     </style>
