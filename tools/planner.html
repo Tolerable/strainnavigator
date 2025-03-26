@@ -736,20 +736,32 @@
 		}
 
 		.minimal-view .breeding-node {
-			min-width: 120px;
-			min-height: 30px; /* Set minimum height */
+		  min-width: 120px;
+		  min-height: 24px;
+		  padding: 0;
+		  margin: 0;
 		}
 
-		// Improve connection points in minimal view
+		.minimal-view .node-header {
+		  padding: 2px 6px;
+		  font-size: 11px;
+		  line-height: 1;
+		}
+
 		.minimal-view .connection-points {
-			padding: 2px 0;
-			margin-top: 1px;
+		  padding: 0;
+		  margin: 0;
+		  height: 6px;
+		  position: absolute;
+		  bottom: 0;
+		  width: 100%;
 		}
 
 		.minimal-view .connection-point {
-			height: 4px;
-			width: 12px;
-			border-radius: 1px;
+		  width: 10px;
+		  height: 3px;
+		  border-radius: 0;
+		  margin-top: -3px;
 		}
 		
     </style>
