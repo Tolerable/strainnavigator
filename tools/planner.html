@@ -1348,20 +1348,72 @@
 					document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
 					updateToggleButton();
 					
-					// Set spacing based on current view mode
+					// Scale all nodes closer together without rearranging
 					if (isMinimalView) {
-						// Use much tighter spacing for minimal view
-						nodeSpacing.horizontal = 100; // Down from 250
-						nodeSpacing.vertical = 40;   // Down from 120
+						scaleNodesCloser(0.5); // 50% reduction in distance
 					} else {
-						// Reset to normal spacing
-						nodeSpacing.horizontal = 250;
-						nodeSpacing.vertical = 120;
+						resetNodePositions(); // Return to original positions
 					}
 					
-					// Rearrange with new spacing values
-					arrangeTreeLayout();
+					// Just update connections
+					setTimeout(() => {
+						updateAllConnections();
+					}, 100);
 				});
+			}
+
+			function scaleNodesCloser(scaleFactor) {
+				// Store original positions if not already saved
+				if (!window.originalPositions) {
+					window.originalPositions = {};
+					nodes.forEach(node => {
+						const el = document.getElementById(node.id);
+						if (el) {
+							window.originalPositions[node.id] = {
+								left: parseInt(el.style.left),
+								top: parseInt(el.style.top)
+							};
+						}
+					});
+				}
+				
+				// Calculate center of all nodes
+				let centerX = 0, centerY = 0, count = 0;
+				nodes.forEach(node => {
+					const pos = window.originalPositions[node.id];
+					if (pos) {
+						centerX += pos.left;
+						centerY += pos.top;
+						count++;
+					}
+				});
+				centerX /= count;
+				centerY /= count;
+				
+				// Scale positions toward center
+				nodes.forEach(node => {
+					const el = document.getElementById(node.id);
+					const pos = window.originalPositions[node.id];
+					if (el && pos) {
+						const dx = pos.left - centerX;
+						const dy = pos.top - centerY;
+						el.style.left = Math.round(centerX + dx * scaleFactor) + "px";
+						el.style.top = Math.round(centerY + dy * scaleFactor) + "px";
+					}
+				});
+			}
+
+			function resetNodePositions() {
+				if (window.originalPositions) {
+					nodes.forEach(node => {
+						const el = document.getElementById(node.id);
+						const pos = window.originalPositions[node.id];
+						if (el && pos) {
+							el.style.left = pos.left + "px";
+							el.style.top = pos.top + "px";
+						}
+					});
+				}
 			}
 
 			// Then, use our simplified parseCSV function
