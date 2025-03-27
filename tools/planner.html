@@ -1644,11 +1644,17 @@
 						const selectedSheet = savedSheets[selectedSheetIndex];
 						activeSheetId = selectedSheet.id;
 						
-						// Hide modal first
+						// Hide modal FIRST
 						hideModal(document.getElementById('saved-sheets-modal'));
 						
-						// Then load strains
+						// THEN load strains and update UI
 						loadStrainsFromSheet(selectedSheet.id);
+						
+						// Update the active indicator in the list
+						savedSheets.forEach((sheet, i) => {
+							sheet.isActive = (i === selectedSheetIndex);
+						});
+						saveSheetsList();
 					} else {
 						alert('Please select a strain collection first.');
 					}
