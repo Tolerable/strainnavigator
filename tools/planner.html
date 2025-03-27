@@ -1097,6 +1097,10 @@
 
 			// Add minimal view toggle
 			addMinimalViewToggle();
+
+			// Initialize position storage objects
+			if (!window.normalPositions) window.normalPositions = {};
+			if (!window.minimalPositions) window.minimalPositions = {};
 	
             // Functions
             function initializeCanvas() {
