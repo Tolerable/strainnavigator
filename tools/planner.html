@@ -1344,21 +1344,64 @@
 				
 				// Toggle event handler
 				minimalViewBtn.addEventListener('click', function() {
+					// Save current positions before switching
+					if (isMinimalView) {
+						saveCurrentPositions('minimal');
+					} else {
+						saveCurrentPositions('normal');
+					}
+					
+					// Toggle view
 					isMinimalView = !isMinimalView;
 					document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
 					updateToggleButton();
 					
-					// Scale all nodes closer together without rearranging
+					// Apply saved positions or calculate new ones
 					if (isMinimalView) {
-						scaleNodesCloser(0.65); // 50% reduction in distance
+						if (hasStoredPositions('minimal')) {
+							applyStoredPositions('minimal');
+						} else {
+							scaleNodesCloser(0.65);
+						}
 					} else {
-						resetNodePositions(); // Return to original positions
+						if (hasStoredPositions('normal')) {
+							applyStoredPositions('normal');
+						} else {
+							resetNodePositions();
+						}
 					}
 					
-					// Just update connections
-					setTimeout(() => {
-						updateAllConnections();
-					}, 100);
+					updateAllConnections();
+				});
+			}
+
+			function saveCurrentPositions(mode) {
+				const positions = mode === 'minimal' ? window.minimalPositions : window.normalPositions;
+				nodes.forEach(node => {
+					const el = document.getElementById(node.id);
+					if (el) {
+						positions[node.id] = {
+							left: parseInt(el.style.left),
+							top: parseInt(el.style.top)
+						};
+					}
+				});
+			}
+
+			function hasStoredPositions(mode) {
+				const positions = mode === 'minimal' ? window.minimalPositions : window.normalPositions;
+				return Object.keys(positions).length > 0;
+			}
+
+			function applyStoredPositions(mode) {
+				const positions = mode === 'minimal' ? window.minimalPositions : window.normalPositions;
+				nodes.forEach(node => {
+					const el = document.getElementById(node.id);
+					const pos = positions[node.id];
+					if (el && pos) {
+						el.style.left = pos.left + "px";
+						el.style.top = pos.top + "px";
+					}
 				});
 			}
 
