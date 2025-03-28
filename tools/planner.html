@@ -3050,6 +3050,7 @@
 				updateConnection(connectionId);
 			}
 
+			// Modified updateConnection function to correctly handle connection points
 			function updateConnection(connectionId) {
 				const connection = typeof connectionId === 'string' 
 					? connections.find(c => c.id === connectionId)
@@ -3073,12 +3074,13 @@
 				const targetRect = targetNode.getBoundingClientRect();
 				const canvasRect = breedingCanvas.getBoundingClientRect();
 				
-				// Get source node's connection points
-				const sourceConnPoints = sourceNode.querySelectorAll('.connection-point');
-				let sourcePoint;
+				// Find the specific connection points
+				let sourcePoint = null;
+				let targetPoint = null;
 				
-				// Find the specific connection point for this connection's role
-				for (const point of sourceConnPoints) {
+				// Find source connection point (female or male)
+				const sourcePoints = sourceNode.querySelectorAll('.connection-point');
+				for (const point of sourcePoints) {
 					if (point.dataset.role === connection.role) {
 						const pointRect = point.getBoundingClientRect();
 						sourcePoint = {
@@ -3089,33 +3091,57 @@
 					}
 				}
 				
-				// If we couldn't find the exact point, use node center
+				// Find target input point (always at the top middle)
+				const targetPoints = targetNode.querySelectorAll('.connection-point');
+				for (const point of targetPoints) {
+					// We want the opposite connection type for the target
+					const oppositeRole = connection.role === 'female' ? 'male' : 'female';
+					if (point.dataset.role === oppositeRole) {
+						const pointRect = point.getBoundingClientRect();
+						targetPoint = {
+							x: pointRect.left + pointRect.width/2 - canvasRect.left,
+							y: pointRect.top + pointRect.height/2 - canvasRect.top
+						};
+						break;
+					}
+				}
+				
+				// Fallbacks if specific points weren't found
 				if (!sourcePoint) {
 					sourcePoint = {
 						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
-						y: sourceRect.top + sourceRect.height/2 - canvasRect.top
+						y: sourceRect.bottom - canvasRect.top
 					};
 				}
 				
-				// Find target node's input point
-				const targetPoint = {
-					x: targetRect.left + targetRect.width/2 - canvasRect.left,
-					y: targetRect.top - canvasRect.top
-				};
+				if (!targetPoint) {
+					targetPoint = {
+						x: targetRect.left + targetRect.width/2 - canvasRect.left,
+						y: targetRect.top - canvasRect.top
+					};
+				}
 				
-				// Create a standard orthogonal path
-				// For breeding diagrams, we always want: down from source, then horizontal, then down to target
+				// Create a path with clean right-angled connections
 				let pathD = '';
 				
-				// First segment: Move down from source
-				const midY = sourcePoint.y + Math.max(40, (targetPoint.y - sourcePoint.y) * 0.4);
-				pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${midY}`;
+				// Determine if we're going down or up
+				const isGoingDown = sourcePoint.y < targetPoint.y;
+				const verticalDistance = Math.abs(targetPoint.y - sourcePoint.y);
+				const horizontalDistance = Math.abs(targetPoint.x - sourcePoint.x);
 				
-				// Second segment: Move horizontally toward target
-				pathD += ` L ${targetPoint.x} ${midY}`;
-				
-				// Third segment: Move down to target
-				pathD += ` L ${targetPoint.x} ${targetPoint.y}`;
+				if (isGoingDown) {
+					// Standard case: source is above target
+					const midY = sourcePoint.y + verticalDistance * 0.5;
+					pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${midY} L ${targetPoint.x} ${midY} L ${targetPoint.x} ${targetPoint.y}`;
+				} else if (verticalDistance < 20 && horizontalDistance > 20) {
+					// Nearly horizontal case: use horizontal line with small vertical segments
+					pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${sourcePoint.y-15} L ${targetPoint.x} ${targetPoint.y-15} L ${targetPoint.x} ${targetPoint.y}`;
+				} else {
+					// Going up case (reverse breeding): make a bigger arc
+					const controlX = (sourcePoint.x + targetPoint.x) / 2;
+					const controlY = Math.min(sourcePoint.y, targetPoint.y) - 50;
+					pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${sourcePoint.y-20} L ${controlX} ${controlY} L ${targetPoint.x} ${targetPoint.y-20} L ${targetPoint.x} ${targetPoint.y}`;
+				}
 				
 				path.setAttribute('d', pathD);
 				
@@ -3306,24 +3332,120 @@
 			function arrangeTreeLayout() {
 				if (nodes.length === 0) return;
 				
-				// Create a new directed graph
-				const g = new dagre.graphlib.Graph();
+				try {
+					// Check if dagre is available
+					if (typeof dagre === 'undefined') {
+						console.error('Dagre library not found. Using fallback layout.');
+						arrangeTreeLayoutFallback();
+						return;
+					}
+					
+					// Create a new directed graph
+					const g = new dagre.graphlib.Graph();
+					
+					// Determine if we're in minimal view
+					const isMinimalView = document.getElementById('breeding-canvas').classList.contains('minimal-view');
+					
+					// Set graph options - adjust for minimal view
+					g.setGraph({
+						rankdir: 'TB',
+						nodesep: isMinimalView ? 50 : 80,
+						ranksep: isMinimalView ? 80 : 120,
+						marginx: 20,
+						marginy: 20,
+						edgesep: isMinimalView ? 8 : 15,
+						ranker: 'network-simplex'
+					});
+					
+					// Default node label
+					g.setDefaultNodeLabel(() => ({}));
+					g.setDefaultEdgeLabel(() => ({}));
+					
+					// Reset node relationships
+					nodes.forEach(node => {
+						node.children = [];
+						node.parents = [];
+					});
+					
+					// Build parent-child relationships from connections
+					connections.forEach(conn => {
+						const sourceNode = nodes.find(n => n.id === conn.source);
+						const targetNode = nodes.find(n => n.id === conn.target);
+						
+						if (sourceNode && targetNode) {
+							if (!sourceNode.children.includes(conn.target)) {
+								sourceNode.children.push(conn.target);
+							}
+							
+							if (!targetNode.parents.includes(conn.source)) {
+								targetNode.parents.push(conn.source);
+							}
+						}
+					});
+					
+					// Add nodes to the graph with their actual dimensions
+					nodes.forEach(node => {
+						const nodeEl = document.getElementById(node.id);
+						if (nodeEl) {
+							// Use actual node dimensions
+							const width = nodeEl.offsetWidth || 160;
+							const height = nodeEl.offsetHeight || 100;
+							
+							g.setNode(node.id, { 
+								width: width + 20, // Add padding
+								height: height + 20,
+								label: node.name
+							});
+						}
+					});
+					
+					// Add weighted edges to the graph
+					connections.forEach(conn => {
+						g.setEdge(conn.source, conn.target, { 
+							weight: conn.role === 'female' ? 2 : 1, // Prioritize female connections
+							minlen: 1 // Minimum rank distance
+						});
+					});
+					
+					// Calculate layout
+					dagre.layout(g);
+					
+					// Apply positions to nodes with transition for smooth animation
+					g.nodes().forEach(nodeId => {
+						const nodeData = g.node(nodeId);
+						const nodeEl = document.getElementById(nodeId);
+						
+						if (nodeEl && nodeData) {
+							// Position from center point
+							nodeEl.style.left = `${Math.round(nodeData.x - nodeData.width / 2)}px`;
+							nodeEl.style.top = `${Math.round(nodeData.y - nodeData.height / 2)}px`;
+							
+							// Add transition class temporarily for smooth movement
+							nodeEl.classList.add('node-transitioning');
+							setTimeout(() => {
+								nodeEl.classList.remove('node-transitioning');
+							}, 500);
+						}
+					});
+					
+					// Update all connections after the nodes have been positioned
+					setTimeout(() => {
+						updateAllConnections();
+					}, 100);
+					
+					// Re-center view
+					setTimeout(centerView, 200);
+				} catch (error) {
+					console.error('Error in Dagre layout:', error);
+					alert('Error applying automatic layout. Reverting to manual positioning.');
+					arrangeTreeLayoutFallback();
+				}
+			}
+
+			function arrangeTreeLayoutFallback() {
+				if (nodes.length === 0) return;
 				
-				// Set an object for the graph label
-				g.setGraph({
-					rankdir: 'TB', // Top to bottom layout
-					nodesep: 80,   // Pixels between nodes horizontally 
-					ranksep: 120,  // Pixels between ranks (vertical layers)
-					marginx: 20,
-					marginy: 20,
-					edgesep: 10,   // Pixels between edges
-					ranker: 'network-simplex'
-				});
-				
-				// Default to assigning a new object as a label for each node
-				g.setDefaultNodeLabel(() => ({}));
-				
-				// Reset all potential parent-child relationships
+				// Reset relationships
 				nodes.forEach(node => {
 					node.children = [];
 					node.parents = [];
@@ -3335,61 +3457,43 @@
 					const targetNode = nodes.find(n => n.id === conn.target);
 					
 					if (sourceNode && targetNode) {
-						// Source is parent of target
 						if (!sourceNode.children.includes(conn.target)) {
 							sourceNode.children.push(conn.target);
 						}
 						
-						// Target is child of source
 						if (!targetNode.parents.includes(conn.source)) {
 							targetNode.parents.push(conn.source);
 						}
 					}
 				});
 				
-				// Add nodes to the graph
-				nodes.forEach(node => {
-					const nodeEl = document.getElementById(node.id);
-					if (nodeEl) {
-						// Get node dimensions for dagre
-						const width = nodeEl.offsetWidth || 160;
-						const height = nodeEl.offsetHeight || 100;
-						
-						// Add the node to the graph with its dimensions
-						g.setNode(node.id, { width, height, node: node });
-					}
-				});
+				// Find root nodes (no parents)
+				const rootNodes = nodes.filter(node => node.parents.length === 0);
 				
-				// Add edges to the graph
-				connections.forEach(conn => {
-					g.setEdge(conn.source, conn.target, { 
-						label: conn.role,
-						labelpos: 'c',
-						weight: conn.role === 'female' ? 2 : 1 // Prioritize female connections visually
-					});
-				});
-				
-				// Calculate the layout
-				dagre.layout(g);
-				
-				// Apply the layout to the nodes
-				g.nodes().forEach(nodeId => {
-					const nodeData = g.node(nodeId);
-					const nodeEl = document.getElementById(nodeId);
+				if (rootNodes.length === 0 && nodes.length > 0) {
+					// If no root nodes found but we have nodes, use first node as root
+					const startX = 100;
+					const startY = 100;
+					const placedNodes = {};
+					positionNode(nodes[0], startX, startY, placedNodes, 0);
+				} else if (rootNodes.length > 0) {
+					// Arrange from each root node
+					const rootSpacing = Math.max(300, 800 / Math.max(1, rootNodes.length));
+					let startX = 100;
+					const placedNodes = {};
 					
-					if (nodeEl && nodeData) {
-						// Position the node - dagre positions the center of the node
-						nodeEl.style.left = `${nodeData.x - nodeData.width / 2}px`;
-						nodeEl.style.top = `${nodeData.y - nodeData.height / 2}px`;
-					}
-				});
+					rootNodes.forEach(root => {
+						positionNode(root, startX, 100, placedNodes, 0);
+						startX += rootSpacing;
+					});
+				}
 				
-				// Force update all connections with a slight delay
+				// Force update all connections
 				setTimeout(() => {
 					updateAllConnections();
 				}, 100);
 				
-				// Center view with a delay
+				// Center view
 				setTimeout(centerView, 200);
 			}
 
