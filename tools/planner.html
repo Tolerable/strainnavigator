@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
     <title>StrainNavigator Breeding Planner</title>
     <style>
         body {
@@ -1300,6 +1299,53 @@
 					}
 				}
 				
+				// Add CSS for minimal view
+				const styleElement = document.createElement('style');
+				styleElement.id = 'minimal-view-styles';
+				styleElement.textContent = `
+				  .minimal-view .breeding-node .node-content {
+					display: none;
+				  }
+				  
+				  .minimal-view .breeding-node .connection-points {
+					margin-top: 0;
+				  }
+				  
+				  .minimal-view .breeding-node {
+					min-width: 120px;
+				  }
+				  
+				  /* New styles for cleaner connection points */
+				  .minimal-view .connection-point {
+					height: 4px;
+					width: 12px;
+					border-radius: 0;
+				  }
+				  
+				  .minimal-view .connection-point-female {
+					border-color: #e091b9;
+				  }
+				  
+				  .minimal-view .connection-point-male {
+					border-color: #91b7e0;
+				  }
+				  
+				  .minimal-view .node-header {
+					font-size: 12px;
+					padding: 4px 8px;
+				  }
+				  
+				  .minimal-view .connection-points {
+					padding: 3px 0;
+				  }
+				  
+				  /* Status indicators */
+				  .minimal-view .status-completed::after { background-color: #66BB6A; }
+				  .minimal-view .status-in-progress::after { background-color: #42A5F5; }
+				  .minimal-view .status-planned::after { background-color: #FFB74D; }
+				`;
+				document.head.appendChild(styleElement);
+				
 				// Toggle event handler
 				minimalViewBtn.addEventListener('click', function() {
 					// Save current positions before switching
@@ -1311,71 +1357,26 @@
 					
 					// Toggle view
 					isMinimalView = !isMinimalView;
-					
-					// Apply the view change
-					handleViewModeChange(isMinimalView);
-					
-					// Update button state
+					document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
 					updateToggleButton();
-				});
-				
-				// Add CSS for minimal view
-				const styleElement = document.createElement('style');
-				styleElement.id = 'minimal-view-styles';
-				styleElement.textContent = `
-					.minimal-view .breeding-node .node-content {
-						display: none;
-					}
 					
-					.minimal-view .breeding-node .connection-points {
-						margin-top: 0;
-					}
-					
-					.minimal-view .breeding-node {
-						min-width: 120px;
-					}
-					
-					.minimal-view .connection-point {
-						height: 4px;
-						width: 12px;
-						border-radius: 0;
-					}
-					
-					.minimal-view .node-header {
-						font-size: 12px;
-						padding: 4px 8px;
-					}
-					
-					.minimal-view .connection-points {
-						padding: 3px 0;
-					}
-					
-					.minimal-view .connector {
-						stroke-width: 1.5px;
-					}
-					
-					/* Store the view state globally */
-					.breeding-canvas.minimal-view {
-						--view-mode: "minimal";
-					}
-					
-					.breeding-canvas:not(.minimal-view) {
-						--view-mode: "normal";
-					}
-				`;
-				document.head.appendChild(styleElement);
-				
-				// Return a controller for the minimal view state
-				return {
-					isMinimal: () => isMinimalView,
-					setMinimal: (minimal) => {
-						if (isMinimalView !== minimal) {
-							isMinimalView = minimal;
-							updateToggleButton();
-							handleViewModeChange(isMinimalView);
+					// Apply saved positions or calculate new ones
+					if (isMinimalView) {
+						if (hasStoredPositions('minimal')) {
+							applyStoredPositions('minimal');
+						} else {
+							scaleNodesCloser(0.65);
+						}
+					} else {
+						if (hasStoredPositions('normal')) {
+							applyStoredPositions('normal');
+						} else {
+							resetNodePositions();
 						}
 					}
-				};
+					
+					updateAllConnections();
+				});
 			}
 
 			function saveCurrentPositions(mode) {
@@ -1595,6 +1596,7 @@
             }
             
 			function setupEventListeners() {
+
 				const exportImageBtn = document.createElement('button');
 				exportImageBtn.className = 'canvas-tool';
 				exportImageBtn.id = 'save-image';
@@ -1617,9 +1619,6 @@
 				document.querySelector('.canvas-tools').appendChild(cleanupBtn);
 				cleanupBtn.addEventListener('click', cleanupOrphanedNodes);
 
-				// Add layout toggle button
-				addLayoutToggle();
-
 				const sidebarHeader = document.querySelector('.sidebar-header');
 				const manageSheetBtn = document.createElement('button');
 				manageSheetBtn.className = 'btn btn-secondary';
@@ -1627,6 +1626,10 @@
 				manageSheetBtn.addEventListener('click', showSavedSheetsModal);
 				sidebarHeader.appendChild(manageSheetBtn);
 				
+				// document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
+				// 	hideModal(document.getElementById('saved-sheets-modal'));
+				// });
+
 				setupStatusToggle();
 	
 				document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
@@ -3071,114 +3074,73 @@
 				const targetRect = targetNode.getBoundingClientRect();
 				const canvasRect = breedingCanvas.getBoundingClientRect();
 				
-				// Find the specific source connection point based on role
-				let sourcePoint;
-				const sourcePoints = sourceNode.querySelectorAll('.connection-point');
-				for (const point of sourcePoints) {
-					if (point.dataset.role === connection.role) {
-						const pointRect = point.getBoundingClientRect();
-						sourcePoint = {
-							x: pointRect.left + pointRect.width/2 - canvasRect.left,
-							y: pointRect.top + pointRect.height/2 - canvasRect.top
-						};
-						break;
-					}
-				}
+				// Calculate the margin to maintain from the node edge
+				const margin = 15;
 				
-				// Fallback if connection point not found
-				if (!sourcePoint) {
-					sourcePoint = {
+				// Determine connection points based on relative positions
+				let startPoint, endPoint;
+				
+				// Source node connection point
+				if (sourceRect.left > targetRect.right) { // Source is to the right of target
+					startPoint = {
+						x: sourceRect.left - canvasRect.left - margin,
+						y: sourceRect.top + sourceRect.height/2 - canvasRect.top
+					};
+				} else if (sourceRect.right < targetRect.left) { // Source is to the left of target
+					startPoint = {
+						x: sourceRect.right - canvasRect.left + margin,
+						y: sourceRect.top + sourceRect.height/2 - canvasRect.top
+					};
+				} else if (sourceRect.top > targetRect.bottom) { // Source is below target
+					startPoint = {
 						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
-						y: sourceRect.bottom - canvasRect.top
+						y: sourceRect.top - canvasRect.top - margin
+					};
+				} else { // Source is above target
+					startPoint = {
+						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
+						y: sourceRect.bottom - canvasRect.top + margin
 					};
 				}
 				
-				// For target, always use center top
-				const targetPoint = {
-					x: targetRect.left + targetRect.width/2 - canvasRect.left,
-					y: targetRect.top - canvasRect.top
-				};
-				
-				// Create a right-angled path
-				// First segment: Move down from source
-				const midY = sourcePoint.y + (targetPoint.y - sourcePoint.y) / 2;
-				let pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${midY}`;
-				
-				// Second segment: Move horizontally toward target
-				pathD += ` L ${targetPoint.x} ${midY}`;
-				
-				// Third segment: Move down to target
-				pathD += ` L ${targetPoint.x} ${targetPoint.y}`;
-				
-				path.setAttribute('d', pathD);
-				
-				// Add appropriate class for styling
-				path.classList.add(`connector-${connection.role}`);
-			}
-
-			function handleViewModeChange(isMinimalView) {
-				// Save current positions for current view
-				const currentMode = isMinimalView ? 'normal' : 'minimal';
-				saveCurrentPositions(currentMode);
-				
-				// Update CSS classes
-				document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
-				
-				// Check if we have saved positions for the new view
-				const newMode = isMinimalView ? 'minimal' : 'normal';
-				
-				// Always re-arrange the layout when changing views to ensure consistency
-				setTimeout(() => {
-					arrangeTreeLayout();
-				}, 50);
-			}
-
-			function addLayoutToggle() {
-				// Create the toggle button
-				const layoutToggleBtn = document.createElement('button');
-				layoutToggleBtn.className = 'canvas-tool';
-				layoutToggleBtn.id = 'toggle-layout-mode';
-				layoutToggleBtn.innerHTML = 'Auto Arrange <span class="toggle-indicator">◻</span>';
-				document.querySelector('.canvas-tools').appendChild(layoutToggleBtn);
-				
-				// Track state
-				let isAutoLayout = false;
-				
-				// Update button appearance
-				function updateToggleButton() {
-					const indicator = layoutToggleBtn.querySelector('.toggle-indicator');
-					if (isAutoLayout) {
-						indicator.textContent = '☑';
-						layoutToggleBtn.style.backgroundColor = '#5d4a7e';
-						document.getElementById('breeding-canvas').classList.add('auto-layout-mode');
-					} else {
-						indicator.textContent = '◻';
-						layoutToggleBtn.style.backgroundColor = '';
-						document.getElementById('breeding-canvas').classList.remove('auto-layout-mode');
-					}
+				// Target node connection point
+				if (targetRect.left > sourceRect.right) { // Target is to the right of source
+					endPoint = {
+						x: targetRect.left - canvasRect.left - margin,
+						y: targetRect.top + targetRect.height/2 - canvasRect.top
+					};
+				} else if (targetRect.right < sourceRect.left) { // Target is to the left of source
+					endPoint = {
+						x: targetRect.right - canvasRect.left + margin,
+						y: targetRect.top + targetRect.height/2 - canvasRect.top
+					};
+				} else if (targetRect.top > sourceRect.bottom) { // Target is below source
+					endPoint = {
+						x: targetRect.left + targetRect.width/2 - canvasRect.left,
+						y: targetRect.top - canvasRect.top - margin
+					};
+				} else { // Target is above source
+					endPoint = {
+						x: targetRect.left + targetRect.width/2 - canvasRect.left,
+						y: targetRect.bottom - canvasRect.top + margin
+					};
 				}
 				
-				// Toggle handler
-				layoutToggleBtn.addEventListener('click', function() {
-					isAutoLayout = !isAutoLayout;
-					updateToggleButton();
-					
-					if (isAutoLayout) {
-						// Apply automatic layout immediately
-						arrangeTreeLayout();
-					}
-				});
+				// Create the path with right angles
+				let pathD;
 				
-				// Store the auto layout state
-				window.isAutoLayoutEnabled = () => isAutoLayout;
+				// Determine which type of path to create
+				if (Math.abs(endPoint.x - startPoint.x) > Math.abs(endPoint.y - startPoint.y)) {
+					// More horizontal distance - create a path with horizontal segments first
+					const midX = (startPoint.x + endPoint.x) / 2;
+					pathD = `M ${startPoint.x} ${startPoint.y} L ${midX} ${startPoint.y} L ${midX} ${endPoint.y} L ${endPoint.x} ${endPoint.y}`;
+				} else {
+					// More vertical distance - create a path with vertical segments first
+					const midY = (startPoint.y + endPoint.y) / 2;
+					pathD = `M ${startPoint.x} ${startPoint.y} L ${startPoint.x} ${midY} L ${endPoint.x} ${midY} L ${endPoint.x} ${endPoint.y}`;
+				}
 				
-				return {
-					isEnabled: () => isAutoLayout,
-					setEnabled: (enabled) => {
-						isAutoLayout = !!enabled;
-						updateToggleButton();
-					}
-				};
+				path.setAttribute('d', pathD);
 			}
 
 			function updateAllConnections() {
@@ -3274,208 +3236,62 @@
 			function arrangeTreeLayout() {
 				if (nodes.length === 0) return;
 				
-				try {
-					// Check if dagre is available
-					if (typeof dagre === 'undefined') {
-						console.error('Dagre library not found. Using fallback layout.');
-						arrangeTreeLayoutFallback();
-						return;
-					}
-					
-					// Create a new directed graph
-					const g = new dagre.graphlib.Graph();
-					
-					// Determine if we're in minimal view
-					const isMinimalView = document.getElementById('breeding-canvas').classList.contains('minimal-view');
-					
-					// Set graph options with FIXED values (not relative to view mode)
-					// These values are crucial for consistency!
-					g.setGraph({
-						rankdir: 'TB', // Top to bottom layout
-						nodesep: 150,  // Fixed horizontal spacing between nodes
-						ranksep: 150,  // Fixed vertical spacing between ranks
-						marginx: 50,
-						marginy: 50,
-						edgesep: 20,   // Space between edges
-						ranker: 'network-simplex'
-					});
-					
-					// Default node label
-					g.setDefaultNodeLabel(() => ({}));
-					g.setDefaultEdgeLabel(() => ({}));
-					
-					// Reset node relationships
-					nodes.forEach(node => {
-						node.children = [];
-						node.parents = [];
-					});
-					
-					// Build parent-child relationships from connections
-					connections.forEach(conn => {
-						const sourceNode = nodes.find(n => n.id === conn.source);
-						const targetNode = nodes.find(n => n.id === conn.target);
-						
-						if (sourceNode && targetNode) {
-							if (!sourceNode.children.includes(conn.target)) {
-								sourceNode.children.push(conn.target);
-							}
-							
-							if (!targetNode.parents.includes(conn.source)) {
-								targetNode.parents.push(conn.source);
-							}
-						}
-					});
-					
-					// Add nodes to the graph with fixed sizes that don't depend on view mode
-					// This is critical to ensure consistent layout regardless of view
-					nodes.forEach(node => {
-						// Use fixed dimensions regardless of current view
-						const width = 180;  // Fixed width for layout calculation
-						const height = 120; // Fixed height for layout calculation
-						
-						g.setNode(node.id, { 
-							width: width,
-							height: height,
-							label: node.name
-						});
-					});
-					
-					// Add edges to the graph
-					connections.forEach(conn => {
-						g.setEdge(conn.source, conn.target, { 
-							weight: conn.role === 'female' ? 2 : 1, // Prioritize female connections
-							minlen: 1 // Minimum rank distance
-						});
-					});
-					
-					// Calculate layout
-					dagre.layout(g);
-					
-					// Apply positions to nodes
-					g.nodes().forEach(nodeId => {
-						const nodeData = g.node(nodeId);
-						const nodeEl = document.getElementById(nodeId);
-						
-						if (nodeEl && nodeData) {
-							// Position from center point
-							nodeEl.style.left = `${Math.round(nodeData.x - (nodeData.width / 2))}px`;
-							nodeEl.style.top = `${Math.round(nodeData.y - (nodeData.height / 2))}px`;
-						}
-					});
-					
-					// Update all connections after the nodes have been positioned
-					setTimeout(() => {
-						updateAllConnections();
-					}, 100);
-					
-					// Re-center view
-					setTimeout(centerView, 200);
-				} catch (error) {
-					console.error('Error in Dagre layout:', error);
-					arrangeTreeLayoutFallback();
-				}
-			}
-
-			function arrangeTreeLayout() {
-				if (nodes.length === 0) return;
+				// Reset all potential parent-child relationships
+				nodes.forEach(node => {
+					node.children = [];
+					node.parents = [];
+				});
 				
-				try {
-					// Check if dagre is available
-					if (typeof dagre === 'undefined') {
-						console.error('Dagre library not found. Using fallback layout.');
-						return;
+				// Rebuild relationships from connections
+				connections.forEach(conn => {
+					const sourceNode = nodes.find(n => n.id === conn.source);
+					const targetNode = nodes.find(n => n.id === conn.target);
+					
+					if (sourceNode && targetNode) {
+						// Source is parent of target
+						if (!sourceNode.children.includes(conn.target)) {
+							sourceNode.children.push(conn.target);
+						}
+						
+						// Target is child of source
+						if (!targetNode.parents.includes(conn.source)) {
+							targetNode.parents.push(conn.source);
+						}
 					}
+				});
+				
+				// Find root nodes (no parents)
+				const rootNodes = nodes.filter(node => node.parents.length === 0);
+				
+				if (rootNodes.length === 0 && nodes.length > 0) {
+					// If no root nodes found but we have nodes, use first node as root
+					console.log("No root nodes found, using first node");
+					const startX = 100;
+					const startY = 100;
+					positionNode(nodes[0], startX, startY, {}, 0);
+				} else if (rootNodes.length > 0) {
+					// Arrange from each root node
+					console.log(`Found ${rootNodes.length} root nodes`);
 					
-					// Create a new directed graph
-					const g = new dagre.graphlib.Graph();
+					// Calculate spacing between root nodes
+					const rootSpacing = Math.max(300, 800 / Math.max(1, rootNodes.length));
+					let startX = 100;
 					
-					// CRITICAL: Use fixed spacing values that don't depend on view mode
-					g.setGraph({
-						rankdir: 'TB',        // Top to bottom layout
-						nodesep: 150,         // Fixed horizontal spacing
-						ranksep: 150,         // Fixed vertical spacing
-						marginx: 50,
-						marginy: 50,
-						edgesep: 20,
-						ranker: 'network-simplex'
+					rootNodes.forEach(root => {
+						positionNode(root, startX, 100, {}, 0);
+						startX += rootSpacing;
 					});
-					
-					// Default to assigning a new object as a label for each node
-					g.setDefaultNodeLabel(() => ({}));
-					
-					// Reset all potential parent-child relationships
-					nodes.forEach(node => {
-						node.children = [];
-						node.parents = [];
-					});
-					
-					// Rebuild relationships from connections
-					connections.forEach(conn => {
-						const sourceNode = nodes.find(n => n.id === conn.source);
-						const targetNode = nodes.find(n => n.id === conn.target);
-						
-						if (sourceNode && targetNode) {
-							// Source is parent of target
-							if (!sourceNode.children.includes(conn.target)) {
-								sourceNode.children.push(conn.target);
-							}
-							
-							// Target is child of source
-							if (!targetNode.parents.includes(conn.source)) {
-								targetNode.parents.push(conn.source);
-							}
-						}
-					});
-					
-					// Add nodes to the graph - use FIXED sizes regardless of view mode
-					nodes.forEach(node => {
-						const nodeEl = document.getElementById(node.id);
-						if (nodeEl) {
-							// Use fixed dimensions for consistent layout
-							const width = 180;  // Fixed width for layout
-							const height = 120; // Fixed height for layout
-							
-							g.setNode(node.id, { 
-								width: width,
-								height: height,
-								label: node.name
-							});
-						}
-					});
-					
-					// Add edges to the graph
-					connections.forEach(conn => {
-						g.setEdge(conn.source, conn.target, { 
-							weight: conn.role === 'female' ? 2 : 1, // Prioritize female connections
-							minlen: 1 // Minimum rank distance
-						});
-					});
-					
-					// Calculate the layout
-					dagre.layout(g);
-					
-					// Apply the layout to the nodes
-					g.nodes().forEach(nodeId => {
-						const nodeData = g.node(nodeId);
-						const nodeEl = document.getElementById(nodeId);
-						
-						if (nodeEl && nodeData) {
-							// Position the node - dagre positions the center of the node
-							nodeEl.style.left = `${Math.round(nodeData.x - nodeData.width / 2)}px`;
-							nodeEl.style.top = `${Math.round(nodeData.y - nodeData.height / 2)}px`;
-						}
-					});
-					
-					// Force update all connections with a slight delay
-					setTimeout(() => {
-						updateAllConnections();
-					}, 100);
-					
-					// Center view with a delay
-					setTimeout(centerView, 200);
-				} catch (error) {
-					console.error('Error in Dagre layout:', error);
 				}
+				
+				// Force update all connections with a slight delay
+				setTimeout(() => {
+					connections.forEach(conn => {
+						updateConnection(conn);
+					});
+				}, 100);
+				
+				// Center view with a delay
+				setTimeout(centerView, 200);
 			}
 
 			function positionNode(node, x, y, placedNodes, level) {
@@ -3711,10 +3527,7 @@
 					}
 				});
 				
-				// Get the current view mode
-				const isMinimalView = document.getElementById('breeding-canvas').classList.contains('minimal-view');
-				
-				// Create save data with collection ID and layout mode
+				// Create save data with collection ID
 				const saveData = {
 					name: name,
 					notes: notes,
@@ -3722,9 +3535,7 @@
 					nodes: nodesToSave,
 					connections: connections,
 					positions: nodePositions,
-					collectionId: activeSheetId,
-					isAutoLayout: document.getElementById('toggle-layout-mode')?.querySelector('.toggle-indicator')?.textContent === '☑' || false,
-					isMinimalView: isMinimalView  // Add minimal view state
+					collectionId: activeSheetId  // NEW: Store the collection ID
 				};
 				
 				// Get existing saved diagrams
@@ -3910,211 +3721,169 @@
 			}
 
 			function loadDiagram(diagram) {
-				// Clear existing diagram first
-				breedingCanvas.querySelectorAll('.breeding-node').forEach(node => node.remove());
-				connectionsGroup.innerHTML = '';
-				nodes = [];
-				connections = [];
+			  // Clear existing diagram first
+			  breedingCanvas.querySelectorAll('.breeding-node').forEach(node => node.remove());
+			  connectionsGroup.innerHTML = '';
+			  nodes = [];
+			  connections = [];
+			  
+			  // Set the node counter to prevent ID conflicts
+			  if (diagram.nodes.length > 0) {
+				const nodeIds = diagram.nodes.map(n => {
+				  const match = n.id.match(/node-(\d+)/);
+				  return match ? parseInt(match[1]) : 0;
+				});
+				nodeCounter = Math.max(...nodeIds, 0);
+			  }
+			  
+			  // Find all valid connected nodes
+			  const connectedNodeIds = new Set();
+			  if (diagram.connections) {
+				diagram.connections.forEach(conn => {
+				  connectedNodeIds.add(conn.source);
+				  connectedNodeIds.add(conn.target);
+				});
+			  }
+			  
+			  // If there's only one node, it won't have connections but we should still load it
+			  const shouldFilterOrphans = diagram.nodes.length > 1 && diagram.connections && diagram.connections.length > 0;
+			  
+			  // Only load nodes that have connections, unless it's the only node
+			  const nodesToLoad = shouldFilterOrphans ? 
+				diagram.nodes.filter(node => connectedNodeIds.has(node.id)) : 
+				diagram.nodes;
+			  
+			  // Create all nodes first
+			  nodesToLoad.forEach(nodeData => {
+				// Create node element
+				const node = document.createElement('div');
+				node.id = nodeData.id;
 				
-				// Set the node counter to prevent ID conflicts
-				if (diagram.nodes.length > 0) {
-					const nodeIds = diagram.nodes.map(n => {
-						const match = n.id.match(/node-(\d+)/);
-						return match ? parseInt(match[1]) : 0;
-					});
-					nodeCounter = Math.max(...nodeIds, 0);
+				// Add status class if it exists (NEW CODE)
+				if (nodeData.origin === 'strain') {
+				  node.className = 'breeding-node strain-node';
+				} else {
+				  // For cross nodes, include status in class
+				  node.className = `breeding-node cross-node status-${nodeData.status || 'planned'}`;
 				}
 				
-				// Find all valid connected nodes
-				const connectedNodeIds = new Set();
-				if (diagram.connections) {
-					diagram.connections.forEach(conn => {
-						connectedNodeIds.add(conn.source);
-						connectedNodeIds.add(conn.target);
-					});
+				node.dataset.name = nodeData.name;
+				node.dataset.growthType = nodeData.growthType || '';
+				node.dataset.sexType = nodeData.sexType || '';
+				node.dataset.floweringType = nodeData.floweringType || '';
+				node.dataset.status = nodeData.status || 'planned'; // NEW CODE
+				
+				// Set position
+				if (diagram.positions && diagram.positions[nodeData.id]) {
+				  node.style.left = diagram.positions[nodeData.id].left;
+				  node.style.top = diagram.positions[nodeData.id].top;
+				} else {
+				  node.style.left = '200px';
+				  node.style.top = '200px';
 				}
 				
-				// If there's only one node, it won't have connections but we should still load it
-				const shouldFilterOrphans = diagram.nodes.length > 1 && diagram.connections && diagram.connections.length > 0;
+				// Create trait tags HTML
+				let traitsHTML = '';
+				if (nodeData.growthType) traitsHTML += `<span class="strain-trait ${nodeData.growthType.toLowerCase()}">${nodeData.growthType}</span>`;
+				if (nodeData.sexType) traitsHTML += `<span class="strain-trait ${nodeData.sexType.toLowerCase()}">${nodeData.sexType}</span>`;
+				if (nodeData.floweringType) traitsHTML += `<span class="strain-trait ${nodeData.floweringType.toLowerCase()}">${nodeData.floweringType}</span>`;
 				
-				// Only load nodes that have connections, unless it's the only node
-				const nodesToLoad = shouldFilterOrphans ? 
-					diagram.nodes.filter(node => connectedNodeIds.has(node.id)) : 
-					diagram.nodes;
-				
-				// IMPORTANT: Set the correct view mode BEFORE creating nodes
-				// This ensures nodes are rendered with the correct dimensions
-				const minimalViewToggle = document.getElementById('toggle-minimal-view');
-				if (minimalViewToggle) {
-					const isCurrentlyMinimal = document.getElementById('breeding-canvas').classList.contains('minimal-view');
-					const shouldBeMinimal = diagram.isMinimalView || false;
-					
-					// Only toggle if needed
-					if (isCurrentlyMinimal !== shouldBeMinimal) {
-						// Set classes directly without triggering click event
-						document.getElementById('breeding-canvas').classList.toggle('minimal-view', shouldBeMinimal);
-						
-						// Update toggle button
-						const indicator = minimalViewToggle.querySelector('.toggle-indicator');
-						if (indicator) {
-							indicator.textContent = shouldBeMinimal ? '☑' : '◻';
-							minimalViewToggle.style.backgroundColor = shouldBeMinimal ? '#5d4a7e' : '';
-						}
-					}
+				// Generate node HTML based on type
+				if (nodeData.origin === 'cross') {
+				  // Add status indicator for cross nodes (NEW CODE)
+				  node.innerHTML = `
+					<div class="node-header">
+					  <div class="node-name">${nodeData.name}</div>
+					  <div class="node-controls">
+						<div class="node-control" data-action="remove" title="Remove">×</div>
+					  </div>
+					</div>
+					<div class="node-content">
+					  <div class="node-traits">${traitsHTML}</div>
+					  <div class="node-parents">
+						<div>♀: ${nodeData.femaleName || ''}</div>
+						<div>♂: ${nodeData.maleName || ''}</div>
+					  </div>
+					  <div class="status-indicator">
+						<div class="status-dot ${nodeData.status || 'planned'}"></div>
+						<div>Status: ${(nodeData.status || 'planned').replace('-', ' ').charAt(0).toUpperCase() + (nodeData.status || 'planned').replace('-', ' ').slice(1)}</div>
+						<div class="status-toggle" data-node="${nodeData.id}">Change</div>
+					  </div>
+					</div>
+					<div class="connection-points">
+					  <div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
+					  <div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
+					</div>
+				  `;
+				} else {
+				  // Create parent info HTML if parent data exists in the saved node
+				  let parentHTML = '';
+				  if (nodeData.parent1 || nodeData.parent2) {
+					parentHTML = `
+					  <div class="node-parents">
+						${nodeData.parent1 ? `<div>♀: ${nodeData.parent1}</div>` : ''}
+						${nodeData.parent2 ? `<div>♂: ${nodeData.parent2}</div>` : ''}
+					  </div>
+					`;
+				  }
+				  
+				  node.innerHTML = `
+					<div class="node-header">
+					  <div class="node-name">${nodeData.name}</div>
+					  <div class="node-controls">
+						<div class="node-control" data-action="remove" title="Remove">×</div>
+					  </div>
+					</div>
+					<div class="node-content">
+					  <div class="node-traits">${traitsHTML}</div>
+					  ${parentHTML}
+					</div>
+					<div class="connection-points">
+					  <div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
+					  <div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
+					</div>
+				  `;
 				}
 				
-				// Create all nodes first
-				nodesToLoad.forEach(nodeData => {
-					// Create node element
-					const node = document.createElement('div');
-					node.id = nodeData.id;
-					
-					// Add status class if it exists
-					if (nodeData.origin === 'strain') {
-						node.className = 'breeding-node strain-node';
-					} else {
-						// For cross nodes, include status in class
-						node.className = `breeding-node cross-node status-${nodeData.status || 'planned'}`;
-					}
-					
-					node.dataset.name = nodeData.name;
-					node.dataset.growthType = nodeData.growthType || '';
-					node.dataset.sexType = nodeData.sexType || '';
-					node.dataset.floweringType = nodeData.floweringType || '';
-					node.dataset.status = nodeData.status || 'planned';
-					
-					// Set position - IMPORTANT: use the saved positions
-					if (diagram.positions && diagram.positions[nodeData.id]) {
-						node.style.left = diagram.positions[nodeData.id].left;
-						node.style.top = diagram.positions[nodeData.id].top;
-					} else {
-						// Default position if no saved position
-						node.style.left = '200px';
-						node.style.top = '200px';
-					}
-					
-					// Create trait tags HTML
-					let traitsHTML = '';
-					if (nodeData.growthType) traitsHTML += `<span class="strain-trait ${nodeData.growthType.toLowerCase()}">${nodeData.growthType}</span>`;
-					if (nodeData.sexType) traitsHTML += `<span class="strain-trait ${nodeData.sexType.toLowerCase()}">${nodeData.sexType}</span>`;
-					if (nodeData.floweringType) traitsHTML += `<span class="strain-trait ${nodeData.floweringType.toLowerCase()}">${nodeData.floweringType}</span>`;
-					
-					// Generate node HTML based on type
-					if (nodeData.origin === 'cross') {
-						// Add status indicator for cross nodes
-						node.innerHTML = `
-							<div class="node-header">
-							<div class="node-name">${nodeData.name}</div>
-							<div class="node-controls">
-								<div class="node-control" data-action="remove" title="Remove">×</div>
-							</div>
-							</div>
-							<div class="node-content">
-							<div class="node-traits">${traitsHTML}</div>
-							<div class="node-parents">
-								<div>♀: ${nodeData.femaleName || ''}</div>
-								<div>♂: ${nodeData.maleName || ''}</div>
-							</div>
-							<div class="status-indicator">
-								<div class="status-dot ${nodeData.status || 'planned'}"></div>
-								<div>Status: ${(nodeData.status || 'planned').replace('-', ' ').charAt(0).toUpperCase() + (nodeData.status || 'planned').replace('-', ' ').slice(1)}</div>
-								<div class="status-toggle" data-node="${nodeData.id}">Change</div>
-							</div>
-							</div>
-							<div class="connection-points">
-							<div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
-							<div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
-							</div>
-						`;
-					} else {
-						// Create parent info HTML if parent data exists in the saved node
-						let parentHTML = '';
-						if (nodeData.parent1 || nodeData.parent2) {
-							parentHTML = `
-							<div class="node-parents">
-								${nodeData.parent1 ? `<div>♀: ${nodeData.parent1}</div>` : ''}
-								${nodeData.parent2 ? `<div>♂: ${nodeData.parent2}</div>` : ''}
-							</div>
-							`;
-						}
-						
-						node.innerHTML = `
-							<div class="node-header">
-							<div class="node-name">${nodeData.name}</div>
-							<div class="node-controls">
-								<div class="node-control" data-action="remove" title="Remove">×</div>
-							</div>
-							</div>
-							<div class="node-content">
-							<div class="node-traits">${traitsHTML}</div>
-							${parentHTML}
-							</div>
-							<div class="connection-points">
-							<div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
-							<div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
-							</div>
-						`;
-					}
-					
-					// Add event listeners
-					node.addEventListener('mousedown', startDraggingNode);
-					
-					node.querySelectorAll('.connection-point').forEach(point => {
-						point.addEventListener('mousedown', startConnecting);
-					});
-					
-					const removeButton = node.querySelector('[data-action="remove"]');
-					if (removeButton) {
-						removeButton.addEventListener('click', e => {
-							e.preventDefault();
-							e.stopPropagation();
-							removeNode(nodeData.id);
-						});
-					}
-					
-					// Add to canvas
-					breedingCanvas.appendChild(node);
+				// Add event listeners
+				node.addEventListener('mousedown', startDraggingNode);
+				
+				node.querySelectorAll('.connection-point').forEach(point => {
+				  point.addEventListener('mousedown', startConnecting);
 				});
 				
-				// Add nodes to state array with all properties preserved
-				nodes = nodesToLoad.map(n => ({...n}));
-				
-				// Recreate all connections
-				connections = [];
-				if (diagram.connections) {
-					diagram.connections.forEach(conn => {
-						// Only create connections if both nodes exist
-						if (nodes.some(n => n.id === conn.source) && nodes.some(n => n.id === conn.target)) {
-							addConnection(conn.source, conn.target, conn.role);
-						}
-					});
+				const removeButton = node.querySelector('[data-action="remove"]');
+				if (removeButton) {
+				  removeButton.addEventListener('click', e => {
+					e.preventDefault();
+					e.stopPropagation();
+					removeNode(nodeData.id);
+				  });
 				}
+				
+				// Add to canvas
+				breedingCanvas.appendChild(node);
+			  });
+			  
+			  // Add nodes to state array with all properties preserved
+			  nodes = nodesToLoad.map(n => ({...n}));
+			  
+			  // Recreate all connections
+			  connections = [];
+			  if (diagram.connections) {
+				diagram.connections.forEach(conn => {
+				  // Only create connections if both nodes exist
+				  if (nodes.some(n => n.id === conn.source) && nodes.some(n => n.id === conn.target)) {
+					addConnection(conn.source, conn.target, conn.role);
+				  }
+				});
+			  }
 
-				// Update parent information for strain nodes
-				updateExistingNodesWithParents();
-				
-				// Restore layout mode if it was saved
-				if (diagram.isAutoLayout) {
-					const layoutToggleBtn = document.getElementById('toggle-layout-mode');
-					if (layoutToggleBtn) {
-						const indicator = layoutToggleBtn.querySelector('.toggle-indicator');
-						indicator.textContent = '☑';
-						layoutToggleBtn.style.backgroundColor = '#5d4a7e';
-						
-						// Apply auto layout after a delay
-						setTimeout(() => {
-							arrangeTreeLayout();
-						}, 300);
-					}
-				} else {
-					// If not auto layout, ensure connections are drawn correctly
-					setTimeout(() => {
-						updateAllConnections();
-					}, 300);
-				}
-				
-				// Center view
-				centerView();
+			  // Update parent information for strain nodes
+			  updateExistingNodesWithParents();
+			  
+			  // Center view
+			  centerView();
 			}
             
 			function showLoadModal() {
