@@ -1300,53 +1300,6 @@
 					}
 				}
 				
-				// Add CSS for minimal view
-				const styleElement = document.createElement('style');
-				styleElement.id = 'minimal-view-styles';
-				styleElement.textContent = `
-				  .minimal-view .breeding-node .node-content {
-					display: none;
-				  }
-				  
-				  .minimal-view .breeding-node .connection-points {
-					margin-top: 0;
-				  }
-				  
-				  .minimal-view .breeding-node {
-					min-width: 120px;
-				  }
-				  
-				  /* New styles for cleaner connection points */
-				  .minimal-view .connection-point {
-					height: 4px;
-					width: 12px;
-					border-radius: 0;
-				  }
-				  
-				  .minimal-view .connection-point-female {
-					border-color: #e091b9;
-				  }
-				  
-				  .minimal-view .connection-point-male {
-					border-color: #91b7e0;
-				  }
-				  
-				  .minimal-view .node-header {
-					font-size: 12px;
-					padding: 4px 8px;
-				  }
-				  
-				  .minimal-view .connection-points {
-					padding: 3px 0;
-				  }
-				  
-				  /* Status indicators */
-				  .minimal-view .status-completed::after { background-color: #66BB6A; }
-				  .minimal-view .status-in-progress::after { background-color: #42A5F5; }
-				  .minimal-view .status-planned::after { background-color: #FFB74D; }
-				`;
-				document.head.appendChild(styleElement);
-				
 				// Toggle event handler
 				minimalViewBtn.addEventListener('click', function() {
 					// Save current positions before switching
@@ -1358,26 +1311,71 @@
 					
 					// Toggle view
 					isMinimalView = !isMinimalView;
-					document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
-					updateToggleButton();
 					
-					// Apply saved positions or calculate new ones
-					if (isMinimalView) {
-						if (hasStoredPositions('minimal')) {
-							applyStoredPositions('minimal');
-						} else {
-							scaleNodesCloser(0.65);
-						}
-					} else {
-						if (hasStoredPositions('normal')) {
-							applyStoredPositions('normal');
-						} else {
-							resetNodePositions();
-						}
+					// Apply the view change
+					handleViewModeChange(isMinimalView);
+					
+					// Update button state
+					updateToggleButton();
+				});
+				
+				// Add CSS for minimal view
+				const styleElement = document.createElement('style');
+				styleElement.id = 'minimal-view-styles';
+				styleElement.textContent = `
+					.minimal-view .breeding-node .node-content {
+						display: none;
 					}
 					
-					updateAllConnections();
-				});
+					.minimal-view .breeding-node .connection-points {
+						margin-top: 0;
+					}
+					
+					.minimal-view .breeding-node {
+						min-width: 120px;
+					}
+					
+					.minimal-view .connection-point {
+						height: 4px;
+						width: 12px;
+						border-radius: 0;
+					}
+					
+					.minimal-view .node-header {
+						font-size: 12px;
+						padding: 4px 8px;
+					}
+					
+					.minimal-view .connection-points {
+						padding: 3px 0;
+					}
+					
+					.minimal-view .connector {
+						stroke-width: 1.5px;
+					}
+					
+					/* Store the view state globally */
+					.breeding-canvas.minimal-view {
+						--view-mode: "minimal";
+					}
+					
+					.breeding-canvas:not(.minimal-view) {
+						--view-mode: "normal";
+					}
+				`;
+				document.head.appendChild(styleElement);
+				
+				// Return a controller for the minimal view state
+				return {
+					isMinimal: () => isMinimalView,
+					setMinimal: (minimal) => {
+						if (isMinimalView !== minimal) {
+							isMinimalView = minimal;
+							updateToggleButton();
+							handleViewModeChange(isMinimalView);
+						}
+					}
+				};
 			}
 
 			function saveCurrentPositions(mode) {
@@ -3050,7 +3048,6 @@
 				updateConnection(connectionId);
 			}
 
-			// Modified updateConnection function to correctly handle connection points
 			function updateConnection(connectionId) {
 				const connection = typeof connectionId === 'string' 
 					? connections.find(c => c.id === connectionId)
@@ -3074,11 +3071,8 @@
 				const targetRect = targetNode.getBoundingClientRect();
 				const canvasRect = breedingCanvas.getBoundingClientRect();
 				
-				// Find the specific connection points
-				let sourcePoint = null;
-				let targetPoint = null;
-				
-				// Find source connection point (female or male)
+				// Find the specific source connection point based on role
+				let sourcePoint;
 				const sourcePoints = sourceNode.querySelectorAll('.connection-point');
 				for (const point of sourcePoints) {
 					if (point.dataset.role === connection.role) {
@@ -3091,22 +3085,7 @@
 					}
 				}
 				
-				// Find target input point (always at the top middle)
-				const targetPoints = targetNode.querySelectorAll('.connection-point');
-				for (const point of targetPoints) {
-					// We want the opposite connection type for the target
-					const oppositeRole = connection.role === 'female' ? 'male' : 'female';
-					if (point.dataset.role === oppositeRole) {
-						const pointRect = point.getBoundingClientRect();
-						targetPoint = {
-							x: pointRect.left + pointRect.width/2 - canvasRect.left,
-							y: pointRect.top + pointRect.height/2 - canvasRect.top
-						};
-						break;
-					}
-				}
-				
-				// Fallbacks if specific points weren't found
+				// Fallback if connection point not found
 				if (!sourcePoint) {
 					sourcePoint = {
 						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
@@ -3114,45 +3093,44 @@
 					};
 				}
 				
-				if (!targetPoint) {
-					targetPoint = {
-						x: targetRect.left + targetRect.width/2 - canvasRect.left,
-						y: targetRect.top - canvasRect.top
-					};
-				}
+				// For target, always use center top
+				const targetPoint = {
+					x: targetRect.left + targetRect.width/2 - canvasRect.left,
+					y: targetRect.top - canvasRect.top
+				};
 				
-				// Create a path with clean right-angled connections
-				let pathD = '';
+				// Create a right-angled path
+				// First segment: Move down from source
+				const midY = sourcePoint.y + (targetPoint.y - sourcePoint.y) / 2;
+				let pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${midY}`;
 				
-				// Determine if we're going down or up
-				const isGoingDown = sourcePoint.y < targetPoint.y;
-				const verticalDistance = Math.abs(targetPoint.y - sourcePoint.y);
-				const horizontalDistance = Math.abs(targetPoint.x - sourcePoint.x);
+				// Second segment: Move horizontally toward target
+				pathD += ` L ${targetPoint.x} ${midY}`;
 				
-				if (isGoingDown) {
-					// Standard case: source is above target
-					const midY = sourcePoint.y + verticalDistance * 0.5;
-					pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${midY} L ${targetPoint.x} ${midY} L ${targetPoint.x} ${targetPoint.y}`;
-				} else if (verticalDistance < 20 && horizontalDistance > 20) {
-					// Nearly horizontal case: use horizontal line with small vertical segments
-					pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${sourcePoint.y-15} L ${targetPoint.x} ${targetPoint.y-15} L ${targetPoint.x} ${targetPoint.y}`;
-				} else {
-					// Going up case (reverse breeding): make a bigger arc
-					const controlX = (sourcePoint.x + targetPoint.x) / 2;
-					const controlY = Math.min(sourcePoint.y, targetPoint.y) - 50;
-					pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${sourcePoint.y-20} L ${controlX} ${controlY} L ${targetPoint.x} ${targetPoint.y-20} L ${targetPoint.x} ${targetPoint.y}`;
-				}
+				// Third segment: Move down to target
+				pathD += ` L ${targetPoint.x} ${targetPoint.y}`;
 				
 				path.setAttribute('d', pathD);
 				
-				// Add connection role-specific styling
-				if (connection.role === 'female') {
-					path.classList.add('connector-female');
-					path.classList.remove('connector-male');
-				} else {
-					path.classList.add('connector-male');
-					path.classList.remove('connector-female');
-				}
+				// Add appropriate class for styling
+				path.classList.add(`connector-${connection.role}`);
+			}
+
+			function handleViewModeChange(isMinimalView) {
+				// Save current positions for current view
+				const currentMode = isMinimalView ? 'normal' : 'minimal';
+				saveCurrentPositions(currentMode);
+				
+				// Update CSS classes
+				document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
+				
+				// Check if we have saved positions for the new view
+				const newMode = isMinimalView ? 'minimal' : 'normal';
+				
+				// Always re-arrange the layout when changing views to ensure consistency
+				setTimeout(() => {
+					arrangeTreeLayout();
+				}, 50);
 			}
 
 			function addLayoutToggle() {
@@ -3160,82 +3138,46 @@
 				const layoutToggleBtn = document.createElement('button');
 				layoutToggleBtn.className = 'canvas-tool';
 				layoutToggleBtn.id = 'toggle-layout-mode';
-				layoutToggleBtn.innerHTML = 'Auto Layout <span class="toggle-indicator">◻</span>';
+				layoutToggleBtn.innerHTML = 'Auto Arrange <span class="toggle-indicator">◻</span>';
 				document.querySelector('.canvas-tools').appendChild(layoutToggleBtn);
 				
 				// Track state
 				let isAutoLayout = false;
 				
-				// Update button appearance based on state
+				// Update button appearance
 				function updateToggleButton() {
 					const indicator = layoutToggleBtn.querySelector('.toggle-indicator');
 					if (isAutoLayout) {
 						indicator.textContent = '☑';
 						layoutToggleBtn.style.backgroundColor = '#5d4a7e';
+						document.getElementById('breeding-canvas').classList.add('auto-layout-mode');
 					} else {
 						indicator.textContent = '◻';
 						layoutToggleBtn.style.backgroundColor = '';
+						document.getElementById('breeding-canvas').classList.remove('auto-layout-mode');
 					}
 				}
 				
-				// Toggle event handler
+				// Toggle handler
 				layoutToggleBtn.addEventListener('click', function() {
 					isAutoLayout = !isAutoLayout;
 					updateToggleButton();
 					
 					if (isAutoLayout) {
-						// Apply automatic layout
+						// Apply automatic layout immediately
 						arrangeTreeLayout();
-						
-						// Make nodes non-draggable in auto layout mode
-						document.querySelectorAll('.breeding-node').forEach(node => {
-							node.classList.add('auto-layout-node');
-						});
-					} else {
-						// Make nodes draggable again
-						document.querySelectorAll('.breeding-node').forEach(node => {
-							node.classList.remove('auto-layout-node');
-						});
 					}
 				});
 				
-				// Add CSS for auto layout nodes
-				const styleElement = document.createElement('style');
-				styleElement.id = 'auto-layout-styles';
-				styleElement.textContent = `
-					.auto-layout-node {
-						transition: left 0.5s ease, top 0.5s ease;
-					}
-					
-					/* Prevent dragging in auto layout mode */
-					.auto-layout-node .node-header {
-						cursor: default;
-					}
-				`;
-				document.head.appendChild(styleElement);
+				// Store the auto layout state
+				window.isAutoLayoutEnabled = () => isAutoLayout;
 				
-				// Store the original dragging function
-				window.originalStartDragging = startDraggingNode;
-				
-				// Override the dragging function
-				startDraggingNode = function(e) {
-					// Don't drag if clicking connection point or control
-					if (e.target.classList.contains('connection-point') || 
-						e.target.classList.contains('node-control')) {
-						return;
+				return {
+					isEnabled: () => isAutoLayout,
+					setEnabled: (enabled) => {
+						isAutoLayout = !!enabled;
+						updateToggleButton();
 					}
-					
-					// Find the node element (could be child of node)
-					const nodeElement = e.target.closest('.breeding-node');
-					if (!nodeElement) return;
-					
-					// Don't allow dragging in auto layout mode
-					if (nodeElement.classList.contains('auto-layout-node')) {
-						return;
-					}
-					
-					// Call the original function for normal dragging behavior
-					return window.originalStartDragging.call(this, e);
 				};
 			}
 
@@ -3346,14 +3288,15 @@
 					// Determine if we're in minimal view
 					const isMinimalView = document.getElementById('breeding-canvas').classList.contains('minimal-view');
 					
-					// Set graph options - adjust for minimal view
+					// Set graph options with FIXED values (not relative to view mode)
+					// These values are crucial for consistency!
 					g.setGraph({
-						rankdir: 'TB',
-						nodesep: isMinimalView ? 50 : 80,
-						ranksep: isMinimalView ? 80 : 120,
-						marginx: 20,
-						marginy: 20,
-						edgesep: isMinimalView ? 8 : 15,
+						rankdir: 'TB', // Top to bottom layout
+						nodesep: 150,  // Fixed horizontal spacing between nodes
+						ranksep: 150,  // Fixed vertical spacing between ranks
+						marginx: 50,
+						marginy: 50,
+						edgesep: 20,   // Space between edges
 						ranker: 'network-simplex'
 					});
 					
@@ -3383,23 +3326,21 @@
 						}
 					});
 					
-					// Add nodes to the graph with their actual dimensions
+					// Add nodes to the graph with fixed sizes that don't depend on view mode
+					// This is critical to ensure consistent layout regardless of view
 					nodes.forEach(node => {
-						const nodeEl = document.getElementById(node.id);
-						if (nodeEl) {
-							// Use actual node dimensions
-							const width = nodeEl.offsetWidth || 160;
-							const height = nodeEl.offsetHeight || 100;
-							
-							g.setNode(node.id, { 
-								width: width + 20, // Add padding
-								height: height + 20,
-								label: node.name
-							});
-						}
+						// Use fixed dimensions regardless of current view
+						const width = 180;  // Fixed width for layout calculation
+						const height = 120; // Fixed height for layout calculation
+						
+						g.setNode(node.id, { 
+							width: width,
+							height: height,
+							label: node.name
+						});
 					});
 					
-					// Add weighted edges to the graph
+					// Add edges to the graph
 					connections.forEach(conn => {
 						g.setEdge(conn.source, conn.target, { 
 							weight: conn.role === 'female' ? 2 : 1, // Prioritize female connections
@@ -3410,21 +3351,15 @@
 					// Calculate layout
 					dagre.layout(g);
 					
-					// Apply positions to nodes with transition for smooth animation
+					// Apply positions to nodes
 					g.nodes().forEach(nodeId => {
 						const nodeData = g.node(nodeId);
 						const nodeEl = document.getElementById(nodeId);
 						
 						if (nodeEl && nodeData) {
 							// Position from center point
-							nodeEl.style.left = `${Math.round(nodeData.x - nodeData.width / 2)}px`;
-							nodeEl.style.top = `${Math.round(nodeData.y - nodeData.height / 2)}px`;
-							
-							// Add transition class temporarily for smooth movement
-							nodeEl.classList.add('node-transitioning');
-							setTimeout(() => {
-								nodeEl.classList.remove('node-transitioning');
-							}, 500);
+							nodeEl.style.left = `${Math.round(nodeData.x - (nodeData.width / 2))}px`;
+							nodeEl.style.top = `${Math.round(nodeData.y - (nodeData.height / 2))}px`;
 						}
 					});
 					
@@ -3437,64 +3372,110 @@
 					setTimeout(centerView, 200);
 				} catch (error) {
 					console.error('Error in Dagre layout:', error);
-					alert('Error applying automatic layout. Reverting to manual positioning.');
 					arrangeTreeLayoutFallback();
 				}
 			}
 
-			function arrangeTreeLayoutFallback() {
+			function arrangeTreeLayout() {
 				if (nodes.length === 0) return;
 				
-				// Reset relationships
-				nodes.forEach(node => {
-					node.children = [];
-					node.parents = [];
-				});
-				
-				// Rebuild relationships from connections
-				connections.forEach(conn => {
-					const sourceNode = nodes.find(n => n.id === conn.source);
-					const targetNode = nodes.find(n => n.id === conn.target);
-					
-					if (sourceNode && targetNode) {
-						if (!sourceNode.children.includes(conn.target)) {
-							sourceNode.children.push(conn.target);
-						}
-						
-						if (!targetNode.parents.includes(conn.source)) {
-							targetNode.parents.push(conn.source);
-						}
+				try {
+					// Check if dagre is available
+					if (typeof dagre === 'undefined') {
+						console.error('Dagre library not found. Using fallback layout.');
+						return;
 					}
-				});
-				
-				// Find root nodes (no parents)
-				const rootNodes = nodes.filter(node => node.parents.length === 0);
-				
-				if (rootNodes.length === 0 && nodes.length > 0) {
-					// If no root nodes found but we have nodes, use first node as root
-					const startX = 100;
-					const startY = 100;
-					const placedNodes = {};
-					positionNode(nodes[0], startX, startY, placedNodes, 0);
-				} else if (rootNodes.length > 0) {
-					// Arrange from each root node
-					const rootSpacing = Math.max(300, 800 / Math.max(1, rootNodes.length));
-					let startX = 100;
-					const placedNodes = {};
 					
-					rootNodes.forEach(root => {
-						positionNode(root, startX, 100, placedNodes, 0);
-						startX += rootSpacing;
+					// Create a new directed graph
+					const g = new dagre.graphlib.Graph();
+					
+					// CRITICAL: Use fixed spacing values that don't depend on view mode
+					g.setGraph({
+						rankdir: 'TB',        // Top to bottom layout
+						nodesep: 150,         // Fixed horizontal spacing
+						ranksep: 150,         // Fixed vertical spacing
+						marginx: 50,
+						marginy: 50,
+						edgesep: 20,
+						ranker: 'network-simplex'
 					});
+					
+					// Default to assigning a new object as a label for each node
+					g.setDefaultNodeLabel(() => ({}));
+					
+					// Reset all potential parent-child relationships
+					nodes.forEach(node => {
+						node.children = [];
+						node.parents = [];
+					});
+					
+					// Rebuild relationships from connections
+					connections.forEach(conn => {
+						const sourceNode = nodes.find(n => n.id === conn.source);
+						const targetNode = nodes.find(n => n.id === conn.target);
+						
+						if (sourceNode && targetNode) {
+							// Source is parent of target
+							if (!sourceNode.children.includes(conn.target)) {
+								sourceNode.children.push(conn.target);
+							}
+							
+							// Target is child of source
+							if (!targetNode.parents.includes(conn.source)) {
+								targetNode.parents.push(conn.source);
+							}
+						}
+					});
+					
+					// Add nodes to the graph - use FIXED sizes regardless of view mode
+					nodes.forEach(node => {
+						const nodeEl = document.getElementById(node.id);
+						if (nodeEl) {
+							// Use fixed dimensions for consistent layout
+							const width = 180;  // Fixed width for layout
+							const height = 120; // Fixed height for layout
+							
+							g.setNode(node.id, { 
+								width: width,
+								height: height,
+								label: node.name
+							});
+						}
+					});
+					
+					// Add edges to the graph
+					connections.forEach(conn => {
+						g.setEdge(conn.source, conn.target, { 
+							weight: conn.role === 'female' ? 2 : 1, // Prioritize female connections
+							minlen: 1 // Minimum rank distance
+						});
+					});
+					
+					// Calculate the layout
+					dagre.layout(g);
+					
+					// Apply the layout to the nodes
+					g.nodes().forEach(nodeId => {
+						const nodeData = g.node(nodeId);
+						const nodeEl = document.getElementById(nodeId);
+						
+						if (nodeEl && nodeData) {
+							// Position the node - dagre positions the center of the node
+							nodeEl.style.left = `${Math.round(nodeData.x - nodeData.width / 2)}px`;
+							nodeEl.style.top = `${Math.round(nodeData.y - nodeData.height / 2)}px`;
+						}
+					});
+					
+					// Force update all connections with a slight delay
+					setTimeout(() => {
+						updateAllConnections();
+					}, 100);
+					
+					// Center view with a delay
+					setTimeout(centerView, 200);
+				} catch (error) {
+					console.error('Error in Dagre layout:', error);
 				}
-				
-				// Force update all connections
-				setTimeout(() => {
-					updateAllConnections();
-				}, 100);
-				
-				// Center view
-				setTimeout(centerView, 200);
 			}
 
 			function positionNode(node, x, y, placedNodes, level) {
@@ -3730,6 +3711,9 @@
 					}
 				});
 				
+				// Get the current view mode
+				const isMinimalView = document.getElementById('breeding-canvas').classList.contains('minimal-view');
+				
 				// Create save data with collection ID and layout mode
 				const saveData = {
 					name: name,
@@ -3739,7 +3723,8 @@
 					connections: connections,
 					positions: nodePositions,
 					collectionId: activeSheetId,
-					isAutoLayout: document.getElementById('toggle-layout-mode')?.querySelector('.toggle-indicator')?.textContent === '☑' || false
+					isAutoLayout: document.getElementById('toggle-layout-mode')?.querySelector('.toggle-indicator')?.textContent === '☑' || false,
+					isMinimalView: isMinimalView  // Add minimal view state
 				};
 				
 				// Get existing saved diagrams
@@ -3957,13 +3942,34 @@
 					diagram.nodes.filter(node => connectedNodeIds.has(node.id)) : 
 					diagram.nodes;
 				
+				// IMPORTANT: Set the correct view mode BEFORE creating nodes
+				// This ensures nodes are rendered with the correct dimensions
+				const minimalViewToggle = document.getElementById('toggle-minimal-view');
+				if (minimalViewToggle) {
+					const isCurrentlyMinimal = document.getElementById('breeding-canvas').classList.contains('minimal-view');
+					const shouldBeMinimal = diagram.isMinimalView || false;
+					
+					// Only toggle if needed
+					if (isCurrentlyMinimal !== shouldBeMinimal) {
+						// Set classes directly without triggering click event
+						document.getElementById('breeding-canvas').classList.toggle('minimal-view', shouldBeMinimal);
+						
+						// Update toggle button
+						const indicator = minimalViewToggle.querySelector('.toggle-indicator');
+						if (indicator) {
+							indicator.textContent = shouldBeMinimal ? '☑' : '◻';
+							minimalViewToggle.style.backgroundColor = shouldBeMinimal ? '#5d4a7e' : '';
+						}
+					}
+				}
+				
 				// Create all nodes first
 				nodesToLoad.forEach(nodeData => {
 					// Create node element
 					const node = document.createElement('div');
 					node.id = nodeData.id;
 					
-					// Add status class if it exists (NEW CODE)
+					// Add status class if it exists
 					if (nodeData.origin === 'strain') {
 						node.className = 'breeding-node strain-node';
 					} else {
@@ -3975,13 +3981,14 @@
 					node.dataset.growthType = nodeData.growthType || '';
 					node.dataset.sexType = nodeData.sexType || '';
 					node.dataset.floweringType = nodeData.floweringType || '';
-					node.dataset.status = nodeData.status || 'planned'; // NEW CODE
+					node.dataset.status = nodeData.status || 'planned';
 					
-					// Set position
+					// Set position - IMPORTANT: use the saved positions
 					if (diagram.positions && diagram.positions[nodeData.id]) {
 						node.style.left = diagram.positions[nodeData.id].left;
 						node.style.top = diagram.positions[nodeData.id].top;
 					} else {
+						// Default position if no saved position
 						node.style.left = '200px';
 						node.style.top = '200px';
 					}
@@ -4094,14 +4101,16 @@
 						indicator.textContent = '☑';
 						layoutToggleBtn.style.backgroundColor = '#5d4a7e';
 						
-						// Apply auto layout and make nodes non-draggable
+						// Apply auto layout after a delay
 						setTimeout(() => {
 							arrangeTreeLayout();
-							document.querySelectorAll('.breeding-node').forEach(node => {
-								node.classList.add('auto-layout-node');
-							});
 						}, 300);
 					}
+				} else {
+					// If not auto layout, ensure connections are drawn correctly
+					setTimeout(() => {
+						updateAllConnections();
+					}, 300);
 				}
 				
 				// Center view
