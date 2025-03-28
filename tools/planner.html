@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
     <title>StrainNavigator Breeding Planner</title>
     <style>
         body {
@@ -1596,7 +1597,6 @@
             }
             
 			function setupEventListeners() {
-
 				const exportImageBtn = document.createElement('button');
 				exportImageBtn.className = 'canvas-tool';
 				exportImageBtn.id = 'save-image';
@@ -1619,6 +1619,9 @@
 				document.querySelector('.canvas-tools').appendChild(cleanupBtn);
 				cleanupBtn.addEventListener('click', cleanupOrphanedNodes);
 
+				// Add layout toggle button
+				addLayoutToggle();
+
 				const sidebarHeader = document.querySelector('.sidebar-header');
 				const manageSheetBtn = document.createElement('button');
 				manageSheetBtn.className = 'btn btn-secondary';
@@ -1626,10 +1629,6 @@
 				manageSheetBtn.addEventListener('click', showSavedSheetsModal);
 				sidebarHeader.appendChild(manageSheetBtn);
 				
-				// document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
-				// 	hideModal(document.getElementById('saved-sheets-modal'));
-				// });
-
 				setupStatusToggle();
 	
 				document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
@@ -3074,73 +3073,144 @@
 				const targetRect = targetNode.getBoundingClientRect();
 				const canvasRect = breedingCanvas.getBoundingClientRect();
 				
-				// Calculate the margin to maintain from the node edge
-				const margin = 15;
+				// Get source node's connection points
+				const sourceConnPoints = sourceNode.querySelectorAll('.connection-point');
+				let sourcePoint;
 				
-				// Determine connection points based on relative positions
-				let startPoint, endPoint;
+				// Find the specific connection point for this connection's role
+				for (const point of sourceConnPoints) {
+					if (point.dataset.role === connection.role) {
+						const pointRect = point.getBoundingClientRect();
+						sourcePoint = {
+							x: pointRect.left + pointRect.width/2 - canvasRect.left,
+							y: pointRect.top + pointRect.height/2 - canvasRect.top
+						};
+						break;
+					}
+				}
 				
-				// Source node connection point
-				if (sourceRect.left > targetRect.right) { // Source is to the right of target
-					startPoint = {
-						x: sourceRect.left - canvasRect.left - margin,
+				// If we couldn't find the exact point, use node center
+				if (!sourcePoint) {
+					sourcePoint = {
+						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
 						y: sourceRect.top + sourceRect.height/2 - canvasRect.top
 					};
-				} else if (sourceRect.right < targetRect.left) { // Source is to the left of target
-					startPoint = {
-						x: sourceRect.right - canvasRect.left + margin,
-						y: sourceRect.top + sourceRect.height/2 - canvasRect.top
-					};
-				} else if (sourceRect.top > targetRect.bottom) { // Source is below target
-					startPoint = {
-						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
-						y: sourceRect.top - canvasRect.top - margin
-					};
-				} else { // Source is above target
-					startPoint = {
-						x: sourceRect.left + sourceRect.width/2 - canvasRect.left,
-						y: sourceRect.bottom - canvasRect.top + margin
-					};
 				}
 				
-				// Target node connection point
-				if (targetRect.left > sourceRect.right) { // Target is to the right of source
-					endPoint = {
-						x: targetRect.left - canvasRect.left - margin,
-						y: targetRect.top + targetRect.height/2 - canvasRect.top
-					};
-				} else if (targetRect.right < sourceRect.left) { // Target is to the left of source
-					endPoint = {
-						x: targetRect.right - canvasRect.left + margin,
-						y: targetRect.top + targetRect.height/2 - canvasRect.top
-					};
-				} else if (targetRect.top > sourceRect.bottom) { // Target is below source
-					endPoint = {
-						x: targetRect.left + targetRect.width/2 - canvasRect.left,
-						y: targetRect.top - canvasRect.top - margin
-					};
-				} else { // Target is above source
-					endPoint = {
-						x: targetRect.left + targetRect.width/2 - canvasRect.left,
-						y: targetRect.bottom - canvasRect.top + margin
-					};
-				}
+				// Find target node's input point
+				const targetPoint = {
+					x: targetRect.left + targetRect.width/2 - canvasRect.left,
+					y: targetRect.top - canvasRect.top
+				};
 				
-				// Create the path with right angles
-				let pathD;
+				// Create a standard orthogonal path
+				// For breeding diagrams, we always want: down from source, then horizontal, then down to target
+				let pathD = '';
 				
-				// Determine which type of path to create
-				if (Math.abs(endPoint.x - startPoint.x) > Math.abs(endPoint.y - startPoint.y)) {
-					// More horizontal distance - create a path with horizontal segments first
-					const midX = (startPoint.x + endPoint.x) / 2;
-					pathD = `M ${startPoint.x} ${startPoint.y} L ${midX} ${startPoint.y} L ${midX} ${endPoint.y} L ${endPoint.x} ${endPoint.y}`;
-				} else {
-					// More vertical distance - create a path with vertical segments first
-					const midY = (startPoint.y + endPoint.y) / 2;
-					pathD = `M ${startPoint.x} ${startPoint.y} L ${startPoint.x} ${midY} L ${endPoint.x} ${midY} L ${endPoint.x} ${endPoint.y}`;
-				}
+				// First segment: Move down from source
+				const midY = sourcePoint.y + Math.max(40, (targetPoint.y - sourcePoint.y) * 0.4);
+				pathD = `M ${sourcePoint.x} ${sourcePoint.y} L ${sourcePoint.x} ${midY}`;
+				
+				// Second segment: Move horizontally toward target
+				pathD += ` L ${targetPoint.x} ${midY}`;
+				
+				// Third segment: Move down to target
+				pathD += ` L ${targetPoint.x} ${targetPoint.y}`;
 				
 				path.setAttribute('d', pathD);
+				
+				// Add connection role-specific styling
+				if (connection.role === 'female') {
+					path.classList.add('connector-female');
+					path.classList.remove('connector-male');
+				} else {
+					path.classList.add('connector-male');
+					path.classList.remove('connector-female');
+				}
+			}
+
+			function addLayoutToggle() {
+				// Create the toggle button
+				const layoutToggleBtn = document.createElement('button');
+				layoutToggleBtn.className = 'canvas-tool';
+				layoutToggleBtn.id = 'toggle-layout-mode';
+				layoutToggleBtn.innerHTML = 'Auto Layout <span class="toggle-indicator">◻</span>';
+				document.querySelector('.canvas-tools').appendChild(layoutToggleBtn);
+				
+				// Track state
+				let isAutoLayout = false;
+				
+				// Update button appearance based on state
+				function updateToggleButton() {
+					const indicator = layoutToggleBtn.querySelector('.toggle-indicator');
+					if (isAutoLayout) {
+						indicator.textContent = '☑';
+						layoutToggleBtn.style.backgroundColor = '#5d4a7e';
+					} else {
+						indicator.textContent = '◻';
+						layoutToggleBtn.style.backgroundColor = '';
+					}
+				}
+				
+				// Toggle event handler
+				layoutToggleBtn.addEventListener('click', function() {
+					isAutoLayout = !isAutoLayout;
+					updateToggleButton();
+					
+					if (isAutoLayout) {
+						// Apply automatic layout
+						arrangeTreeLayout();
+						
+						// Make nodes non-draggable in auto layout mode
+						document.querySelectorAll('.breeding-node').forEach(node => {
+							node.classList.add('auto-layout-node');
+						});
+					} else {
+						// Make nodes draggable again
+						document.querySelectorAll('.breeding-node').forEach(node => {
+							node.classList.remove('auto-layout-node');
+						});
+					}
+				});
+				
+				// Add CSS for auto layout nodes
+				const styleElement = document.createElement('style');
+				styleElement.id = 'auto-layout-styles';
+				styleElement.textContent = `
+					.auto-layout-node {
+						transition: left 0.5s ease, top 0.5s ease;
+					}
+					
+					/* Prevent dragging in auto layout mode */
+					.auto-layout-node .node-header {
+						cursor: default;
+					}
+				`;
+				document.head.appendChild(styleElement);
+				
+				// Store the original dragging function
+				window.originalStartDragging = startDraggingNode;
+				
+				// Override the dragging function
+				startDraggingNode = function(e) {
+					// Don't drag if clicking connection point or control
+					if (e.target.classList.contains('connection-point') || 
+						e.target.classList.contains('node-control')) {
+						return;
+					}
+					
+					// Find the node element (could be child of node)
+					const nodeElement = e.target.closest('.breeding-node');
+					if (!nodeElement) return;
+					
+					// Don't allow dragging in auto layout mode
+					if (nodeElement.classList.contains('auto-layout-node')) {
+						return;
+					}
+					
+					// Call the original function for normal dragging behavior
+					return window.originalStartDragging.call(this, e);
+				};
 			}
 
 			function updateAllConnections() {
@@ -3236,6 +3306,23 @@
 			function arrangeTreeLayout() {
 				if (nodes.length === 0) return;
 				
+				// Create a new directed graph
+				const g = new dagre.graphlib.Graph();
+				
+				// Set an object for the graph label
+				g.setGraph({
+					rankdir: 'TB', // Top to bottom layout
+					nodesep: 80,   // Pixels between nodes horizontally 
+					ranksep: 120,  // Pixels between ranks (vertical layers)
+					marginx: 20,
+					marginy: 20,
+					edgesep: 10,   // Pixels between edges
+					ranker: 'network-simplex'
+				});
+				
+				// Default to assigning a new object as a label for each node
+				g.setDefaultNodeLabel(() => ({}));
+				
 				// Reset all potential parent-child relationships
 				nodes.forEach(node => {
 					node.children = [];
@@ -3260,34 +3347,46 @@
 					}
 				});
 				
-				// Find root nodes (no parents)
-				const rootNodes = nodes.filter(node => node.parents.length === 0);
+				// Add nodes to the graph
+				nodes.forEach(node => {
+					const nodeEl = document.getElementById(node.id);
+					if (nodeEl) {
+						// Get node dimensions for dagre
+						const width = nodeEl.offsetWidth || 160;
+						const height = nodeEl.offsetHeight || 100;
+						
+						// Add the node to the graph with its dimensions
+						g.setNode(node.id, { width, height, node: node });
+					}
+				});
 				
-				if (rootNodes.length === 0 && nodes.length > 0) {
-					// If no root nodes found but we have nodes, use first node as root
-					console.log("No root nodes found, using first node");
-					const startX = 100;
-					const startY = 100;
-					positionNode(nodes[0], startX, startY, {}, 0);
-				} else if (rootNodes.length > 0) {
-					// Arrange from each root node
-					console.log(`Found ${rootNodes.length} root nodes`);
-					
-					// Calculate spacing between root nodes
-					const rootSpacing = Math.max(300, 800 / Math.max(1, rootNodes.length));
-					let startX = 100;
-					
-					rootNodes.forEach(root => {
-						positionNode(root, startX, 100, {}, 0);
-						startX += rootSpacing;
+				// Add edges to the graph
+				connections.forEach(conn => {
+					g.setEdge(conn.source, conn.target, { 
+						label: conn.role,
+						labelpos: 'c',
+						weight: conn.role === 'female' ? 2 : 1 // Prioritize female connections visually
 					});
-				}
+				});
+				
+				// Calculate the layout
+				dagre.layout(g);
+				
+				// Apply the layout to the nodes
+				g.nodes().forEach(nodeId => {
+					const nodeData = g.node(nodeId);
+					const nodeEl = document.getElementById(nodeId);
+					
+					if (nodeEl && nodeData) {
+						// Position the node - dagre positions the center of the node
+						nodeEl.style.left = `${nodeData.x - nodeData.width / 2}px`;
+						nodeEl.style.top = `${nodeData.y - nodeData.height / 2}px`;
+					}
+				});
 				
 				// Force update all connections with a slight delay
 				setTimeout(() => {
-					connections.forEach(conn => {
-						updateConnection(conn);
-					});
+					updateAllConnections();
 				}, 100);
 				
 				// Center view with a delay
@@ -3527,7 +3626,7 @@
 					}
 				});
 				
-				// Create save data with collection ID
+				// Create save data with collection ID and layout mode
 				const saveData = {
 					name: name,
 					notes: notes,
@@ -3535,7 +3634,8 @@
 					nodes: nodesToSave,
 					connections: connections,
 					positions: nodePositions,
-					collectionId: activeSheetId  // NEW: Store the collection ID
+					collectionId: activeSheetId,
+					isAutoLayout: document.getElementById('toggle-layout-mode')?.querySelector('.toggle-indicator')?.textContent === '☑' || false
 				};
 				
 				// Get existing saved diagrams
@@ -3721,169 +3821,187 @@
 			}
 
 			function loadDiagram(diagram) {
-			  // Clear existing diagram first
-			  breedingCanvas.querySelectorAll('.breeding-node').forEach(node => node.remove());
-			  connectionsGroup.innerHTML = '';
-			  nodes = [];
-			  connections = [];
-			  
-			  // Set the node counter to prevent ID conflicts
-			  if (diagram.nodes.length > 0) {
-				const nodeIds = diagram.nodes.map(n => {
-				  const match = n.id.match(/node-(\d+)/);
-				  return match ? parseInt(match[1]) : 0;
-				});
-				nodeCounter = Math.max(...nodeIds, 0);
-			  }
-			  
-			  // Find all valid connected nodes
-			  const connectedNodeIds = new Set();
-			  if (diagram.connections) {
-				diagram.connections.forEach(conn => {
-				  connectedNodeIds.add(conn.source);
-				  connectedNodeIds.add(conn.target);
-				});
-			  }
-			  
-			  // If there's only one node, it won't have connections but we should still load it
-			  const shouldFilterOrphans = diagram.nodes.length > 1 && diagram.connections && diagram.connections.length > 0;
-			  
-			  // Only load nodes that have connections, unless it's the only node
-			  const nodesToLoad = shouldFilterOrphans ? 
-				diagram.nodes.filter(node => connectedNodeIds.has(node.id)) : 
-				diagram.nodes;
-			  
-			  // Create all nodes first
-			  nodesToLoad.forEach(nodeData => {
-				// Create node element
-				const node = document.createElement('div');
-				node.id = nodeData.id;
+				// Clear existing diagram first
+				breedingCanvas.querySelectorAll('.breeding-node').forEach(node => node.remove());
+				connectionsGroup.innerHTML = '';
+				nodes = [];
+				connections = [];
 				
-				// Add status class if it exists (NEW CODE)
-				if (nodeData.origin === 'strain') {
-				  node.className = 'breeding-node strain-node';
-				} else {
-				  // For cross nodes, include status in class
-				  node.className = `breeding-node cross-node status-${nodeData.status || 'planned'}`;
+				// Set the node counter to prevent ID conflicts
+				if (diagram.nodes.length > 0) {
+					const nodeIds = diagram.nodes.map(n => {
+						const match = n.id.match(/node-(\d+)/);
+						return match ? parseInt(match[1]) : 0;
+					});
+					nodeCounter = Math.max(...nodeIds, 0);
 				}
 				
-				node.dataset.name = nodeData.name;
-				node.dataset.growthType = nodeData.growthType || '';
-				node.dataset.sexType = nodeData.sexType || '';
-				node.dataset.floweringType = nodeData.floweringType || '';
-				node.dataset.status = nodeData.status || 'planned'; // NEW CODE
-				
-				// Set position
-				if (diagram.positions && diagram.positions[nodeData.id]) {
-				  node.style.left = diagram.positions[nodeData.id].left;
-				  node.style.top = diagram.positions[nodeData.id].top;
-				} else {
-				  node.style.left = '200px';
-				  node.style.top = '200px';
+				// Find all valid connected nodes
+				const connectedNodeIds = new Set();
+				if (diagram.connections) {
+					diagram.connections.forEach(conn => {
+						connectedNodeIds.add(conn.source);
+						connectedNodeIds.add(conn.target);
+					});
 				}
 				
-				// Create trait tags HTML
-				let traitsHTML = '';
-				if (nodeData.growthType) traitsHTML += `<span class="strain-trait ${nodeData.growthType.toLowerCase()}">${nodeData.growthType}</span>`;
-				if (nodeData.sexType) traitsHTML += `<span class="strain-trait ${nodeData.sexType.toLowerCase()}">${nodeData.sexType}</span>`;
-				if (nodeData.floweringType) traitsHTML += `<span class="strain-trait ${nodeData.floweringType.toLowerCase()}">${nodeData.floweringType}</span>`;
+				// If there's only one node, it won't have connections but we should still load it
+				const shouldFilterOrphans = diagram.nodes.length > 1 && diagram.connections && diagram.connections.length > 0;
 				
-				// Generate node HTML based on type
-				if (nodeData.origin === 'cross') {
-				  // Add status indicator for cross nodes (NEW CODE)
-				  node.innerHTML = `
-					<div class="node-header">
-					  <div class="node-name">${nodeData.name}</div>
-					  <div class="node-controls">
-						<div class="node-control" data-action="remove" title="Remove">×</div>
-					  </div>
-					</div>
-					<div class="node-content">
-					  <div class="node-traits">${traitsHTML}</div>
-					  <div class="node-parents">
-						<div>♀: ${nodeData.femaleName || ''}</div>
-						<div>♂: ${nodeData.maleName || ''}</div>
-					  </div>
-					  <div class="status-indicator">
-						<div class="status-dot ${nodeData.status || 'planned'}"></div>
-						<div>Status: ${(nodeData.status || 'planned').replace('-', ' ').charAt(0).toUpperCase() + (nodeData.status || 'planned').replace('-', ' ').slice(1)}</div>
-						<div class="status-toggle" data-node="${nodeData.id}">Change</div>
-					  </div>
-					</div>
-					<div class="connection-points">
-					  <div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
-					  <div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
-					</div>
-				  `;
-				} else {
-				  // Create parent info HTML if parent data exists in the saved node
-				  let parentHTML = '';
-				  if (nodeData.parent1 || nodeData.parent2) {
-					parentHTML = `
-					  <div class="node-parents">
-						${nodeData.parent1 ? `<div>♀: ${nodeData.parent1}</div>` : ''}
-						${nodeData.parent2 ? `<div>♂: ${nodeData.parent2}</div>` : ''}
-					  </div>
-					`;
-				  }
-				  
-				  node.innerHTML = `
-					<div class="node-header">
-					  <div class="node-name">${nodeData.name}</div>
-					  <div class="node-controls">
-						<div class="node-control" data-action="remove" title="Remove">×</div>
-					  </div>
-					</div>
-					<div class="node-content">
-					  <div class="node-traits">${traitsHTML}</div>
-					  ${parentHTML}
-					</div>
-					<div class="connection-points">
-					  <div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
-					  <div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
-					</div>
-				  `;
-				}
+				// Only load nodes that have connections, unless it's the only node
+				const nodesToLoad = shouldFilterOrphans ? 
+					diagram.nodes.filter(node => connectedNodeIds.has(node.id)) : 
+					diagram.nodes;
 				
-				// Add event listeners
-				node.addEventListener('mousedown', startDraggingNode);
-				
-				node.querySelectorAll('.connection-point').forEach(point => {
-				  point.addEventListener('mousedown', startConnecting);
+				// Create all nodes first
+				nodesToLoad.forEach(nodeData => {
+					// Create node element
+					const node = document.createElement('div');
+					node.id = nodeData.id;
+					
+					// Add status class if it exists (NEW CODE)
+					if (nodeData.origin === 'strain') {
+						node.className = 'breeding-node strain-node';
+					} else {
+						// For cross nodes, include status in class
+						node.className = `breeding-node cross-node status-${nodeData.status || 'planned'}`;
+					}
+					
+					node.dataset.name = nodeData.name;
+					node.dataset.growthType = nodeData.growthType || '';
+					node.dataset.sexType = nodeData.sexType || '';
+					node.dataset.floweringType = nodeData.floweringType || '';
+					node.dataset.status = nodeData.status || 'planned'; // NEW CODE
+					
+					// Set position
+					if (diagram.positions && diagram.positions[nodeData.id]) {
+						node.style.left = diagram.positions[nodeData.id].left;
+						node.style.top = diagram.positions[nodeData.id].top;
+					} else {
+						node.style.left = '200px';
+						node.style.top = '200px';
+					}
+					
+					// Create trait tags HTML
+					let traitsHTML = '';
+					if (nodeData.growthType) traitsHTML += `<span class="strain-trait ${nodeData.growthType.toLowerCase()}">${nodeData.growthType}</span>`;
+					if (nodeData.sexType) traitsHTML += `<span class="strain-trait ${nodeData.sexType.toLowerCase()}">${nodeData.sexType}</span>`;
+					if (nodeData.floweringType) traitsHTML += `<span class="strain-trait ${nodeData.floweringType.toLowerCase()}">${nodeData.floweringType}</span>`;
+					
+					// Generate node HTML based on type
+					if (nodeData.origin === 'cross') {
+						// Add status indicator for cross nodes
+						node.innerHTML = `
+							<div class="node-header">
+							<div class="node-name">${nodeData.name}</div>
+							<div class="node-controls">
+								<div class="node-control" data-action="remove" title="Remove">×</div>
+							</div>
+							</div>
+							<div class="node-content">
+							<div class="node-traits">${traitsHTML}</div>
+							<div class="node-parents">
+								<div>♀: ${nodeData.femaleName || ''}</div>
+								<div>♂: ${nodeData.maleName || ''}</div>
+							</div>
+							<div class="status-indicator">
+								<div class="status-dot ${nodeData.status || 'planned'}"></div>
+								<div>Status: ${(nodeData.status || 'planned').replace('-', ' ').charAt(0).toUpperCase() + (nodeData.status || 'planned').replace('-', ' ').slice(1)}</div>
+								<div class="status-toggle" data-node="${nodeData.id}">Change</div>
+							</div>
+							</div>
+							<div class="connection-points">
+							<div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
+							<div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
+							</div>
+						`;
+					} else {
+						// Create parent info HTML if parent data exists in the saved node
+						let parentHTML = '';
+						if (nodeData.parent1 || nodeData.parent2) {
+							parentHTML = `
+							<div class="node-parents">
+								${nodeData.parent1 ? `<div>♀: ${nodeData.parent1}</div>` : ''}
+								${nodeData.parent2 ? `<div>♂: ${nodeData.parent2}</div>` : ''}
+							</div>
+							`;
+						}
+						
+						node.innerHTML = `
+							<div class="node-header">
+							<div class="node-name">${nodeData.name}</div>
+							<div class="node-controls">
+								<div class="node-control" data-action="remove" title="Remove">×</div>
+							</div>
+							</div>
+							<div class="node-content">
+							<div class="node-traits">${traitsHTML}</div>
+							${parentHTML}
+							</div>
+							<div class="connection-points">
+							<div class="connection-point connection-point-female" data-node="${nodeData.id}" data-role="female" title="Use as Female (Mother)"></div>
+							<div class="connection-point connection-point-male" data-node="${nodeData.id}" data-role="male" title="Use as Male (Father)"></div>
+							</div>
+						`;
+					}
+					
+					// Add event listeners
+					node.addEventListener('mousedown', startDraggingNode);
+					
+					node.querySelectorAll('.connection-point').forEach(point => {
+						point.addEventListener('mousedown', startConnecting);
+					});
+					
+					const removeButton = node.querySelector('[data-action="remove"]');
+					if (removeButton) {
+						removeButton.addEventListener('click', e => {
+							e.preventDefault();
+							e.stopPropagation();
+							removeNode(nodeData.id);
+						});
+					}
+					
+					// Add to canvas
+					breedingCanvas.appendChild(node);
 				});
 				
-				const removeButton = node.querySelector('[data-action="remove"]');
-				if (removeButton) {
-				  removeButton.addEventListener('click', e => {
-					e.preventDefault();
-					e.stopPropagation();
-					removeNode(nodeData.id);
-				  });
-				}
+				// Add nodes to state array with all properties preserved
+				nodes = nodesToLoad.map(n => ({...n}));
 				
-				// Add to canvas
-				breedingCanvas.appendChild(node);
-			  });
-			  
-			  // Add nodes to state array with all properties preserved
-			  nodes = nodesToLoad.map(n => ({...n}));
-			  
-			  // Recreate all connections
-			  connections = [];
-			  if (diagram.connections) {
-				diagram.connections.forEach(conn => {
-				  // Only create connections if both nodes exist
-				  if (nodes.some(n => n.id === conn.source) && nodes.some(n => n.id === conn.target)) {
-					addConnection(conn.source, conn.target, conn.role);
-				  }
-				});
-			  }
+				// Recreate all connections
+				connections = [];
+				if (diagram.connections) {
+					diagram.connections.forEach(conn => {
+						// Only create connections if both nodes exist
+						if (nodes.some(n => n.id === conn.source) && nodes.some(n => n.id === conn.target)) {
+							addConnection(conn.source, conn.target, conn.role);
+						}
+					});
+				}
 
-			  // Update parent information for strain nodes
-			  updateExistingNodesWithParents();
-			  
-			  // Center view
-			  centerView();
+				// Update parent information for strain nodes
+				updateExistingNodesWithParents();
+				
+				// Restore layout mode if it was saved
+				if (diagram.isAutoLayout) {
+					const layoutToggleBtn = document.getElementById('toggle-layout-mode');
+					if (layoutToggleBtn) {
+						const indicator = layoutToggleBtn.querySelector('.toggle-indicator');
+						indicator.textContent = '☑';
+						layoutToggleBtn.style.backgroundColor = '#5d4a7e';
+						
+						// Apply auto layout and make nodes non-draggable
+						setTimeout(() => {
+							arrangeTreeLayout();
+							document.querySelectorAll('.breeding-node').forEach(node => {
+								node.classList.add('auto-layout-node');
+							});
+						}, 300);
+					}
+				}
+				
+				// Center view
+				centerView();
 			}
             
 			function showLoadModal() {
