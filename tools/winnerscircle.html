@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winner's Circle - The Ultimate Discord Picker</title>
+    <title>Winner's Circle</title>
     <style>
         :root {
             --primary: #ff5252;
@@ -783,36 +783,39 @@
         }
         
         // Update the name list UI
-        function updateNameList() {
-            nameList.innerHTML = '';
-            
-            names.forEach((name, index) => {
-                const li = document.createElement('li');
-                li.className = 'name-item';
-                
-                const nameText = document.createElement('span');
-                nameText.className = 'name-text';
-                nameText.textContent = name;
-                
-                const editBtn = document.createElement('button');
-                editBtn.className = 'edit-btn';
-                editBtn.textContent = 'Edit';
-                editBtn.addEventListener('click', () => editName(index));
-                
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-btn';
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.addEventListener('click', () => deleteName(index));
-                
-                li.appendChild(nameText);
-                li.appendChild(editBtn);
-                li.appendChild(deleteBtn);
-                
-                nameList.appendChild(li);
-            });
-            
-            updateRemainingDisplay();
-        }
+		function updateNameList() {
+			nameList.innerHTML = '';
+			
+			names.forEach((name, index) => {
+				const li = document.createElement('li');
+				li.className = 'name-item';
+				li.style.backgroundColor = colors[index % colors.length];
+				li.style.color = 'white';
+				li.style.textShadow = '1px 1px 2px black';
+				
+				const nameText = document.createElement('span');
+				nameText.className = 'name-text';
+				nameText.textContent = name;
+				
+				const editBtn = document.createElement('button');
+				editBtn.className = 'edit-btn';
+				editBtn.textContent = 'Edit';
+				editBtn.addEventListener('click', () => editName(index));
+				
+				const deleteBtn = document.createElement('button');
+				deleteBtn.className = 'delete-btn';
+				deleteBtn.textContent = 'Delete';
+				deleteBtn.addEventListener('click', () => deleteName(index));
+				
+				li.appendChild(nameText);
+				li.appendChild(editBtn);
+				li.appendChild(deleteBtn);
+				
+				nameList.appendChild(li);
+			});
+			
+			updateRemainingDisplay();
+		}
         
         // Update the wheel UI
         function updateWheel() {
@@ -851,46 +854,49 @@
                 section.style.transform = `rotate(${index * sectionAngle}deg)`;
                 wheel.appendChild(section);
                 
-                const sectionContent = document.createElement('div');
-                sectionContent.className = 'section-content';
-                sectionContent.style.position = 'absolute';
-                sectionContent.style.width = '140px';
-                sectionContent.style.height = '140px';
-                sectionContent.style.left = '100%';
-                sectionContent.style.top = '50%';
-                sectionContent.style.transform = 'translate(-50%, -50%) rotate(90deg)';
-                sectionContent.style.display = 'flex';
-                sectionContent.style.justifyContent = 'center';
-                sectionContent.style.alignItems = 'center';
-                sectionContent.style.textAlign = 'center';
-                sectionContent.style.fontSize = currentNames.length > 10 ? '10px' : '14px';
-                sectionContent.style.fontWeight = 'bold';
-                sectionContent.style.padding = '5px';
-                sectionContent.style.wordBreak = 'break-word';
-                sectionContent.style.overflow = 'hidden';
-                sectionContent.textContent = name;
+				const sectionContent = document.createElement('div');
+				sectionContent.className = 'section-content';
+				sectionContent.style.position = 'absolute';
+				sectionContent.style.width = '150px';
+				sectionContent.style.height = '30px';
+				sectionContent.style.left = '50%';
+				sectionContent.style.top = '0';
+				sectionContent.style.transform = 'translate(-50%, 0) rotate(90deg)';
+				sectionContent.style.display = 'flex';
+				sectionContent.style.justifyContent = 'center';
+				sectionContent.style.alignItems = 'center';
+				sectionContent.style.textAlign = 'center';
+				sectionContent.style.fontSize = currentNames.length > 10 ? '10px' : '14px';
+				sectionContent.style.fontWeight = 'bold';
+				sectionContent.style.padding = '5px';
+				sectionContent.style.wordBreak = 'break-word';
+				sectionContent.style.color = 'white';
+				sectionContent.style.textShadow = '1px 1px 2px black';
+				sectionContent.style.backgroundColor = colors[i % colors.length];
+				sectionContent.style.borderRadius = '3px';
+				sectionContent.textContent = name;
                 section.appendChild(sectionContent);
             });
             
             // Create wheel background sections
-            for (let i = 0; i < currentNames.length; i++) {
-                const section = document.createElement('div');
-                section.className = 'wheel-bg-section';
-                section.style.position = 'absolute';
-                section.style.width = '50%';
-                section.style.height = '50%';
-                section.style.top = '0';
-                section.style.left = '50%';
-                section.style.transformOrigin = 'bottom left';
-                section.style.transform = `rotate(${i * sectionAngle}deg)`;
-                
-                // Create wedge shape with clip-path
-                const clipPath = `polygon(0 100%, 0 0, 200% 0)`;
-                section.style.clipPath = clipPath;
-                section.style.backgroundColor = colors[i % colors.length];
-                
-                wheel.appendChild(section);
-            }
+			for (let i = 0; i < currentNames.length; i++) {
+				const section = document.createElement('div');
+				section.className = 'wheel-bg-section';
+				section.style.position = 'absolute';
+				section.style.width = '50%';
+				section.style.height = '50%';
+				section.style.top = '0';
+				section.style.left = '50%';
+				section.style.transformOrigin = 'bottom left';
+				section.style.transform = `rotate(${i * (360 / currentNames.length)}deg)`;
+				
+				// Create wedge shape with clip-path
+				const clipPath = `polygon(0 0, 0 100%, 100% 0)`;
+				section.style.clipPath = clipPath;
+				section.style.backgroundColor = colors[i % colors.length];
+				
+				wheel.appendChild(section);
+			}
 		}
 
 		// Spin the wheel
@@ -921,7 +927,7 @@
 				winnerDisplay.classList.add('celebrate');
 				
 				// Launch confetti
-				canvasConfetti({
+				confetti({
 					particleCount: 150,
 					spread: 70,
 					origin: { y: 0.6 }
