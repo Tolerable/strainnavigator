@@ -814,73 +814,80 @@
 			}
 			
 			const sectionAngle = 360 / currentNames.length;
+			const radius = 50; // 50% of the container width/height
 			
-			// Create wheel sections - using pie slices instead of partial backgrounds
+			// Create wheel sections as proper pie slices
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
+				const startAngle = i * sectionAngle;
+				const endAngle = (i + 1) * sectionAngle;
 				
-				// Create full pie slice section
-				const section = document.createElement('div');
-				section.className = 'wheel-section';
-				section.style.position = 'absolute';
-				section.style.width = '100%';
-				section.style.height = '100%';
-				section.style.top = '0';
-				section.style.left = '0';
-				section.style.clipPath = `
-					polygon(
-						50% 50%, 
-						${50 + 50 * Math.cos((i * sectionAngle - 90) * Math.PI / 180)}% ${50 + 50 * Math.sin((i * sectionAngle - 90) * Math.PI / 180)}%, 
-						${50 + 50 * Math.cos(((i + 1) * sectionAngle - 90) * Math.PI / 180)}% ${50 + 50 * Math.sin(((i + 1) * sectionAngle - 90) * Math.PI / 180)}%
-					)
-				`;
-				section.style.backgroundColor = colors[i % colors.length];
-				wheel.appendChild(section);
+				// Create the pie slice section using SVG
+				const pieSlice = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+				pieSlice.setAttribute("width", "100%");
+				pieSlice.setAttribute("height", "100%");
+				pieSlice.style.position = "absolute";
+				pieSlice.style.top = "0";
+				pieSlice.style.left = "0";
 				
-				// Add divider lines
-				const divider = document.createElement('div');
-				divider.className = 'wheel-divider';
-				divider.style.position = 'absolute';
-				divider.style.width = '50%';
-				divider.style.height = '2px';
-				divider.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-				divider.style.top = '50%';
-				divider.style.left = '50%';
-				divider.style.transformOrigin = 'left center';
-				divider.style.transform = `rotate(${i * sectionAngle}deg)`;
-				divider.style.zIndex = '2';
-				wheel.appendChild(divider);
+				// Calculate the path for a pie slice
+				// Move to center, draw line to edge at start angle, 
+				// draw arc to end angle, then close path back to center
+				const startRad = (startAngle - 90) * Math.PI / 180;
+				const endRad = (endAngle - 90) * Math.PI / 180;
 				
-				// Add name labels properly aligned along the radius
+				const x1 = radius + radius * Math.cos(startRad);
+				const y1 = radius + radius * Math.sin(startRad);
+				const x2 = radius + radius * Math.cos(endRad);
+				const y2 = radius + radius * Math.sin(endRad);
+				
+				// Determine if the arc should be drawn the long way (> 180 degrees)
+				const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+				
+				const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+				path.setAttribute("d", `M ${radius} ${radius} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`);
+				path.setAttribute("fill", colors[i % colors.length]);
+				path.setAttribute("stroke", "rgba(0, 0, 0, 0.3)");
+				path.setAttribute("stroke-width", "1");
+				
+				pieSlice.appendChild(path);
+				wheel.appendChild(pieSlice);
+				
+				// Add name label along the radius in the middle of the section
+				const midAngle = (startAngle + endAngle) / 2;
+				const midRad = (midAngle - 90) * Math.PI / 180;
+				
+				// Position text container
 				const labelContainer = document.createElement('div');
 				labelContainer.className = 'section-label';
 				labelContainer.style.position = 'absolute';
-				labelContainer.style.width = '40%'; // Adjust width to fit within sections
 				labelContainer.style.top = '50%';
 				labelContainer.style.left = '50%';
-				labelContainer.style.transformOrigin = 'left center';
-				
-				// Position in the middle of the section
-				const midAngle = (i * sectionAngle + (i + 1) * sectionAngle) / 2;
 				labelContainer.style.transform = `rotate(${midAngle}deg)`;
+				labelContainer.style.transformOrigin = 'left center';
+				labelContainer.style.pointerEvents = 'none'; // Make sure it doesn't interfere with clicks
+				labelContainer.style.zIndex = '5';
 				
-				const label = document.createElement('div');
-				label.className = 'label-text';
-				label.textContent = name;
-				label.style.position = 'absolute';
-				label.style.transform = `translate(20px, -50%) rotate(90deg)`;
-				label.style.transformOrigin = 'left center';
-				label.style.color = 'white';
-				label.style.textShadow = '1px 1px 2px black';
-				label.style.fontWeight = 'bold';
-				label.style.fontSize = currentNames.length > 15 ? '10px' : 
-									  currentNames.length > 8 ? '12px' : '14px';
-				label.style.whiteSpace = 'nowrap';
-				label.style.overflow = 'hidden';
-				label.style.textOverflow = 'ellipsis';
-				label.style.maxWidth = '100px';
+				// Create the text element
+				const textElement = document.createElement('div');
+				textElement.className = 'wheel-text';
+				textElement.textContent = name;
 				
-				labelContainer.appendChild(label);
+				// Style the text
+				textElement.style.position = 'absolute';
+				textElement.style.transform = `translate(10px, -50%) rotate(${90}deg)`;
+				textElement.style.transformOrigin = 'left center';
+				textElement.style.color = 'white';
+				textElement.style.textShadow = '1px 1px 2px black';
+				textElement.style.fontWeight = 'bold';
+				textElement.style.fontSize = currentNames.length > 15 ? '10px' : 
+											currentNames.length > 8 ? '12px' : '14px';
+				textElement.style.whiteSpace = 'nowrap';
+				textElement.style.textOverflow = 'ellipsis';
+				textElement.style.maxWidth = '70px';
+				textElement.style.overflow = 'hidden';
+				
+				labelContainer.appendChild(textElement);
 				wheel.appendChild(labelContainer);
 			}
 		}
