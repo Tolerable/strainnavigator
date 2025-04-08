@@ -851,7 +851,7 @@
 				wheel.appendChild(divider);
 			}
 			
-			// Add name labels with proper radial alignment
+			// Add name labels as spokes radiating from center
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
@@ -859,46 +859,52 @@
 				const midAngle = i * sectionAngle + (sectionAngle / 2);
 				const midRad = (midAngle - 90) * Math.PI / 180; // Convert to radians and adjust for CSS rotation
 				
-				// Calculate position along the radius
-				// We want multiple characters to be positioned along the radius
-				const labelLength = Math.min(name.length, 10); // Limit to 10 characters max
+				// Create a container for the entire name
+				const spokeLine = document.createElement('div');
+				spokeLine.className = 'wheel-spoke';
+				spokeLine.style.position = 'absolute';
+				spokeLine.style.left = '50%';
+				spokeLine.style.top = '50%';
+				spokeLine.style.width = '40%'; // Length of the spoke from center
+				spokeLine.style.height = '2px';
+				spokeLine.style.backgroundColor = 'rgba(255,255,255,0.5)';
+				spokeLine.style.transformOrigin = 'left center';
+				spokeLine.style.transform = `rotate(${midAngle}deg)`;
+				spokeLine.style.zIndex = '3';
+				wheel.appendChild(spokeLine);
 				
-				for (let j = 0; j < labelLength; j++) {
-					const char = name[j];
-					
-					// Position depends on index in the name (creates radial effect)
-					const distanceFromCenter = 20 + (j * 8); // Start 20px from center, each char 8px further
-					
-					// Create character container
-					const charContainer = document.createElement('div');
-					charContainer.className = 'wheel-label-char';
-					charContainer.style.position = 'absolute';
-					charContainer.style.left = '50%';
-					charContainer.style.top = '50%';
-					
-					// Position at calculated spot
-					const xPos = Math.cos(midRad) * distanceFromCenter;
-					const yPos = Math.sin(midRad) * distanceFromCenter;
-					
-					charContainer.style.transform = `translate(${xPos}px, ${yPos}px)`;
-					charContainer.style.zIndex = '3';
-					
-					// Create character text
-					const charText = document.createElement('span');
-					charText.textContent = char;
-					charText.style.display = 'block';
-					charText.style.fontWeight = 'bold';
-					charText.style.color = 'white';
-					charText.style.textShadow = '1px 1px 3px rgba(0,0,0,0.7)';
-					charText.style.fontSize = currentNames.length > 15 ? '10px' : 
-											 currentNames.length > 8 ? '12px' : '14px';
-					
-					// Rotate each character to face outward along the radius
-					charText.style.transform = `rotate(${midAngle + 90}deg)`;
-					
-					charContainer.appendChild(charText);
-					wheel.appendChild(charContainer);
-				}
+				// Create text container
+				const nameContainer = document.createElement('div');
+				nameContainer.className = 'wheel-name';
+				nameContainer.style.position = 'absolute';
+				nameContainer.style.left = '50%';
+				nameContainer.style.top = '50%';
+				nameContainer.style.transformOrigin = 'left center';
+				nameContainer.style.transform = `rotate(${midAngle}deg)`;
+				nameContainer.style.zIndex = '4';
+				
+				// Create the text element for the name
+				const nameText = document.createElement('div');
+				nameText.textContent = name;
+				nameText.style.position = 'absolute';
+				nameText.style.whiteSpace = 'nowrap';
+				nameText.style.fontWeight = 'bold';
+				nameText.style.color = 'white';
+				nameText.style.textShadow = '1px 1px 3px rgba(0,0,0,0.9), -1px -1px 3px rgba(0,0,0,0.9)';
+				
+				// Adjust font size based on number of contestants
+				nameText.style.fontSize = currentNames.length > 20 ? '11px' : 
+										 currentNames.length > 12 ? '13px' : 
+										 currentNames.length > 6 ? '15px' : '16px';
+				
+				// Position text at 30% from center, rotated to be readable
+				nameText.style.left = '30%';
+				nameText.style.top = '0';
+				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
+				nameText.style.transformOrigin = 'left center';
+				
+				nameContainer.appendChild(nameText);
+				wheel.appendChild(nameContainer);
 			}
 			
 			// Add a border to ensure the wheel looks circular
