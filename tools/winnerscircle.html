@@ -851,43 +851,54 @@
 				wheel.appendChild(divider);
 			}
 			
-			// Add name labels
+			// Add name labels with proper radial alignment
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
 				// Calculate middle angle of the section
 				const midAngle = i * sectionAngle + (sectionAngle / 2);
+				const midRad = (midAngle - 90) * Math.PI / 180; // Convert to radians and adjust for CSS rotation
 				
-				// Create label container
-				const labelContainer = document.createElement('div');
-				labelContainer.className = 'wheel-label';
-				labelContainer.style.position = 'absolute';
-				labelContainer.style.left = '50%';
-				labelContainer.style.top = '50%';
-				labelContainer.style.transformOrigin = 'left center';
-				labelContainer.style.transform = `rotate(${midAngle}deg)`;
-				labelContainer.style.zIndex = '3';
+				// Calculate position along the radius
+				// We want multiple characters to be positioned along the radius
+				const labelLength = Math.min(name.length, 10); // Limit to 10 characters max
 				
-				// Create actual text element
-				const nameText = document.createElement('span');
-				nameText.className = 'name-text';
-				nameText.textContent = name;
-				nameText.style.display = 'block';
-				nameText.style.position = 'absolute';
-				nameText.style.transformOrigin = 'center left';
-				nameText.style.transform = `translate(20px, -50%) rotate(${90}deg)`;
-				nameText.style.whiteSpace = 'nowrap';
-				nameText.style.overflow = 'hidden';
-				nameText.style.textOverflow = 'ellipsis';
-				nameText.style.maxWidth = '80px';
-				nameText.style.fontWeight = 'bold';
-				nameText.style.color = 'white';
-				nameText.style.textShadow = '1px 1px 3px rgba(0,0,0,0.7)';
-				nameText.style.fontSize = currentNames.length > 15 ? '10px' : 
-										 currentNames.length > 8 ? '12px' : '14px';
-				
-				labelContainer.appendChild(nameText);
-				wheel.appendChild(labelContainer);
+				for (let j = 0; j < labelLength; j++) {
+					const char = name[j];
+					
+					// Position depends on index in the name (creates radial effect)
+					const distanceFromCenter = 20 + (j * 8); // Start 20px from center, each char 8px further
+					
+					// Create character container
+					const charContainer = document.createElement('div');
+					charContainer.className = 'wheel-label-char';
+					charContainer.style.position = 'absolute';
+					charContainer.style.left = '50%';
+					charContainer.style.top = '50%';
+					
+					// Position at calculated spot
+					const xPos = Math.cos(midRad) * distanceFromCenter;
+					const yPos = Math.sin(midRad) * distanceFromCenter;
+					
+					charContainer.style.transform = `translate(${xPos}px, ${yPos}px)`;
+					charContainer.style.zIndex = '3';
+					
+					// Create character text
+					const charText = document.createElement('span');
+					charText.textContent = char;
+					charText.style.display = 'block';
+					charText.style.fontWeight = 'bold';
+					charText.style.color = 'white';
+					charText.style.textShadow = '1px 1px 3px rgba(0,0,0,0.7)';
+					charText.style.fontSize = currentNames.length > 15 ? '10px' : 
+											 currentNames.length > 8 ? '12px' : '14px';
+					
+					// Rotate each character to face outward along the radius
+					charText.style.transform = `rotate(${midAngle + 90}deg)`;
+					
+					charContainer.appendChild(charText);
+					wheel.appendChild(charContainer);
+				}
 			}
 			
 			// Add a border to ensure the wheel looks circular
