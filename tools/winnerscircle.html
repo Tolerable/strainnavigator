@@ -851,54 +851,43 @@
 				wheel.appendChild(divider);
 			}
 			
-			// Add name labels as spokes radiating from center
+			// Add names AS the spokes - bold, centered, and prominent
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
 				// Calculate middle angle of the section
 				const midAngle = i * sectionAngle + (sectionAngle / 2);
-				const midRad = (midAngle - 90) * Math.PI / 180; // Convert to radians and adjust for CSS rotation
 				
-				// Create a container for the entire name
-				const spokeLine = document.createElement('div');
-				spokeLine.className = 'wheel-spoke';
-				spokeLine.style.position = 'absolute';
-				spokeLine.style.left = '50%';
-				spokeLine.style.top = '50%';
-				spokeLine.style.width = '40%'; // Length of the spoke from center
-				spokeLine.style.height = '2px';
-				spokeLine.style.backgroundColor = 'rgba(255,255,255,0.5)';
-				spokeLine.style.transformOrigin = 'left center';
-				spokeLine.style.transform = `rotate(${midAngle}deg)`;
-				spokeLine.style.zIndex = '3';
-				wheel.appendChild(spokeLine);
-				
-				// Create text container
+				// Create container for name
 				const nameContainer = document.createElement('div');
-				nameContainer.className = 'wheel-name';
+				nameContainer.className = 'wheel-name-spoke';
 				nameContainer.style.position = 'absolute';
 				nameContainer.style.left = '50%';
 				nameContainer.style.top = '50%';
 				nameContainer.style.transformOrigin = 'left center';
 				nameContainer.style.transform = `rotate(${midAngle}deg)`;
 				nameContainer.style.zIndex = '4';
+				nameContainer.style.width = '45%'; // Extend most of the way to the edge
+				nameContainer.style.pointerEvents = 'none'; // Don't interfere with clicks
 				
-				// Create the text element for the name
+				// Create the name text element - BOLD and ALL CAPS for emphasis
 				const nameText = document.createElement('div');
-				nameText.textContent = name;
+				nameText.textContent = name.toUpperCase(); // ALL CAPS
 				nameText.style.position = 'absolute';
-				nameText.style.whiteSpace = 'nowrap';
-				nameText.style.fontWeight = 'bold';
+				nameText.style.width = '100%';
+				nameText.style.textAlign = 'center';
+				nameText.style.fontWeight = '900'; // Extra bold
 				nameText.style.color = 'white';
-				nameText.style.textShadow = '1px 1px 3px rgba(0,0,0,0.9), -1px -1px 3px rgba(0,0,0,0.9)';
+				nameText.style.letterSpacing = '1px'; // Spread letters slightly
+				nameText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9), -2px -2px 4px rgba(0,0,0,0.9)';
 				
 				// Adjust font size based on number of contestants
-				nameText.style.fontSize = currentNames.length > 20 ? '11px' : 
-										 currentNames.length > 12 ? '13px' : 
-										 currentNames.length > 6 ? '15px' : '16px';
+				nameText.style.fontSize = currentNames.length > 20 ? '14px' : 
+										 currentNames.length > 12 ? '16px' : 
+										 currentNames.length > 6 ? '18px' : '20px';
 				
-				// Position text at 30% from center, rotated to be readable
-				nameText.style.left = '30%';
+				// Position text centered along the radius
+				nameText.style.left = '0';
 				nameText.style.top = '0';
 				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
 				nameText.style.transformOrigin = 'left center';
