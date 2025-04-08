@@ -815,33 +815,31 @@
 			
 			const sectionAngle = 360 / currentNames.length;
 			
-			// First create wheel background sections
-			for (let i = 0; i < currentNames.length; i++) {
-				const section = document.createElement('div');
-				section.className = 'wheel-bg-section';
-				section.style.position = 'absolute';
-				section.style.width = '50%';
-				section.style.height = '50%';
-				section.style.top = '0';
-				section.style.left = '50%';
-				section.style.transformOrigin = 'bottom left';
-				section.style.transform = `rotate(${i * sectionAngle}deg)`;
-				
-				// Create wedge shape with clip-path
-				const clipPath = `polygon(0 0, 0 100%, 100% 0)`;
-				section.style.clipPath = clipPath;
-				section.style.backgroundColor = colors[i % colors.length];
-				
-				wheel.appendChild(section);
-			}
-			
-			// Then create section dividers and name labels
+			// Create wheel sections - using pie slices instead of partial backgrounds
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
-				// Create divider line
+				// Create full pie slice section
+				const section = document.createElement('div');
+				section.className = 'wheel-section';
+				section.style.position = 'absolute';
+				section.style.width = '100%';
+				section.style.height = '100%';
+				section.style.top = '0';
+				section.style.left = '0';
+				section.style.clipPath = `
+					polygon(
+						50% 50%, 
+						${50 + 50 * Math.cos((i * sectionAngle - 90) * Math.PI / 180)}% ${50 + 50 * Math.sin((i * sectionAngle - 90) * Math.PI / 180)}%, 
+						${50 + 50 * Math.cos(((i + 1) * sectionAngle - 90) * Math.PI / 180)}% ${50 + 50 * Math.sin(((i + 1) * sectionAngle - 90) * Math.PI / 180)}%
+					)
+				`;
+				section.style.backgroundColor = colors[i % colors.length];
+				wheel.appendChild(section);
+				
+				// Add divider lines
 				const divider = document.createElement('div');
-				divider.className = 'wheel-section';
+				divider.className = 'wheel-divider';
 				divider.style.position = 'absolute';
 				divider.style.width = '50%';
 				divider.style.height = '2px';
@@ -850,31 +848,40 @@
 				divider.style.left = '50%';
 				divider.style.transformOrigin = 'left center';
 				divider.style.transform = `rotate(${i * sectionAngle}deg)`;
+				divider.style.zIndex = '2';
 				wheel.appendChild(divider);
 				
-				// Create section content/label
-				const sectionContent = document.createElement('div');
-				sectionContent.className = 'section-content';
-				sectionContent.style.position = 'absolute';
-				sectionContent.style.width = '150px';
-				sectionContent.style.height = '30px';
-				sectionContent.style.left = '50%';
-				sectionContent.style.transformOrigin = 'left center';
-				sectionContent.style.transform = `rotate(${i * sectionAngle}deg) translate(30px, -15px)`;
-				sectionContent.style.display = 'flex';
-				sectionContent.style.justifyContent = 'center';
-				sectionContent.style.alignItems = 'center';
-				sectionContent.style.textAlign = 'center';
-				sectionContent.style.fontSize = currentNames.length > 10 ? '10px' : '14px';
-				sectionContent.style.fontWeight = 'bold';
-				sectionContent.style.padding = '5px';
-				sectionContent.style.wordBreak = 'break-word';
-				sectionContent.style.color = 'white';
-				sectionContent.style.textShadow = '1px 1px 2px black';
-				sectionContent.style.backgroundColor = colors[i % colors.length];
-				sectionContent.style.borderRadius = '3px';
-				sectionContent.textContent = name;
-				wheel.appendChild(sectionContent);
+				// Add name labels properly aligned along the radius
+				const labelContainer = document.createElement('div');
+				labelContainer.className = 'section-label';
+				labelContainer.style.position = 'absolute';
+				labelContainer.style.width = '40%'; // Adjust width to fit within sections
+				labelContainer.style.top = '50%';
+				labelContainer.style.left = '50%';
+				labelContainer.style.transformOrigin = 'left center';
+				
+				// Position in the middle of the section
+				const midAngle = (i * sectionAngle + (i + 1) * sectionAngle) / 2;
+				labelContainer.style.transform = `rotate(${midAngle}deg)`;
+				
+				const label = document.createElement('div');
+				label.className = 'label-text';
+				label.textContent = name;
+				label.style.position = 'absolute';
+				label.style.transform = `translate(20px, -50%) rotate(90deg)`;
+				label.style.transformOrigin = 'left center';
+				label.style.color = 'white';
+				label.style.textShadow = '1px 1px 2px black';
+				label.style.fontWeight = 'bold';
+				label.style.fontSize = currentNames.length > 15 ? '10px' : 
+									  currentNames.length > 8 ? '12px' : '14px';
+				label.style.whiteSpace = 'nowrap';
+				label.style.overflow = 'hidden';
+				label.style.textOverflow = 'ellipsis';
+				label.style.maxWidth = '100px';
+				
+				labelContainer.appendChild(label);
+				wheel.appendChild(labelContainer);
 			}
 		}
 
