@@ -525,7 +525,6 @@
     <div class="container">
         <header class="header">
             <h1 class="title">Winner's Circle</h1>
-            <p class="subtitle">The Ultimate Discord Spinning Wheel!</p>
         </header>
         
         <div class="panel">
@@ -619,7 +618,7 @@
         </div>
     </div>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/confetti-js/0.0.18/confetti.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script>
         // Initialize variables
         let names = [];
@@ -892,208 +891,209 @@
                 
                 wheel.appendChild(section);
             }
+		}
 
-			// Spin the wheel
-			function spinWheel() {
-				if (isSpinning || currentNames.length === 0) return;
+		// Spin the wheel
+		function spinWheel() {
+			if (isSpinning || currentNames.length === 0) return;
+			
+			isSpinning = true;
+			spinButton.disabled = true;
+			
+			// Calculate a random rotation (between 2 and 5 full rotations plus a random section)
+			const spinDurationValue = parseFloat(spinDuration.value);
+			const sectionAngle = 360 / currentNames.length;
+			const spinAngle = 720 + Math.floor(Math.random() * 1080) + Math.floor(Math.random() * sectionAngle);
+			
+			// Apply the rotation
+			wheel.style.transition = `transform ${spinDurationValue}s cubic-bezier(0.2, 0.8, 0.15, 1)`;
+			wheel.style.transform = `rotate(${spinAngle}deg)`;
+			
+			// Calculate the winner after the spin
+			setTimeout(() => {
+				// Calculate which section is at the top (opposite of rotation angle)
+				const normalizedAngle = spinAngle % 360;
+				const winningIndex = Math.floor(currentNames.length - (normalizedAngle / sectionAngle)) % currentNames.length;
+				const winner = currentNames[winningIndex];
 				
-				isSpinning = true;
-				spinButton.disabled = true;
+				// Update the display
+				winnerDisplay.textContent = winner;
+				winnerDisplay.classList.add('celebrate');
 				
-				// Calculate a random rotation (between 2 and 5 full rotations plus a random section)
-				const spinDurationValue = parseFloat(spinDuration.value);
-				const sectionAngle = 360 / currentNames.length;
-				const spinAngle = 720 + Math.floor(Math.random() * 1080) + Math.floor(Math.random() * sectionAngle);
+				// Launch confetti
+				canvasConfetti({
+					particleCount: 150,
+					spread: 70,
+					origin: { y: 0.6 }
+				});
 				
-				// Apply the rotation
-				wheel.style.transition = `transform ${spinDurationValue}s cubic-bezier(0.2, 0.8, 0.15, 1)`;
-				wheel.style.transform = `rotate(${spinAngle}deg)`;
+				// Add to history
+				addToHistory(winner);
 				
-				// Calculate the winner after the spin
-				setTimeout(() => {
-					// Calculate which section is at the top (opposite of rotation angle)
-					const normalizedAngle = spinAngle % 360;
-					const winningIndex = Math.floor(currentNames.length - (normalizedAngle / sectionAngle)) % currentNames.length;
-					const winner = currentNames[winningIndex];
-					
-					// Update the display
-					winnerDisplay.textContent = winner;
-					winnerDisplay.classList.add('celebrate');
-					
-					// Launch confetti
-					canvasConfetti({
-						particleCount: 150,
-						spread: 70,
-						origin: { y: 0.6 }
-					});
-					
-					// Add to history
-					addToHistory(winner);
-					
-					// Handle game modes
-					if (gameMode.value === 'last') {
-						handleLastManStanding(winner);
-					}
-					
-					// Reset state
-					isSpinning = false;
-					spinButton.disabled = false;
-					
-					// Remove celebration class after animation
-					setTimeout(() => {
-						winnerDisplay.classList.remove('celebrate');
-					}, 1500);
-				}, spinDurationValue * 1000);
-			}
-
-			// Add winner to history
-			function addToHistory(winner) {
-				winHistory.unshift(winner);
-				
-				// Keep history at a maximum of 10 items
-				if (winHistory.length > 10) {
-					winHistory.pop();
+				// Handle game modes
+				if (gameMode.value === 'last') {
+					handleLastManStanding(winner);
 				}
 				
-				// Update history list
+				// Reset state
+				isSpinning = false;
+				spinButton.disabled = false;
+				
+				// Remove celebration class after animation
+				setTimeout(() => {
+					winnerDisplay.classList.remove('celebrate');
+				}, 1500);
+			}, spinDurationValue * 1000);
+		}
+
+		// Add winner to history
+		function addToHistory(winner) {
+			winHistory.unshift(winner);
+			
+			// Keep history at a maximum of 10 items
+			if (winHistory.length > 10) {
+				winHistory.pop();
+			}
+			
+			// Update history list
+			updateHistoryList();
+		}
+
+		// Update the history list UI
+		function updateHistoryList() {
+			historyList.innerHTML = '';
+			
+			winHistory.forEach((winner, index) => {
+				const li = document.createElement('li');
+				li.className = 'history-item';
+				li.innerHTML = `Round ${winHistory.length - index}: <span>${winner}</span>`;
+				historyList.appendChild(li);
+			});
+		}
+
+		// Handle last man standing game mode
+		function handleLastManStanding(winner) {
+			const index = names.indexOf(winner);
+			
+			if (index !== -1) {
+				names.splice(index, 1);
+				updateNameList();
+				updateWheel();
+				
+				// Check if there's only one name left
+				if (names.length === 1) {
+					// Final winner
+					setTimeout(() => {
+						alert(`${names[0]} is the last one standing and wins!`);
+						// Reset the game
+						names = [...originalNames];
+						updateNameList();
+						updateWheel();
+					}, 1000);
+				} else if (names.length === 0) {
+					// All eliminated
+					setTimeout(() => {
+						alert('Game over! All contestants have been eliminated.');
+						// Reset the game
+						names = [...originalNames];
+						updateNameList();
+						updateWheel();
+					}, 1000);
+				}
+			}
+		}
+
+		// Handle game mode change
+		function handleGameModeChange() {
+			if (gameMode.value === 'first') {
+				// Restore original names if switching from last man standing
+				names = [...originalNames];
+				updateNameList();
+				updateWheel();
+			} else if (gameMode.value === 'last') {
+				// Reset history when starting last man standing
+				winHistory = [];
 				updateHistoryList();
 			}
+			
+			updateRemainingDisplay();
+		}
 
-			// Update the history list UI
-			function updateHistoryList() {
-				historyList.innerHTML = '';
+		// Update remaining display based on game mode
+		function updateRemainingDisplay() {
+			if (gameMode.value === 'last') {
+				remainingDisplay.innerHTML = `<strong>Remaining:</strong> ${names.length} contestants`;
+				remainingDisplay.style.display = 'block';
+			} else {
+				remainingDisplay.style.display = 'none';
+			}
+		}
+
+		// Open the import/export modal
+		function openImportExportModal() {
+			namesTextarea.value = names.join('\n');
+			importExportModal.style.display = 'flex';
+		}
+
+		// Close the import/export modal
+		function closeImportExportModal() {
+			importExportModal.style.display = 'none';
+		}
+
+		// Save imported names
+		function saveImportedNames(e) {
+			e.preventDefault();
+			const importedText = namesTextarea.value.trim();
+			
+			if (importedText) {
+				// Split by new lines and filter empty lines
+				const newNames = importedText
+					.split('\n')
+					.map(name => name.trim())
+					.filter(name => name.length > 0);
 				
-				winHistory.forEach((winner, index) => {
-					const li = document.createElement('li');
-					li.className = 'history-item';
-					li.innerHTML = `Round ${winHistory.length - index}: <span>${winner}</span>`;
-					historyList.appendChild(li);
-				});
-			}
-
-			// Handle last man standing game mode
-			function handleLastManStanding(winner) {
-				const index = names.indexOf(winner);
+				// Deduplicate names
+				const uniqueNames = [...new Set(newNames)];
 				
-				if (index !== -1) {
-					names.splice(index, 1);
-					updateNameList();
-					updateWheel();
-					
-					// Check if there's only one name left
-					if (names.length === 1) {
-						// Final winner
-						setTimeout(() => {
-							alert(`${names[0]} is the last one standing and wins!`);
-							// Reset the game
-							names = [...originalNames];
-							updateNameList();
-							updateWheel();
-						}, 1000);
-					} else if (names.length === 0) {
-						// All eliminated
-						setTimeout(() => {
-							alert('Game over! All contestants have been eliminated.');
-							// Reset the game
-							names = [...originalNames];
-							updateNameList();
-							updateWheel();
-						}, 1000);
-					}
-				}
+				names = uniqueNames;
+				saveNames();
+				updateNameList();
+				updateWheel();
 			}
+			
+			closeImportExportModal();
+		}
 
-			// Handle game mode change
-			function handleGameModeChange() {
-				if (gameMode.value === 'first') {
-					// Restore original names if switching from last man standing
-					names = [...originalNames];
-					updateNameList();
-					updateWheel();
-				} else if (gameMode.value === 'last') {
-					// Reset history when starting last man standing
-					winHistory = [];
-					updateHistoryList();
-				}
-				
-				updateRemainingDisplay();
+		// Reset all data
+		function resetAll() {
+			if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+				names = [];
+				originalNames = [];
+				currentNames = [];
+				winHistory = [];
+				saveNames();
+				updateNameList();
+				updateWheel();
+				winnerDisplay.textContent = 'Spin to find out!';
 			}
+		}
 
-			// Update remaining display based on game mode
-			function updateRemainingDisplay() {
-				if (gameMode.value === 'last') {
-					remainingDisplay.innerHTML = `<strong>Remaining:</strong> ${names.length} contestants`;
-					remainingDisplay.style.display = 'block';
-				} else {
-					remainingDisplay.style.display = 'none';
-				}
+		// Update spin duration display
+		function updateSpinDurationDisplay() {
+			spinDurationValue.textContent = spinDuration.value;
+		}
+
+		// Utility function to shuffle array
+		function shuffleArray(array) {
+			for (let i = array.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[array[i], array[j]] = [array[j], array[i]];
 			}
+			return array;
+		}
 
-			// Open the import/export modal
-			function openImportExportModal() {
-				namesTextarea.value = names.join('\n');
-				importExportModal.style.display = 'flex';
-			}
-
-			// Close the import/export modal
-			function closeImportExportModal() {
-				importExportModal.style.display = 'none';
-			}
-
-			// Save imported names
-			function saveImportedNames(e) {
-				e.preventDefault();
-				const importedText = namesTextarea.value.trim();
-				
-				if (importedText) {
-					// Split by new lines and filter empty lines
-					const newNames = importedText
-						.split('\n')
-						.map(name => name.trim())
-						.filter(name => name.length > 0);
-					
-					// Deduplicate names
-					const uniqueNames = [...new Set(newNames)];
-					
-					names = uniqueNames;
-					saveNames();
-					updateNameList();
-					updateWheel();
-				}
-				
-				closeImportExportModal();
-			}
-
-			// Reset all data
-			function resetAll() {
-				if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
-					names = [];
-					originalNames = [];
-					currentNames = [];
-					winHistory = [];
-					saveNames();
-					updateNameList();
-					updateWheel();
-					winnerDisplay.textContent = 'Spin to find out!';
-				}
-			}
-
-			// Update spin duration display
-			function updateSpinDurationDisplay() {
-				spinDurationValue.textContent = spinDuration.value;
-			}
-
-			// Utility function to shuffle array
-			function shuffleArray(array) {
-				for (let i = array.length - 1; i > 0; i--) {
-					const j = Math.floor(Math.random() * (i + 1));
-					[array[i], array[j]] = [array[j], array[i]];
-				}
-				return array;
-			}
-
-			// Initialize the app when the page loads
-			document.addEventListener('DOMContentLoaded', init);
+		// Initialize the app when the page loads
+		document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>			
