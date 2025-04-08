@@ -662,55 +662,29 @@
         ];
         
         // Initialize the app
-        function init() {
-            // Load saved names from localStorage
-            loadNames();
-            
-            // Add event listeners
-            addNameForm.addEventListener('submit', addName);
-            spinButton.addEventListener('click', spinWheel);
-            importExportBtn.addEventListener('click', openImportExportModal);
-            closeModal.addEventListener('click', closeImportExportModal);
-            importExportForm.addEventListener('submit', saveImportedNames);
-            resetBtn.addEventListener('click', resetAll);
-            closeEditModal.addEventListener('click', closeEditNameModal);
-            editNameForm.addEventListener('submit', updateName);
-            gameMode.addEventListener('change', handleGameModeChange);
-            duplicationMode.addEventListener('change', updateWheel);
-            spinDuration.addEventListener('input', updateSpinDurationDisplay);
-            
-            // Initialize confetti
-            const confettiSettings = { 
-                target: 'confetti-canvas',
-                max: 150,
-                size: 1.5,
-                animate: true,
-                props: ['circle', 'square', 'triangle', 'line'],
-                colors: [
-                    [255, 82, 82], [255, 193, 7], [33, 150, 243], 
-                    [76, 175, 80], [156, 39, 176], [255, 235, 59]
-                ],
-                clock: 50,
-                respawn: false
-            };
-            
-            // Create confetti canvas
-            const canvas = document.createElement('canvas');
-            canvas.id = 'confetti-canvas';
-            canvas.style.position = 'fixed';
-            canvas.style.top = '0';
-            canvas.style.left = '0';
-            canvas.style.width = '100%';
-            canvas.style.height = '100%';
-            canvas.style.pointerEvents = 'none';
-            canvas.style.zIndex = '1000';
-            document.body.appendChild(canvas);
-            
-            canvasConfetti = new confetti.create(canvas, confettiSettings);
-            
-            // Update the wheel initially
-            updateWheel();
-        }
+		function init() {
+			// Load saved names from localStorage
+			loadNames();
+			
+			// Add event listeners
+			addNameForm.addEventListener('submit', addName);
+			spinButton.addEventListener('click', spinWheel);
+			importExportBtn.addEventListener('click', openImportExportModal);
+			closeModal.addEventListener('click', closeImportExportModal);
+			importExportForm.addEventListener('submit', saveImportedNames);
+			resetBtn.addEventListener('click', resetAll);
+			closeEditModal.addEventListener('click', closeEditNameModal);
+			editNameForm.addEventListener('submit', updateName);
+			gameMode.addEventListener('change', handleGameModeChange);
+			duplicationMode.addEventListener('change', updateWheel);
+			spinDuration.addEventListener('input', updateSpinDurationDisplay);
+			
+			// No complex confetti setup needed
+			canvasConfetti = confetti;
+			
+			// Update the wheel initially
+			updateWheel();
+		}
         
         // Load names from localStorage
         function loadNames() {
@@ -817,51 +791,76 @@
 			updateRemainingDisplay();
 		}
         
-        // Update the wheel UI
-        function updateWheel() {
-            wheel.innerHTML = '';
-            
-            if (names.length === 0) {
-                wheel.style.backgroundColor = '#333';
-                return;
-            }
-            
-            // Create a duplicate array based on duplication settings
-            const duplication = parseInt(duplicationMode.value);
-            currentNames = [];
-            
-            for (let i = 0; i < duplication; i++) {
-                currentNames.push(...names);
-            }
-            
-            // Shuffle the names if duplicated
-            if (duplication > 1) {
-                shuffleArray(currentNames);
-            }
-            
-            const sectionAngle = 360 / currentNames.length;
-            
-            currentNames.forEach((name, index) => {
-                const section = document.createElement('div');
-                section.className = 'wheel-section';
-                section.style.position = 'absolute';
-                section.style.width = '50%';
-                section.style.height = '2px';
-                section.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-                section.style.top = '50%';
-                section.style.left = '50%';
-                section.style.transformOrigin = 'left center';
-                section.style.transform = `rotate(${index * sectionAngle}deg)`;
-                wheel.appendChild(section);
-                
+		// Update the wheel UI
+		function updateWheel() {
+			wheel.innerHTML = '';
+			
+			if (names.length === 0) {
+				wheel.style.backgroundColor = '#333';
+				return;
+			}
+			
+			// Create a duplicate array based on duplication settings
+			const duplication = parseInt(duplicationMode.value);
+			currentNames = [];
+			
+			for (let i = 0; i < duplication; i++) {
+				currentNames.push(...names);
+			}
+			
+			// Shuffle the names if duplicated
+			if (duplication > 1) {
+				shuffleArray(currentNames);
+			}
+			
+			const sectionAngle = 360 / currentNames.length;
+			
+			// First create wheel background sections
+			for (let i = 0; i < currentNames.length; i++) {
+				const section = document.createElement('div');
+				section.className = 'wheel-bg-section';
+				section.style.position = 'absolute';
+				section.style.width = '50%';
+				section.style.height = '50%';
+				section.style.top = '0';
+				section.style.left = '50%';
+				section.style.transformOrigin = 'bottom left';
+				section.style.transform = `rotate(${i * sectionAngle}deg)`;
+				
+				// Create wedge shape with clip-path
+				const clipPath = `polygon(0 0, 0 100%, 100% 0)`;
+				section.style.clipPath = clipPath;
+				section.style.backgroundColor = colors[i % colors.length];
+				
+				wheel.appendChild(section);
+			}
+			
+			// Then create section dividers and name labels
+			for (let i = 0; i < currentNames.length; i++) {
+				const name = currentNames[i];
+				
+				// Create divider line
+				const divider = document.createElement('div');
+				divider.className = 'wheel-section';
+				divider.style.position = 'absolute';
+				divider.style.width = '50%';
+				divider.style.height = '2px';
+				divider.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+				divider.style.top = '50%';
+				divider.style.left = '50%';
+				divider.style.transformOrigin = 'left center';
+				divider.style.transform = `rotate(${i * sectionAngle}deg)`;
+				wheel.appendChild(divider);
+				
+				// Create section content/label
 				const sectionContent = document.createElement('div');
 				sectionContent.className = 'section-content';
 				sectionContent.style.position = 'absolute';
 				sectionContent.style.width = '150px';
 				sectionContent.style.height = '30px';
 				sectionContent.style.left = '50%';
-				sectionContent.style.top = '0';
-				sectionContent.style.transform = 'translate(-50%, 0) rotate(90deg)';
+				sectionContent.style.transformOrigin = 'left center';
+				sectionContent.style.transform = `rotate(${i * sectionAngle}deg) translate(30px, -15px)`;
 				sectionContent.style.display = 'flex';
 				sectionContent.style.justifyContent = 'center';
 				sectionContent.style.alignItems = 'center';
@@ -875,27 +874,7 @@
 				sectionContent.style.backgroundColor = colors[i % colors.length];
 				sectionContent.style.borderRadius = '3px';
 				sectionContent.textContent = name;
-                section.appendChild(sectionContent);
-            });
-            
-            // Create wheel background sections
-			for (let i = 0; i < currentNames.length; i++) {
-				const section = document.createElement('div');
-				section.className = 'wheel-bg-section';
-				section.style.position = 'absolute';
-				section.style.width = '50%';
-				section.style.height = '50%';
-				section.style.top = '0';
-				section.style.left = '50%';
-				section.style.transformOrigin = 'bottom left';
-				section.style.transform = `rotate(${i * (360 / currentNames.length)}deg)`;
-				
-				// Create wedge shape with clip-path
-				const clipPath = `polygon(0 0, 0 100%, 100% 0)`;
-				section.style.clipPath = clipPath;
-				section.style.backgroundColor = colors[i % colors.length];
-				
-				wheel.appendChild(section);
+				wheel.appendChild(sectionContent);
 			}
 		}
 
