@@ -839,19 +839,22 @@
 			
 			const sectionAngle = 360 / currentNames.length;
 			
-			// First, apply overflow hidden to the wheel to ensure circular shape
+			// Apply overflow hidden to ensure circular shape
 			wheel.style.overflow = 'hidden';
 			wheel.style.borderRadius = '50%';
 			wheel.style.position = 'relative';
 			
-			// Create wheel sections using the conic-gradient background
+			// Create wheel sections using conic-gradient
 			if (currentNames.length > 0) {
 				let conicGradientStops = [];
 				
 				for (let i = 0; i < currentNames.length; i++) {
 					const startAngle = i * sectionAngle;
 					const endAngle = (i + 1) * sectionAngle;
-					const color = colors[i % colors.length];
+					// Use the same color assignment logic as in updateNameList()
+					// This ensures the wheel colors match the list colors
+					const colorIndex = names.indexOf(currentNames[i]) % colors.length;
+					const color = colors[colorIndex];
 					
 					conicGradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
 				}
@@ -875,11 +878,11 @@
 				wheel.appendChild(divider);
 			}
 			
-			// Add names as spokes - properly centered in each section
+			// Add names - centered in each section
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
-				// Calculate the EXACT middle angle of the section to position names in center of color wedges
+				// Calculate the exact middle of the section
 				const midAngle = i * sectionAngle + (sectionAngle / 2);
 				
 				// Create container for name
@@ -891,19 +894,19 @@
 				nameContainer.style.transformOrigin = 'left center';
 				nameContainer.style.transform = `rotate(${midAngle}deg)`;
 				nameContainer.style.zIndex = '4';
-				nameContainer.style.width = '45%'; // Extend most of the way to the edge
-				nameContainer.style.pointerEvents = 'none'; // Don't interfere with clicks
+				nameContainer.style.width = '45%';
+				nameContainer.style.pointerEvents = 'none';
 				
-				// Create the name text element - BOLD and ALL CAPS for emphasis
+				// Create the name text
 				const nameText = document.createElement('div');
-				nameText.textContent = name.toUpperCase(); // ALL CAPS
-				nameText.title = name; // Show full name on hover
+				nameText.textContent = name.toUpperCase();
+				nameText.title = name; // Full name on hover
 				nameText.style.position = 'absolute';
 				nameText.style.width = '100%';
 				nameText.style.textAlign = 'center';
-				nameText.style.fontWeight = '900'; // Extra bold
+				nameText.style.fontWeight = '900';
 				nameText.style.color = 'white';
-				nameText.style.letterSpacing = '1px'; // Spread letters slightly
+				nameText.style.letterSpacing = '1px';
 				nameText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9), -2px -2px 4px rgba(0,0,0,0.9)';
 				
 				// Adjust font size based on number of contestants
@@ -911,7 +914,7 @@
 										 currentNames.length > 12 ? '14px' : 
 										 currentNames.length > 6 ? '16px' : '18px';
 				
-				// Position text centered along the radius
+				// Position text centered
 				nameText.style.left = '0';
 				nameText.style.top = '0';
 				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
@@ -921,38 +924,37 @@
 				wheel.appendChild(nameContainer);
 			}
 			
-			// Add a border to ensure the wheel looks circular
+			// Add border
 			wheel.style.border = '3px solid white';
 			wheel.style.boxShadow = '0 0 0 2px #ff5252';
 		}
 
-		// Spin the wheel
+		// Fix the Last Man Standing spin logic
 		function spinWheel() {
 			if (isSpinning || currentNames.length === 0) return;
 			
 			isSpinning = true;
 			spinButton.disabled = true;
 			
-			// Calculate a random rotation (between 2 and 5 full rotations plus a random section)
+			// Calculate rotation
 			const spinDurationValue = parseFloat(spinDuration.value);
 			const sectionAngle = 360 / currentNames.length;
 			const spinAngle = 720 + Math.floor(Math.random() * 1080) + Math.floor(Math.random() * sectionAngle);
 			
-			// Apply the rotation
+			// Apply rotation
 			wheel.style.transition = `transform ${spinDurationValue}s cubic-bezier(0.2, 0.8, 0.15, 1)`;
 			wheel.style.transform = `rotate(${spinAngle}deg)`;
 			
-			// Calculate the selected person after the spin
 			setTimeout(() => {
-				// Calculate which section is at the top (opposite of rotation angle)
+				// Calculate which section is at the top marker
 				const normalizedAngle = spinAngle % 360;
 				const selectedIndex = Math.floor(currentNames.length - (normalizedAngle / sectionAngle)) % currentNames.length;
 				const selectedPerson = currentNames[selectedIndex];
 				
 				if (gameMode.value === 'first') {
-					// In "First One Picked" mode - show the person as winner
+					// First One Picked mode
 					winnerDisplay.textContent = selectedPerson;
-					winnerDisplay.style.color = 'var(--primary)'; // Default winner color
+					winnerDisplay.style.color = '';  // Default color
 					winnerDisplay.classList.add('celebrate');
 					
 					// Launch confetti
@@ -963,17 +965,85 @@
 					});
 					
 					// Add to history
-					addToHistory(selectedPerson, false);
+					winHistory.unshift(selectedPerson);
+					updateHistoryList();
+					
 				} else {
-					// In "Last Man Standing" mode - the person is eliminated
-					handleLastManStanding(selectedPerson);
+					// Last Man Standing mode - eliminate the selected person
+					const index = names.indexOf(selectedPerson);
+					
+					if (index !== -1) {
+						// Show the eliminated person
+						winnerDisplay.textContent = `${selectedPerson} ELIMINATED!`;
+						winnerDisplay.style.color = '#ff0000';
+						
+						// Add to history
+						winHistory.unshift(`${selectedPerson} (Eliminated)`);
+						updateHistoryList();
+						
+						// Check if this is the second-to-last contestant
+						if (names.length === 2) {
+							// Find the winner (the remaining person)
+							const finalWinner = names.find(name => name !== selectedPerson);
+							
+							// Remove the eliminated person
+							names.splice(index, 1);
+							updateNameList();
+							updateWheel();
+							
+							// Announce the final winner
+							setTimeout(() => {
+								winnerDisplay.textContent = `${finalWinner} WINS!`;
+								winnerDisplay.style.color = '#4CAF50';
+								winnerDisplay.classList.add('celebrate');
+								
+								// Confetti for the winner
+								confetti({
+									particleCount: 150,
+									spread: 70,
+									origin: { y: 0.6 }
+								});
+								
+								// Add the winner to history
+								winHistory.unshift(`${finalWinner} (WINNER!)`);
+								updateHistoryList();
+								
+								// Reset the game after delay
+								setTimeout(() => {
+									alert(`${finalWinner} is the last one standing and wins!`);
+									names = [...originalNames];
+									updateNameList();
+									updateWheel();
+									winnerDisplay.style.color = '';
+									winnerDisplay.textContent = 'Spin to find out!';
+								}, 3000);
+							}, 1000);
+						} else {
+							// Normal elimination
+							names.splice(index, 1);
+							updateNameList();
+							updateWheel();
+							
+							// Check if there are no contestants left
+							if (names.length === 0) {
+								setTimeout(() => {
+									alert('Game over! All contestants have been eliminated.');
+									names = [...originalNames];
+									updateNameList();
+									updateWheel();
+									winnerDisplay.style.color = '';
+									winnerDisplay.textContent = 'Spin to find out!';
+								}, 1000);
+							}
+						}
+					}
 				}
 				
 				// Reset state
 				isSpinning = false;
 				spinButton.disabled = false;
 				
-				// Remove celebration class after animation
+				// Remove celebration class
 				setTimeout(() => {
 					winnerDisplay.classList.remove('celebrate');
 				}, 1500);
@@ -995,15 +1065,18 @@
 			updateHistoryList();
 		}
 
-		// Update the history list UI
+		// Update history list with appropriate formatting
 		function updateHistoryList() {
 			historyList.innerHTML = '';
+			
+			if (winHistory.length > 10) {
+				winHistory = winHistory.slice(0, 10);
+			}
 			
 			winHistory.forEach((result, index) => {
 				const li = document.createElement('li');
 				li.className = 'history-item';
 				
-				// Check if this is an elimination entry
 				if (result.includes('(Eliminated)')) {
 					li.innerHTML = `Round ${winHistory.length - index}: <span style="color: #ff0000">${result}</span>`;
 				} else if (result.includes('(WINNER!)')) {
