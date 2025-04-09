@@ -1102,7 +1102,10 @@
 			wheel.innerHTML = '';
 			
 			if (names.length === 0) {
-				wheel.style.backgroundColor = '#333';
+				// Reset the wheel to a solid background when empty
+				wheel.style.background = '#333';
+				wheel.style.border = '3px solid white';
+				wheel.style.boxShadow = '0 0 0 2px #ff5252';
 				return;
 			}
 			
@@ -1381,8 +1384,9 @@
 				nameColorAssignments = {}; // Clear color assignments
 				saveNames();
 				updateNameList();
-				updateWheel();
+				updateWheel(); // This will now properly reset the wheel
 				winnerDisplay.textContent = 'Spin to find out!';
+				winnerDisplay.style.color = ''; // Reset winner display color
 			}
 		}
 
