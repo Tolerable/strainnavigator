@@ -725,18 +725,12 @@
 			originalNames = [...names];
 			currentNames = [...names];
 			
-			// Load saved color assignments exactly as they were saved
+			// Load saved color assignments
 			const savedColorAssignments = localStorage.getItem('winnerCircleColorAssignments');
 			nameColorAssignments = savedColorAssignments ? JSON.parse(savedColorAssignments) : {};
 			
-			// Only assign colors to names that don't have one yet
-			names.forEach(name => {
-				if (!nameColorAssignments[name]) {
-					// Use the total count of assignments to determine next color
-					const colorIndex = Object.keys(nameColorAssignments).length % colors.length;
-					nameColorAssignments[name] = colors[colorIndex];
-				}
-			});
+			// Assign colors to names that don't have one yet
+			names.forEach(name => assignColorToName(name));
 			
 			updateNameList();
 		}
@@ -747,11 +741,8 @@
 			const name = nameInput.value.trim();
 			
 			if (name && !names.includes(name)) {
-				// Only assign a color if this name doesn't already have one
-				if (!nameColorAssignments[name]) {
-					const colorIndex = Object.keys(nameColorAssignments).length % colors.length;
-					nameColorAssignments[name] = colors[colorIndex];
-				}
+				// Assign color using the common function
+				assignColorToName(name);
 				
 				names.push(name);
 				saveNames();
@@ -813,110 +804,6 @@
 			updateNameList();
 			updateWheel();
 		}
-        
-		// Update the wheel UI
-		function updateWheel() {
-			wheel.innerHTML = '';
-			
-			if (names.length === 0) {
-				wheel.style.backgroundColor = '#333';
-				return;
-			}
-			
-			// Create a duplicate array based on duplication settings
-			const duplication = parseInt(duplicationMode.value);
-			currentNames = [];
-			
-			for (let i = 0; i < duplication; i++) {
-				currentNames.push(...names);
-			}
-			
-			// Shuffle the names if duplicated
-			if (duplication > 1) {
-				shuffleArray(currentNames);
-			}
-			
-			const sectionAngle = 360 / currentNames.length;
-			
-			// Apply overflow hidden to ensure circular shape
-			wheel.style.overflow = 'hidden';
-			wheel.style.borderRadius = '50%';
-			wheel.style.position = 'relative';
-			
-			// Create a map of name to color to ensure consistency
-			const nameColorMap = {};
-			names.forEach((name, index) => {
-				nameColorMap[name] = colors[index % colors.length];
-			});
-			
-			// Create wheel sections using conic-gradient
-			if (currentNames.length > 0) {
-				let conicGradientStops = [];
-				
-				for (let i = 0; i < currentNames.length; i++) {
-					const startAngle = i * sectionAngle;
-					const endAngle = (i + 1) * sectionAngle;
-					
-					// Use the color map to ensure consistent coloring
-					const color = nameColorMap[currentNames[i]];
-					
-					conicGradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
-				}
-				
-				wheel.style.background = `conic-gradient(${conicGradientStops.join(', ')})`;
-			}
-			
-			// Add names as spokes - properly centered in each section
-			for (let i = 0; i < currentNames.length; i++) {
-				const name = currentNames[i];
-				
-				// Calculate the exact middle of the section
-				const midAngle = i * sectionAngle + (sectionAngle / 2);
-				
-				// Create container for name
-				const nameContainer = document.createElement('div');
-				nameContainer.className = 'wheel-name-spoke';
-				nameContainer.style.position = 'absolute';
-				nameContainer.style.left = '50%';
-				nameContainer.style.top = '50%';
-				nameContainer.style.transformOrigin = 'left center';
-				nameContainer.style.transform = `rotate(${midAngle}deg)`;
-				nameContainer.style.zIndex = '4';
-				nameContainer.style.width = '40%'; 
-				nameContainer.style.pointerEvents = 'none';
-				
-				// Create the name text
-				const nameText = document.createElement('div');
-				nameText.textContent = name.toUpperCase();
-				nameText.title = name; // Full name on hover
-				nameText.style.position = 'absolute';
-				nameText.style.width = '100%';
-				nameText.style.textAlign = 'center';
-				nameText.style.fontWeight = '900';
-				nameText.style.color = 'white';
-				nameText.style.letterSpacing = '1px';
-				nameText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9), -2px -2px 4px rgba(0,0,0,0.9)';
-				
-				// Center position in section
-				nameText.style.left = '0';
-				nameText.style.top = '0';
-				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
-				nameText.style.transformOrigin = 'left center';
-				
-				// Adjust font size based on name length and contestant count
-				const baseFontSize = currentNames.length > 20 ? 12 : 
-								   currentNames.length > 12 ? 14 : 
-								   currentNames.length > 6 ? 16 : 18;
-				nameText.style.fontSize = `${name.length > 10 ? baseFontSize - 2 : baseFontSize}px`;
-				
-				nameContainer.appendChild(nameText);
-				wheel.appendChild(nameContainer);
-			}
-			
-			// Add a border for better wheel appearance
-			wheel.style.border = '3px solid white';
-			wheel.style.boxShadow = '0 0 0 2px #ff5252';
-		}
 
 		// Spin the wheel
 		function spinWheel() {
@@ -943,116 +830,37 @@
 				const selectedPerson = currentNames[selectedIndex];
 				
 				if (gameMode.value === 'first') {
-					// First One Picked mode
-					winnerDisplay.textContent = selectedPerson;
-					winnerDisplay.style.color = 'var(--primary)';
-					winnerDisplay.classList.add('celebrate');
-					
-					// Confetti
-					confetti({
-						particleCount: 150,
-						spread: 70,
-						origin: { y: 0.6 }
-					});
-					
-					// Add to history
-					winHistory.unshift(selectedPerson);
-					updateHistoryList();
-					
+					handleFirstOnePicked(selectedPerson);
 				} else {
-					// Last Man Standing mode
-					const nameIndex = names.indexOf(selectedPerson);
-					
-					if (nameIndex !== -1) {
-						// Show who's been eliminated
-						winnerDisplay.textContent = `${selectedPerson} ELIMINATED!`;
-						winnerDisplay.style.color = '#ff0000';
-						
-						// Add to history
-						winHistory.unshift(`${selectedPerson} (Eliminated)`);
-						updateHistoryList();
-						
-						// Check if this is the second-to-last contestant
-						if (names.length === 2) {
-							// Find the winner (the one not eliminated)
-							const finalWinner = names.find(name => name !== selectedPerson);
-							
-							// Remove the eliminated person
-							names.splice(nameIndex, 1);
-							updateNameList();
-							updateWheel();
-							
-							// Announce the final winner
-							setTimeout(() => {
-								winnerDisplay.textContent = `${finalWinner} WINS!`;
-								winnerDisplay.style.color = '#4CAF50';
-								winnerDisplay.classList.add('celebrate');
-								
-								// Confetti for the winner
-								confetti({
-									particleCount: 150,
-									spread: 70,
-									origin: { y: 0.6 }
-								});
-								
-								// Add the winner to history
-								winHistory.unshift(`${finalWinner} (WINNER!)`);
-								updateHistoryList();
-								
-								// Reset the game after delay
-								setTimeout(() => {
-									alert(`${finalWinner} is the last one standing and wins!`);
-									names = [...originalNames];
-									updateNameList();
-									updateWheel();
-									winnerDisplay.style.color = '';
-									winnerDisplay.textContent = 'Spin to find out!';
-								}, 3000);
-							}, 1000);
-						} else {
-							// Regular elimination
-							names.splice(nameIndex, 1);
-							updateNameList();
-							updateWheel();
-							
-							// Check if all contestants have been eliminated
-							if (names.length === 0) {
-								setTimeout(() => {
-									alert('Game over! All contestants have been eliminated.');
-									names = [...originalNames];
-									updateNameList();
-									updateWheel();
-									winnerDisplay.style.color = '';
-									winnerDisplay.textContent = 'Spin to find out!';
-								}, 1000);
-							}
-						}
-					}
+					handleLastManStanding(selectedPerson);
 				}
 				
 				// Reset state
 				isSpinning = false;
 				spinButton.disabled = false;
 				
-				// Remove celebration class
+				// Remove celebration class after animation completes
 				setTimeout(() => {
 					winnerDisplay.classList.remove('celebrate');
 				}, 1500);
 			}, spinDurationValue * 1000);
 		}
 
-		// Add winner/elimination to history
-		function addToHistory(result, isElimination) {
-			// Format depends on game mode
-			let historyEntry = result;
+		function handleFirstOnePicked(selectedPerson) {
+			// First One Picked mode
+			winnerDisplay.textContent = selectedPerson;
+			winnerDisplay.style.color = 'var(--primary)';
+			winnerDisplay.classList.add('celebrate');
 			
-			// Keep history at a maximum of 10 items
-			winHistory.unshift(historyEntry);
-			if (winHistory.length > 10) {
-				winHistory.pop();
-			}
+			// Confetti
+			confetti({
+				particleCount: 150,
+				spread: 70,
+				origin: { y: 0.6 }
+			});
 			
-			// Update history list
+			// Add to history
+			winHistory.unshift(selectedPerson);
 			updateHistoryList();
 		}
 
@@ -1200,7 +1008,8 @@
 				winnerDisplay.style.color = '#ff0000'; // Red color for elimination
 				
 				// Add to history as an elimination
-				addToHistory(`${selectedPerson} (Eliminated)`, true);
+				winHistory.unshift(`${selectedPerson} (Eliminated)`);
+				updateHistoryList();
 				
 				// Check if this is the second-to-last contestant
 				if (names.length === 2) {
@@ -1226,17 +1035,13 @@
 						});
 						
 						// Add the winner to history
-						addToHistory(`${finalWinner} (WINNER!)`, false);
+						winHistory.unshift(`${finalWinner} (WINNER!)`);
+						updateHistoryList();
 						
 						// Reset the game after another delay
 						setTimeout(() => {
 							alert(`${finalWinner} is the last one standing and wins!`);
-							// Reset the game
-							names = [...originalNames];
-							updateNameList();
-							updateWheel();
-							winnerDisplay.style.color = ''; // Reset color
-							winnerDisplay.textContent = 'Spin to find out!';
+							resetToOriginalNames();
 						}, 3000);
 					}, 1000);
 				} else {
@@ -1249,12 +1054,7 @@
 					if (names.length === 0) {
 						setTimeout(() => {
 							alert('Game over! All contestants have been eliminated.');
-							// Reset the game
-							names = [...originalNames];
-							updateNameList();
-							updateWheel();
-							winnerDisplay.style.color = ''; // Reset color
-							winnerDisplay.textContent = 'Spin to find out!';
+							resetToOriginalNames();
 						}, 1000);
 					}
 				}
@@ -1262,12 +1062,19 @@
 		}
 
 		// Handle game mode change
+		function resetToOriginalNames() {
+			names = [...originalNames];
+			updateNameList();
+			updateWheel();
+			winnerDisplay.style.color = ''; // Reset color
+			winnerDisplay.textContent = 'Spin to find out!';
+		}
+
+		// Handle game mode change
 		function handleGameModeChange() {
 			if (gameMode.value === 'first') {
 				// Restore original names if switching from last man standing
-				names = [...originalNames];
-				updateNameList();
-				updateWheel();
+				resetToOriginalNames();
 			} else if (gameMode.value === 'last') {
 				// Reset history when starting last man standing
 				winHistory = [];
@@ -1275,6 +1082,14 @@
 			}
 			
 			updateRemainingDisplay();
+		}
+
+		function assignColorToName(name) {
+			if (!nameColorAssignments[name]) {
+				const colorIndex = Object.keys(nameColorAssignments).length % colors.length;
+				nameColorAssignments[name] = colors[colorIndex];
+			}
+			return nameColorAssignments[name];
 		}
 
 		// Update remaining display based on game mode
