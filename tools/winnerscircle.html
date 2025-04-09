@@ -651,7 +651,8 @@
         let winHistory = [];
         let isSpinning = false;
         let canvasConfetti = null;
-        
+        let nameColorAssignments = {};
+		
         // DOM Elements
         const wheel = document.getElementById('wheel');
         const spinButton = document.getElementById('spinButton');
@@ -711,35 +712,54 @@
 		}
         
         // Load names from localStorage
-        function loadNames() {
-            const savedNames = localStorage.getItem('winnerCircleNames');
-            names = savedNames ? JSON.parse(savedNames) : [];
-            originalNames = [...names];
-            currentNames = [...names];
-            updateNameList();
-        }
-        
-        // Save names to localStorage
-        function saveNames() {
-            localStorage.setItem('winnerCircleNames', JSON.stringify(names));
-            originalNames = [...names];
-        }
+		function saveNames() {
+			localStorage.setItem('winnerCircleNames', JSON.stringify(names));
+			localStorage.setItem('winnerCircleColorAssignments', JSON.stringify(nameColorAssignments));
+			originalNames = [...names];
+		}
+
+		// Update loadNames to load color assignments
+		function loadNames() {
+			const savedNames = localStorage.getItem('winnerCircleNames');
+			names = savedNames ? JSON.parse(savedNames) : [];
+			originalNames = [...names];
+			currentNames = [...names];
+			
+			// Load color assignments
+			const savedColorAssignments = localStorage.getItem('winnerCircleColorAssignments');
+			nameColorAssignments = savedColorAssignments ? JSON.parse(savedColorAssignments) : {};
+			
+			// If there are names without color assignments, assign them
+			names.forEach(name => {
+				if (!nameColorAssignments[name]) {
+					const colorIndex = Object.keys(nameColorAssignments).length % colors.length;
+					nameColorAssignments[name] = colors[colorIndex];
+				}
+			});
+			
+			updateNameList();
+		}
         
         // Add a new name
-        function addName(e) {
-            e.preventDefault();
-            const name = nameInput.value.trim();
-            
-            if (name && !names.includes(name)) {
-                names.push(name);
-                saveNames();
-                updateNameList();
-                updateWheel();
-                nameInput.value = '';
-            } else if (names.includes(name)) {
-                alert('This name already exists!');
-            }
-        }
+		function addName(e) {
+			e.preventDefault();
+			const name = nameInput.value.trim();
+			
+			if (name && !names.includes(name)) {
+				// Assign a permanent color to this name
+				const colorIndex = names.length % colors.length; // This determines the color based on current count
+				nameColorAssignments[name] = colors[colorIndex];
+				
+				// Add the name
+				names.push(name);
+				saveNames();
+				updateNameList();
+				updateWheel();
+				nameInput.value = '';
+			} else if (names.includes(name)) {
+				alert('This name already exists!');
+			}
+		}
         
         // Edit a name
         function editName(index) {
@@ -749,23 +769,28 @@
         }
         
         // Update a name
-        function updateName(e) {
-            e.preventDefault();
-            const index = parseInt(editNameIndex.value);
-            const newName = editNameInput.value.trim();
-            
-            if (newName && !names.includes(newName)) {
-                names[index] = newName;
-                saveNames();
-                updateNameList();
-                updateWheel();
-                closeEditNameModal();
-            } else if (names.includes(newName) && names[index] !== newName) {
-                alert('This name already exists!');
-            } else {
-                closeEditNameModal();
-            }
-        }
+		function updateName(e) {
+			e.preventDefault();
+			const index = parseInt(editNameIndex.value);
+			const oldName = names[index];
+			const newName = editNameInput.value.trim();
+			
+			if (newName && !names.includes(newName)) {
+				// Preserve the color assignment
+				nameColorAssignments[newName] = nameColorAssignments[oldName];
+				delete nameColorAssignments[oldName]; // Remove the old name's color
+				
+				names[index] = newName;
+				saveNames();
+				updateNameList();
+				updateWheel();
+				closeEditNameModal();
+			} else if (names.includes(newName) && names[index] !== newName) {
+				alert('This name already exists!');
+			} else {
+				closeEditNameModal();
+			}
+		}
         
         // Close the edit name modal
         function closeEditNameModal() {
@@ -773,12 +798,17 @@
         }
         
         // Delete a name
-        function deleteName(index) {
-            names.splice(index, 1);
-            saveNames();
-            updateNameList();
-            updateWheel();
-        }
+		function deleteName(index) {
+			const nameToDelete = names[index];
+			
+			// Remove the color assignment
+			delete nameColorAssignments[nameToDelete];
+			
+			names.splice(index, 1);
+			saveNames();
+			updateNameList();
+			updateWheel();
+		}
         
         // Update the name list UI
 		function updateNameList() {
@@ -1100,15 +1130,13 @@
 			if (currentNames.length > 0) {
 				let conicGradientStops = [];
 				
-				// CRITICAL CHANGE: Use the original names array order to determine colors
-				// This ensures wheel colors match the list colors
 				for (let i = 0; i < currentNames.length; i++) {
 					const startAngle = i * sectionAngle;
 					const endAngle = (i + 1) * sectionAngle;
+					const name = currentNames[i];
 					
-					// Get the original index of this name in the names array
-					const originalIndex = names.indexOf(currentNames[i]);
-					const color = colors[originalIndex % colors.length];
+					// Use the stored color assignment
+					const color = nameColorAssignments[name] || colors[i % colors.length];
 					
 					conicGradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
 				}
@@ -1120,7 +1148,7 @@
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
-				// Calculate exact middle of the section
+				// Calculate middle of section
 				const midAngle = i * sectionAngle + (sectionAngle / 2);
 				
 				// Create container for name
@@ -1135,10 +1163,10 @@
 				nameContainer.style.width = '40%';
 				nameContainer.style.pointerEvents = 'none';
 				
-				// Create the name text
+				// Create name text
 				const nameText = document.createElement('div');
 				nameText.textContent = name.toUpperCase();
-				nameText.title = name; // Full name on hover
+				nameText.title = name;
 				nameText.style.position = 'absolute';
 				nameText.style.width = '100%';
 				nameText.style.textAlign = 'center';
@@ -1172,30 +1200,24 @@
 		function updateNameList() {
 			nameList.innerHTML = '';
 			
-			// Create the same name-to-color map as in updateWheel
-			const nameColorMap = {};
-			names.forEach((name, index) => {
-				nameColorMap[name] = colors[index % colors.length];
-			});
-			
 			names.forEach((name, index) => {
 				const li = document.createElement('li');
 				li.className = 'name-item';
 				
-				// Use the exact same color as in the wheel
-				li.style.backgroundColor = nameColorMap[name];
+				// Use the stored color assignment
+				li.style.backgroundColor = nameColorAssignments[name] || colors[index % colors.length];
 				li.style.color = 'white';
 				li.style.textShadow = '1px 1px 2px black';
 				
-				// Create a container for the name text with overflow control
-				const nameContainer = document.createElement('div');
-				nameContainer.className = 'name-text';
-				nameContainer.style.overflow = 'hidden';
-				nameContainer.style.textOverflow = 'ellipsis';
-				nameContainer.style.whiteSpace = 'nowrap';
-				nameContainer.style.maxWidth = 'calc(100% - 110px)'; // Leave space for buttons
-				nameContainer.title = name; // Show full name on hover
-				nameContainer.textContent = name;
+				// Create container for text
+				const nameText = document.createElement('span');
+				nameText.className = 'name-text';
+				nameText.style.overflow = 'hidden';
+				nameText.style.textOverflow = 'ellipsis';
+				nameText.style.whiteSpace = 'nowrap';
+				nameText.style.maxWidth = 'calc(100% - 110px)';
+				nameText.textContent = name;
+				nameText.title = name;
 				
 				const editBtn = document.createElement('button');
 				editBtn.className = 'edit-btn';
@@ -1207,7 +1229,7 @@
 				deleteBtn.textContent = 'Delete';
 				deleteBtn.addEventListener('click', () => deleteName(index));
 				
-				li.appendChild(nameContainer);
+				li.appendChild(nameText);
 				li.appendChild(editBtn);
 				li.appendChild(deleteBtn);
 				
@@ -1356,6 +1378,7 @@
 				originalNames = [];
 				currentNames = [];
 				winHistory = [];
+				nameColorAssignments = {}; // Clear color assignments
 				saveNames();
 				updateNameList();
 				updateWheel();
