@@ -754,7 +754,6 @@
 			updateDebugInfo();
 		};
         
-        // Initialize the app
 		function init() {
 			// Load saved names from localStorage
 			loadNames();
@@ -1291,6 +1290,34 @@
 			
 			return array;
 		}
+
+		function logWheelState() {
+			console.log("=== WHEEL STATE DEBUG ===");
+			console.log("Names on list:", names);
+			console.log("Names on wheel:", currentNames);
+			
+			// Log color assignments
+			console.log("Color assignments:");
+			for (const name in nameColorAssignments) {
+				console.log(`${name}: ${nameColorAssignments[name]}`);
+			}
+			
+			console.log("=== END DEBUG ===");
+		}
+
+		// Add debug logging to key functions
+		const originalUpdateWheel = updateWheel;
+		updateWheel = function() {
+			originalUpdateWheel();
+			logWheelState();
+		};
+
+		const originalSpinWheel = spinWheel;
+		spinWheel = function() {
+			console.log("BEFORE SPIN - Current wheel state:");
+			logWheelState();
+			originalSpinWheel();
+		};
 
 		// Initialize our debug helpers on page load
 		document.addEventListener('DOMContentLoaded', function() {
