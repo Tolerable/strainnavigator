@@ -1008,29 +1008,40 @@
 			const index = names.indexOf(winner);
 			
 			if (index !== -1) {
-				names.splice(index, 1);
-				updateNameList();
-				updateWheel();
-				
-				// Check if there's only one name left
-				if (names.length === 1) {
-					// Final winner
+				// Check if this is the second-to-last contestant (meaning one will remain after removal)
+				if (names.length === 2) {
+					// Find who will be the winner (the one not being eliminated)
+					const finalWinner = names.find(name => name !== winner);
+					
+					// Remove the current loser
+					names.splice(index, 1);
+					updateNameList();
+					updateWheel();
+					
+					// Announce the final winner
 					setTimeout(() => {
-						alert(`${names[0]} is the last one standing and wins!`);
+						alert(`${finalWinner} is the last one standing and wins!`);
 						// Reset the game
 						names = [...originalNames];
 						updateNameList();
 						updateWheel();
 					}, 1000);
-				} else if (names.length === 0) {
-					// All eliminated
-					setTimeout(() => {
-						alert('Game over! All contestants have been eliminated.');
-						// Reset the game
-						names = [...originalNames];
-						updateNameList();
-						updateWheel();
-					}, 1000);
+				} else {
+					// Normal elimination for non-final rounds
+					names.splice(index, 1);
+					updateNameList();
+					updateWheel();
+					
+					// Check if all contestants have been eliminated
+					if (names.length === 0) {
+						setTimeout(() => {
+							alert('Game over! All contestants have been eliminated.');
+							// Reset the game
+							names = [...originalNames];
+							updateNameList();
+							updateWheel();
+						}, 1000);
+					}
 				}
 			}
 		}
