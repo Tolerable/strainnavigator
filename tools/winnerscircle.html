@@ -897,7 +897,7 @@
 					const startAngle = i * sectionAngle;
 					const endAngle = (i + 1) * sectionAngle;
 					
-					// Use stored color assignment - NEVER calculate a new one here
+					// Use the COLOR ASSIGNMENT from our mapping
 					const color = nameColorAssignments[name];
 					conicGradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
 				}
@@ -905,11 +905,11 @@
 				wheel.style.background = `conic-gradient(${conicGradientStops.join(', ')})`;
 			}
 			
-			// Add names to the wheel - centered in their sections
+			// Add names to the wheel - properly centered in their sections
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
-				// Calculate middle angle of the section - this is key for centering
+				// Calculate middle angle of the section for proper centering
 				const midAngle = i * sectionAngle + (sectionAngle / 2);
 				
 				const nameContainer = document.createElement('div');
@@ -918,7 +918,6 @@
 				nameContainer.style.left = '50%';
 				nameContainer.style.top = '50%';
 				nameContainer.style.transformOrigin = 'left center';
-				// IMPORTANT: Use exact middle angle for rotation
 				nameContainer.style.transform = `rotate(${midAngle}deg)`;
 				nameContainer.style.zIndex = '4';
 				nameContainer.style.width = '40%';
@@ -935,9 +934,10 @@
 				nameText.style.letterSpacing = '1px';
 				nameText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9), -2px -2px 4px rgba(0,0,0,0.9)';
 				
-				// Position text
+				// Fixed positioning logic to ensure consistent centering
 				nameText.style.left = '0';
 				nameText.style.top = '0';
+				// The key fix: use a consistent transform regardless of number of entries
 				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
 				nameText.style.transformOrigin = 'left center';
 				
@@ -1085,7 +1085,9 @@
 		}
 
 		function assignColorToName(name) {
+			// If the name doesn't have a color yet, assign one
 			if (!nameColorAssignments[name]) {
+				// Get the next available color based on the number of existing color assignments
 				const colorIndex = Object.keys(nameColorAssignments).length % colors.length;
 				nameColorAssignments[name] = colors[colorIndex];
 			}
