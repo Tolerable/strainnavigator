@@ -875,11 +875,11 @@
 				wheel.appendChild(divider);
 			}
 			
-			// Add names AS the spokes - bold, centered, and prominent
+			// Add names as spokes - properly centered in each section
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
-				// Calculate middle angle of the section
+				// Calculate the EXACT middle angle of the section to position names in center of color wedges
 				const midAngle = i * sectionAngle + (sectionAngle / 2);
 				
 				// Create container for name
@@ -897,6 +897,7 @@
 				// Create the name text element - BOLD and ALL CAPS for emphasis
 				const nameText = document.createElement('div');
 				nameText.textContent = name.toUpperCase(); // ALL CAPS
+				nameText.title = name; // Show full name on hover
 				nameText.style.position = 'absolute';
 				nameText.style.width = '100%';
 				nameText.style.textAlign = 'center';
@@ -906,9 +907,9 @@
 				nameText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9), -2px -2px 4px rgba(0,0,0,0.9)';
 				
 				// Adjust font size based on number of contestants
-				nameText.style.fontSize = currentNames.length > 20 ? '14px' : 
-										 currentNames.length > 12 ? '16px' : 
-										 currentNames.length > 6 ? '18px' : '20px';
+				nameText.style.fontSize = currentNames.length > 20 ? '12px' : 
+										 currentNames.length > 12 ? '14px' : 
+										 currentNames.length > 6 ? '16px' : '18px';
 				
 				// Position text centered along the radius
 				nameText.style.left = '0';
@@ -941,19 +942,18 @@
 			wheel.style.transition = `transform ${spinDurationValue}s cubic-bezier(0.2, 0.8, 0.15, 1)`;
 			wheel.style.transform = `rotate(${spinAngle}deg)`;
 			
-			// Calculate the winner after the spin
+			// Calculate the selected person after the spin
 			setTimeout(() => {
 				// Calculate which section is at the top (opposite of rotation angle)
 				const normalizedAngle = spinAngle % 360;
-				const winningIndex = Math.floor(currentNames.length - (normalizedAngle / sectionAngle)) % currentNames.length;
-				const winner = currentNames[winningIndex];
+				const selectedIndex = Math.floor(currentNames.length - (normalizedAngle / sectionAngle)) % currentNames.length;
+				const selectedPerson = currentNames[selectedIndex];
 				
-				// Different behaviors based on game mode
 				if (gameMode.value === 'first') {
-					// Update the display for regular mode
-					winnerDisplay.textContent = winner;
+					// In "First One Picked" mode - show the person as winner
+					winnerDisplay.textContent = selectedPerson;
+					winnerDisplay.style.color = 'var(--primary)'; // Default winner color
 					winnerDisplay.classList.add('celebrate');
-					winnerDisplay.style.color = ''; // Reset to default color
 					
 					// Launch confetti
 					confetti({
@@ -961,14 +961,12 @@
 						spread: 70,
 						origin: { y: 0.6 }
 					});
-				}
-				
-				// Add to history (for both modes)
-				addToHistory(winner);
-				
-				// Handle game modes
-				if (gameMode.value === 'last') {
-					handleLastManStanding(winner);
+					
+					// Add to history
+					addToHistory(selectedPerson, false);
+				} else {
+					// In "Last Man Standing" mode - the person is eliminated
+					handleLastManStanding(selectedPerson);
 				}
 				
 				// Reset state
@@ -982,16 +980,13 @@
 			}, spinDurationValue * 1000);
 		}
 
-		// Add winner to history
-		function addToHistory(winner) {
-			// Different text for different game modes
-			if (gameMode.value === 'last') {
-				winHistory.unshift(`${winner} eliminated`);
-			} else {
-				winHistory.unshift(winner);
-			}
+		// Add winner/elimination to history
+		function addToHistory(result, isElimination) {
+			// Format depends on game mode
+			let historyEntry = result;
 			
 			// Keep history at a maximum of 10 items
+			winHistory.unshift(historyEntry);
 			if (winHistory.length > 10) {
 				winHistory.pop();
 			}
@@ -1004,40 +999,62 @@
 		function updateHistoryList() {
 			historyList.innerHTML = '';
 			
-			winHistory.forEach((winner, index) => {
+			winHistory.forEach((result, index) => {
 				const li = document.createElement('li');
 				li.className = 'history-item';
-				li.innerHTML = `Round ${winHistory.length - index}: <span>${winner}</span>`;
+				
+				// Check if this is an elimination entry
+				if (result.includes('(Eliminated)')) {
+					li.innerHTML = `Round ${winHistory.length - index}: <span style="color: #ff0000">${result}</span>`;
+				} else if (result.includes('(WINNER!)')) {
+					li.innerHTML = `Round ${winHistory.length - index}: <span style="color: #4CAF50">${result}</span>`;
+				} else {
+					li.innerHTML = `Round ${winHistory.length - index}: <span>${result}</span>`;
+				}
+				
 				historyList.appendChild(li);
 			});
 		}
 
 		// Handle last man standing game mode
-		function handleLastManStanding(winner) {
-			const index = names.indexOf(winner);
+		function handleLastManStanding(selectedPerson) {
+			const index = names.indexOf(selectedPerson);
 			
 			if (index !== -1) {
-				// Update the winner display to show who's been eliminated
-				winnerDisplay.textContent = `${winner} is ELIMINATED!`;
+				// Show who's been eliminated
+				winnerDisplay.textContent = `${selectedPerson} ELIMINATED!`;
 				winnerDisplay.style.color = '#ff0000'; // Red color for elimination
 				
-				// Check if this is the second-to-last contestant (meaning one will remain after removal)
+				// Add to history as an elimination
+				addToHistory(`${selectedPerson} (Eliminated)`, true);
+				
+				// Check if this is the second-to-last contestant
 				if (names.length === 2) {
 					// Find who will be the winner (the one not being eliminated)
-					const finalWinner = names.find(name => name !== winner);
+					const finalWinner = names.find(name => name !== selectedPerson);
 					
-					// Remove the current loser
+					// Remove the eliminated person
 					names.splice(index, 1);
 					updateNameList();
 					updateWheel();
 					
-					// Announce the final winner
+					// Announce the final winner after a delay
 					setTimeout(() => {
 						winnerDisplay.textContent = `${finalWinner} WINS!`;
 						winnerDisplay.style.color = '#4CAF50'; // Green color for the winner
 						winnerDisplay.classList.add('celebrate');
 						
-						// Reset the game after a delay
+						// Launch confetti for the winner
+						confetti({
+							particleCount: 150,
+							spread: 70,
+							origin: { y: 0.6 }
+						});
+						
+						// Add the winner to history
+						addToHistory(`${finalWinner} (WINNER!)`, false);
+						
+						// Reset the game after another delay
 						setTimeout(() => {
 							alert(`${finalWinner} is the last one standing and wins!`);
 							// Reset the game
