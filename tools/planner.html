@@ -1171,7 +1171,7 @@
 				
 				// Create the toggle HTML
 				toggleContainer.innerHTML = `
-					<div style="margin-bottom: 8px; font-weight: 500;">Parsing Method</div>
+					<div style="margin-bottom: 8px; font-weight: 500;">Import Format</div>
 					<div style="display: flex; gap: 10px; flex-direction: column;">
 						<label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
 							<input type="radio" name="parsing-method" value="standard" checked>
@@ -1188,14 +1188,7 @@
 				const sheetUrlContainer = document.querySelector('.sheet-url-container');
 				sheetUrlContainer.parentNode.insertBefore(toggleContainer, sheetUrlContainer.nextSibling);
 				
-				// Add event listeners for the radio buttons
-				const radioButtons = toggleContainer.querySelectorAll('input[type="radio"]');
-				radioButtons.forEach(radio => {
-					radio.addEventListener('change', function() {
-						// When parsing method changes, reload the strains with the new method
-						loadStrains();
-					});
-				});
+				// No auto-reload when format changes - just keep the selection for next import
 			}
 
 			function toggleMinimalView() {
