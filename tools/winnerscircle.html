@@ -787,13 +787,21 @@
 			names.forEach((name, index) => {
 				const li = document.createElement('li');
 				li.className = 'name-item';
+				
+				// CRITICAL: Use the same index-based color assignment as in the wheel
 				li.style.backgroundColor = colors[index % colors.length];
 				li.style.color = 'white';
 				li.style.textShadow = '1px 1px 2px black';
 				
+				// Create container for text with overflow control
 				const nameText = document.createElement('span');
 				nameText.className = 'name-text';
+				nameText.style.overflow = 'hidden';
+				nameText.style.textOverflow = 'ellipsis';
+				nameText.style.whiteSpace = 'nowrap';
+				nameText.style.maxWidth = 'calc(100% - 110px)'; // Leave space for buttons
 				nameText.textContent = name;
+				nameText.title = name; // Show full name on hover
 				
 				const editBtn = document.createElement('button');
 				editBtn.className = 'edit-btn';
@@ -1083,27 +1091,24 @@
 			
 			const sectionAngle = 360 / currentNames.length;
 			
-			// Apply overflow hidden to ensure circular shape
+			// Apply overflow hidden for circular shape
 			wheel.style.overflow = 'hidden';
 			wheel.style.borderRadius = '50%';
 			wheel.style.position = 'relative';
-			
-			// Create a map of name to color to ensure consistency
-			const nameColorMap = {};
-			names.forEach((name, index) => {
-				nameColorMap[name] = colors[index % colors.length];
-			});
 			
 			// Create wheel sections using conic-gradient
 			if (currentNames.length > 0) {
 				let conicGradientStops = [];
 				
+				// CRITICAL CHANGE: Use the original names array order to determine colors
+				// This ensures wheel colors match the list colors
 				for (let i = 0; i < currentNames.length; i++) {
 					const startAngle = i * sectionAngle;
 					const endAngle = (i + 1) * sectionAngle;
 					
-					// Use the color map to ensure consistent coloring
-					const color = nameColorMap[currentNames[i]];
+					// Get the original index of this name in the names array
+					const originalIndex = names.indexOf(currentNames[i]);
+					const color = colors[originalIndex % colors.length];
 					
 					conicGradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
 				}
@@ -1111,11 +1116,11 @@
 				wheel.style.background = `conic-gradient(${conicGradientStops.join(', ')})`;
 			}
 			
-			// Add names as spokes - properly centered in each section
+			// Add names - centered in their sections
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
-				// Calculate the exact middle of the section
+				// Calculate exact middle of the section
 				const midAngle = i * sectionAngle + (sectionAngle / 2);
 				
 				// Create container for name
@@ -1127,7 +1132,7 @@
 				nameContainer.style.transformOrigin = 'left center';
 				nameContainer.style.transform = `rotate(${midAngle}deg)`;
 				nameContainer.style.zIndex = '4';
-				nameContainer.style.width = '40%'; 
+				nameContainer.style.width = '40%';
 				nameContainer.style.pointerEvents = 'none';
 				
 				// Create the name text
@@ -1142,23 +1147,23 @@
 				nameText.style.letterSpacing = '1px';
 				nameText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9), -2px -2px 4px rgba(0,0,0,0.9)';
 				
-				// Center position in section
-				nameText.style.left = '0';
-				nameText.style.top = '0';
-				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
-				nameText.style.transformOrigin = 'left center';
-				
-				// Adjust font size based on name length and contestant count
+				// Adjust font size
 				const baseFontSize = currentNames.length > 20 ? 12 : 
 								   currentNames.length > 12 ? 14 : 
 								   currentNames.length > 6 ? 16 : 18;
 				nameText.style.fontSize = `${name.length > 10 ? baseFontSize - 2 : baseFontSize}px`;
 				
+				// Position text
+				nameText.style.left = '0';
+				nameText.style.top = '0';
+				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
+				nameText.style.transformOrigin = 'left center';
+				
 				nameContainer.appendChild(nameText);
 				wheel.appendChild(nameContainer);
 			}
 			
-			// Add a border for better wheel appearance
+			// Add border
 			wheel.style.border = '3px solid white';
 			wheel.style.boxShadow = '0 0 0 2px #ff5252';
 		}
