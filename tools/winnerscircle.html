@@ -844,6 +844,12 @@
 			wheel.style.borderRadius = '50%';
 			wheel.style.position = 'relative';
 			
+			// Create a map of name to color to ensure consistency
+			const nameColorMap = {};
+			names.forEach((name, index) => {
+				nameColorMap[name] = colors[index % colors.length];
+			});
+			
 			// Create wheel sections using conic-gradient
 			if (currentNames.length > 0) {
 				let conicGradientStops = [];
@@ -851,10 +857,9 @@
 				for (let i = 0; i < currentNames.length; i++) {
 					const startAngle = i * sectionAngle;
 					const endAngle = (i + 1) * sectionAngle;
-					// Use the same color assignment logic as in updateNameList()
-					// This ensures the wheel colors match the list colors
-					const colorIndex = names.indexOf(currentNames[i]) % colors.length;
-					const color = colors[colorIndex];
+					
+					// Use the color map to ensure consistent coloring
+					const color = nameColorMap[currentNames[i]];
 					
 					conicGradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
 				}
@@ -862,23 +867,7 @@
 				wheel.style.background = `conic-gradient(${conicGradientStops.join(', ')})`;
 			}
 			
-			// Add divider lines
-			for (let i = 0; i < currentNames.length; i++) {
-				const divider = document.createElement('div');
-				divider.className = 'wheel-divider';
-				divider.style.position = 'absolute';
-				divider.style.width = '50%';
-				divider.style.height = '2px';
-				divider.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-				divider.style.top = '50%';
-				divider.style.left = '50%';
-				divider.style.transformOrigin = 'left center';
-				divider.style.transform = `rotate(${i * sectionAngle}deg)`;
-				divider.style.zIndex = '2';
-				wheel.appendChild(divider);
-			}
-			
-			// Add names - centered in each section
+			// Add names as spokes - properly centered in each section
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
@@ -894,7 +883,7 @@
 				nameContainer.style.transformOrigin = 'left center';
 				nameContainer.style.transform = `rotate(${midAngle}deg)`;
 				nameContainer.style.zIndex = '4';
-				nameContainer.style.width = '45%';
+				nameContainer.style.width = '40%'; 
 				nameContainer.style.pointerEvents = 'none';
 				
 				// Create the name text
@@ -909,34 +898,35 @@
 				nameText.style.letterSpacing = '1px';
 				nameText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9), -2px -2px 4px rgba(0,0,0,0.9)';
 				
-				// Adjust font size based on number of contestants
-				nameText.style.fontSize = currentNames.length > 20 ? '12px' : 
-										 currentNames.length > 12 ? '14px' : 
-										 currentNames.length > 6 ? '16px' : '18px';
-				
-				// Position text centered
+				// Center position in section
 				nameText.style.left = '0';
 				nameText.style.top = '0';
 				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
 				nameText.style.transformOrigin = 'left center';
 				
+				// Adjust font size based on name length and contestant count
+				const baseFontSize = currentNames.length > 20 ? 12 : 
+								   currentNames.length > 12 ? 14 : 
+								   currentNames.length > 6 ? 16 : 18;
+				nameText.style.fontSize = `${name.length > 10 ? baseFontSize - 2 : baseFontSize}px`;
+				
 				nameContainer.appendChild(nameText);
 				wheel.appendChild(nameContainer);
 			}
 			
-			// Add border
+			// Add a border for better wheel appearance
 			wheel.style.border = '3px solid white';
 			wheel.style.boxShadow = '0 0 0 2px #ff5252';
 		}
 
-		// Fix the Last Man Standing spin logic
+		// Spin the wheel
 		function spinWheel() {
 			if (isSpinning || currentNames.length === 0) return;
 			
 			isSpinning = true;
 			spinButton.disabled = true;
 			
-			// Calculate rotation
+			// Calculate random rotation
 			const spinDurationValue = parseFloat(spinDuration.value);
 			const sectionAngle = 360 / currentNames.length;
 			const spinAngle = 720 + Math.floor(Math.random() * 1080) + Math.floor(Math.random() * sectionAngle);
@@ -945,19 +935,23 @@
 			wheel.style.transition = `transform ${spinDurationValue}s cubic-bezier(0.2, 0.8, 0.15, 1)`;
 			wheel.style.transform = `rotate(${spinAngle}deg)`;
 			
+			// Calculate the selected person after the spin
 			setTimeout(() => {
-				// Calculate which section is at the top marker
+				// Calculate which section is at the top after spinning
 				const normalizedAngle = spinAngle % 360;
+				// This determines which section is at the ticker after spinning
 				const selectedIndex = Math.floor(currentNames.length - (normalizedAngle / sectionAngle)) % currentNames.length;
 				const selectedPerson = currentNames[selectedIndex];
+				
+				console.log("Selected person:", selectedPerson); // Debug
 				
 				if (gameMode.value === 'first') {
 					// First One Picked mode
 					winnerDisplay.textContent = selectedPerson;
-					winnerDisplay.style.color = '';  // Default color
+					winnerDisplay.style.color = 'var(--primary)';
 					winnerDisplay.classList.add('celebrate');
 					
-					// Launch confetti
+					// Confetti
 					confetti({
 						particleCount: 150,
 						spread: 70,
@@ -969,11 +963,11 @@
 					updateHistoryList();
 					
 				} else {
-					// Last Man Standing mode - eliminate the selected person
-					const index = names.indexOf(selectedPerson);
+					// Last Man Standing mode
+					const nameIndex = names.indexOf(selectedPerson);
 					
-					if (index !== -1) {
-						// Show the eliminated person
+					if (nameIndex !== -1) {
+						// Show who's been eliminated
 						winnerDisplay.textContent = `${selectedPerson} ELIMINATED!`;
 						winnerDisplay.style.color = '#ff0000';
 						
@@ -983,11 +977,11 @@
 						
 						// Check if this is the second-to-last contestant
 						if (names.length === 2) {
-							// Find the winner (the remaining person)
+							// Find the winner (the one not eliminated)
 							const finalWinner = names.find(name => name !== selectedPerson);
 							
 							// Remove the eliminated person
-							names.splice(index, 1);
+							names.splice(nameIndex, 1);
 							updateNameList();
 							updateWheel();
 							
@@ -1019,12 +1013,12 @@
 								}, 3000);
 							}, 1000);
 						} else {
-							// Normal elimination
-							names.splice(index, 1);
+							// Regular elimination
+							names.splice(nameIndex, 1);
 							updateNameList();
 							updateWheel();
 							
-							// Check if there are no contestants left
+							// Check if all contestants have been eliminated
 							if (names.length === 0) {
 								setTimeout(() => {
 									alert('Game over! All contestants have been eliminated.');
@@ -1065,28 +1059,157 @@
 			updateHistoryList();
 		}
 
-		// Update history list with appropriate formatting
-		function updateHistoryList() {
-			historyList.innerHTML = '';
+		// Update the wheel UI
+		function updateWheel() {
+			wheel.innerHTML = '';
 			
-			if (winHistory.length > 10) {
-				winHistory = winHistory.slice(0, 10);
+			if (names.length === 0) {
+				wheel.style.backgroundColor = '#333';
+				return;
 			}
 			
-			winHistory.forEach((result, index) => {
-				const li = document.createElement('li');
-				li.className = 'history-item';
+			// Create a duplicate array based on duplication settings
+			const duplication = parseInt(duplicationMode.value);
+			currentNames = [];
+			
+			for (let i = 0; i < duplication; i++) {
+				currentNames.push(...names);
+			}
+			
+			// Shuffle the names if duplicated
+			if (duplication > 1) {
+				shuffleArray(currentNames);
+			}
+			
+			const sectionAngle = 360 / currentNames.length;
+			
+			// Apply overflow hidden to ensure circular shape
+			wheel.style.overflow = 'hidden';
+			wheel.style.borderRadius = '50%';
+			wheel.style.position = 'relative';
+			
+			// Create a map of name to color to ensure consistency
+			const nameColorMap = {};
+			names.forEach((name, index) => {
+				nameColorMap[name] = colors[index % colors.length];
+			});
+			
+			// Create wheel sections using conic-gradient
+			if (currentNames.length > 0) {
+				let conicGradientStops = [];
 				
-				if (result.includes('(Eliminated)')) {
-					li.innerHTML = `Round ${winHistory.length - index}: <span style="color: #ff0000">${result}</span>`;
-				} else if (result.includes('(WINNER!)')) {
-					li.innerHTML = `Round ${winHistory.length - index}: <span style="color: #4CAF50">${result}</span>`;
-				} else {
-					li.innerHTML = `Round ${winHistory.length - index}: <span>${result}</span>`;
+				for (let i = 0; i < currentNames.length; i++) {
+					const startAngle = i * sectionAngle;
+					const endAngle = (i + 1) * sectionAngle;
+					
+					// Use the color map to ensure consistent coloring
+					const color = nameColorMap[currentNames[i]];
+					
+					conicGradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
 				}
 				
-				historyList.appendChild(li);
+				wheel.style.background = `conic-gradient(${conicGradientStops.join(', ')})`;
+			}
+			
+			// Add names as spokes - properly centered in each section
+			for (let i = 0; i < currentNames.length; i++) {
+				const name = currentNames[i];
+				
+				// Calculate the exact middle of the section
+				const midAngle = i * sectionAngle + (sectionAngle / 2);
+				
+				// Create container for name
+				const nameContainer = document.createElement('div');
+				nameContainer.className = 'wheel-name-spoke';
+				nameContainer.style.position = 'absolute';
+				nameContainer.style.left = '50%';
+				nameContainer.style.top = '50%';
+				nameContainer.style.transformOrigin = 'left center';
+				nameContainer.style.transform = `rotate(${midAngle}deg)`;
+				nameContainer.style.zIndex = '4';
+				nameContainer.style.width = '40%'; 
+				nameContainer.style.pointerEvents = 'none';
+				
+				// Create the name text
+				const nameText = document.createElement('div');
+				nameText.textContent = name.toUpperCase();
+				nameText.title = name; // Full name on hover
+				nameText.style.position = 'absolute';
+				nameText.style.width = '100%';
+				nameText.style.textAlign = 'center';
+				nameText.style.fontWeight = '900';
+				nameText.style.color = 'white';
+				nameText.style.letterSpacing = '1px';
+				nameText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9), -2px -2px 4px rgba(0,0,0,0.9)';
+				
+				// Center position in section
+				nameText.style.left = '0';
+				nameText.style.top = '0';
+				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
+				nameText.style.transformOrigin = 'left center';
+				
+				// Adjust font size based on name length and contestant count
+				const baseFontSize = currentNames.length > 20 ? 12 : 
+								   currentNames.length > 12 ? 14 : 
+								   currentNames.length > 6 ? 16 : 18;
+				nameText.style.fontSize = `${name.length > 10 ? baseFontSize - 2 : baseFontSize}px`;
+				
+				nameContainer.appendChild(nameText);
+				wheel.appendChild(nameContainer);
+			}
+			
+			// Add a border for better wheel appearance
+			wheel.style.border = '3px solid white';
+			wheel.style.boxShadow = '0 0 0 2px #ff5252';
+		}
+
+		// Update the name list UI - using the same color mapping
+		function updateNameList() {
+			nameList.innerHTML = '';
+			
+			// Create the same name-to-color map as in updateWheel
+			const nameColorMap = {};
+			names.forEach((name, index) => {
+				nameColorMap[name] = colors[index % colors.length];
 			});
+			
+			names.forEach((name, index) => {
+				const li = document.createElement('li');
+				li.className = 'name-item';
+				
+				// Use the exact same color as in the wheel
+				li.style.backgroundColor = nameColorMap[name];
+				li.style.color = 'white';
+				li.style.textShadow = '1px 1px 2px black';
+				
+				// Create a container for the name text with overflow control
+				const nameContainer = document.createElement('div');
+				nameContainer.className = 'name-text';
+				nameContainer.style.overflow = 'hidden';
+				nameContainer.style.textOverflow = 'ellipsis';
+				nameContainer.style.whiteSpace = 'nowrap';
+				nameContainer.style.maxWidth = 'calc(100% - 110px)'; // Leave space for buttons
+				nameContainer.title = name; // Show full name on hover
+				nameContainer.textContent = name;
+				
+				const editBtn = document.createElement('button');
+				editBtn.className = 'edit-btn';
+				editBtn.textContent = 'Edit';
+				editBtn.addEventListener('click', () => editName(index));
+				
+				const deleteBtn = document.createElement('button');
+				deleteBtn.className = 'delete-btn';
+				deleteBtn.textContent = 'Delete';
+				deleteBtn.addEventListener('click', () => deleteName(index));
+				
+				li.appendChild(nameContainer);
+				li.appendChild(editBtn);
+				li.appendChild(deleteBtn);
+				
+				nameList.appendChild(li);
+			});
+			
+			updateRemainingDisplay();
 		}
 
 		// Handle last man standing game mode
