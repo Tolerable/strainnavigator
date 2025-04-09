@@ -14,7 +14,1196 @@
 	<meta property="og:image" content="https://www.strainnavigator.com/tools/img/WinnersCircle.jpg?v=2">
 	<meta property="og:image:width" content="1200">
 	<meta property="og:image:height" content="630">
+	<meta property="og:site_name" content="Strain Navigator Tools"><!DOCTYPE html>
+<html lang="en">
+<head>
+	<!-- Basic Meta Tags -->
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Winner's Circle - An interactive random name picker and prize wheel tool. Perfect for choosing winners, making decisions, or adding excitement to your events and giveaways.">
+
+	<!-- Open Graph Meta Tags for Facebook, LinkedIn, etc. -->
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://www.strainnavigator.com/tools/winnerscircle.html">
+	<meta property="og:title" content="Winner's Circle - Random Name Picker & Prize Wheel">
+	<meta property="og:description" content="A beautiful and customizable wheel spinner for random selections, contests, giveaways and decision making. Easy to use with no sign-up required.">
+	<meta property="og:image" content="https://www.strainnavigator.com/tools/img/WinnersCircle.jpg?v=2">
+	<meta property="og:image:width" content="1200">
+	<meta property="og:image:height" content="630">
 	<meta property="og:site_name" content="Strain Navigator Tools">
+
+	<!-- Twitter Card Meta Tags -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:url" content="https://www.strainnavigator.com/tools/winnerscircle.html">
+	<meta name="twitter:title" content="Winner's Circle - Random Name Picker & Prize Wheel">
+	<meta name="twitter:description" content="A beautiful and customizable wheel spinner for random selections, contests, giveaways and decision making. Easy to use with no sign-up required.">
+	<meta name="twitter:image" content="https://www.strainnavigator.com/tools/img/WinnersCircle.jpg?v=2">
+
+	<!-- Additional Meta Tags -->
+	<meta name="robots" content="index, follow">
+	<meta name="author" content="Strain Navigator">
+	<meta name="theme-color" content="#ff5252">
+    <title>Winner's Circle</title>
+    <style>
+        :root {
+            --primary: #ff5252;
+            --secondary: #ffeb3b;
+            --accent: #2196f3;
+            --dark: #212121;
+            --light: #f5f5f5;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: white;
+            background-image: radial-gradient(circle, #303030 1px, transparent 1px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+        
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .title {
+            font-size: 4rem;
+            margin: 10px 0;
+            color: var(--secondary);
+            text-shadow: 
+                0 0 5px var(--primary),
+                0 0 10px var(--primary),
+                0 0 15px var(--primary);
+            animation: flicker 3s infinite alternate;
+        }
+        
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow: 
+                    0 0 5px var(--primary),
+                    0 0 10px var(--primary),
+                    0 0 15px var(--primary);
+            }
+            20%, 24%, 55% {
+                text-shadow: none;
+            }
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--light);
+        }
+        
+        .panel {
+            background: rgba(20, 20, 20, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-conic-gradient(
+                transparent 0deg 10deg,
+                rgba(255, 82, 82, 0.1) 10deg 20deg
+            );
+            animation: rotate 120s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+            color: var(--secondary);
+        }
+        
+        .wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            height: 100%;
+        }
+        
+        .wheel-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1 / 1;
+        }
+        
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            transition: transform 5s cubic-bezier(0.2, 0.8, 0.15, 1);
+            box-shadow: 
+                0 0 0 5px white,
+                0 0 0 10px var(--primary),
+                0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        .wheel-center {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at center, white, silver);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            border: 3px solid #333;
+        }
+        
+        .ticker {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 50px;
+            z-index: 5;
+        }
+        
+        .ticker::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: var(--accent);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .spin-button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background: linear-gradient(145deg, var(--primary), #ff0000);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .spin-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 0, 0, 0.4);
+        }
+        
+        .spin-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(255, 0, 0, 0.4);
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary);
+            opacity: 0;
+            z-index: 100;
+        }
+        
+        .name-list {
+            list-style: none;
+            overflow-y: auto;
+            flex-grow: 1;
+            margin-bottom: 15px;
+        }
+        
+        .name-item {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .name-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .name-text {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        
+        .edit-btn {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .delete-btn {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .add-name-form {
+            display: flex;
+            margin-top: auto;
+        }
+        
+        .name-input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 2px solid var(--accent);
+            border-radius: 8px 0 0 8px;
+            font-size: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+        
+        .add-btn {
+            padding: 10px 20px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-label {
+            font-size: 1rem;
+            color: var(--light);
+        }
+        
+        .form-select, .form-input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            flex-grow: 1;
+            transition: all 0.2s;
+        }
+        
+        .import-export-btn {
+            background: var(--secondary);
+            color: var(--dark);
+        }
+        
+        .reset-btn {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .result-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .result-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+        
+        .winner-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            text-shadow: 0 0 10px var(--primary);
+        }
+        
+        .history-list {
+            list-style: none;
+            text-align: left;
+            width: 100%;
+            margin-top: 10px;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+        
+        .history-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+        }
+        
+        .history-item span {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .remaining-display {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            width: 100%;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: #212121;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid var(--primary);
+            position: relative;
+        }
+        
+        .close-btn {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+        
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .modal-input, .modal-textarea {
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            width: 100%;
+        }
+        
+        .modal-textarea {
+            min-height: 200px;
+            font-family: monospace;
+        }
+        
+        .modal-btn {
+            padding: 10px 20px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+                gap: 10px;
+            }
+            
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .wheel-wrapper {
+                max-width: 300px;
+            }
+            
+            .spin-button {
+                padding: 10px 25px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        /* Winner animation */
+        @keyframes celebrate {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .celebrate {
+            animation: celebrate 0.5s ease-in-out 3;
+        }
+        
+        /* Last standing animation */
+        .eliminated {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Winner's Circle</h1>
+        </header>
+        
+        <div class="panel">
+            <h2 class="panel-title">Contestants</h2>
+            <ul class="name-list" id="nameList">
+                <!-- Names will be populated here -->
+            </ul>
+            <form class="add-name-form" id="addNameForm">
+                <input type="text" class="name-input" id="nameInput" placeholder="Enter name..." required>
+                <button type="submit" class="add-btn">Add</button>
+            </form>
+        </div>
+        
+        <div class="panel wheel-container">
+            <div class="wheel-wrapper">
+                <div class="ticker"></div>
+                <div class="wheel" id="wheel">
+                    <!-- Wheel sections will be populated here -->
+                </div>
+                <div class="wheel-center"></div>
+            </div>
+            <button class="spin-button" id="spinButton">SPIN</button>
+            <div class="result-container">
+                <div class="result-title">Winner</div>
+                <div class="winner-display" id="winnerDisplay">Spin to find out!</div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2 class="panel-title">Settings</h2>
+            <form class="settings-form" id="settingsForm">
+                <div class="form-group">
+                    <label class="form-label">Game Mode</label>
+                    <select class="form-select" id="gameMode">
+                        <option value="first">First One Picked</option>
+                        <option value="last">Last Man Standing</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Name Duplications</label>
+                    <select class="form-select" id="duplicationMode">
+                        <option value="1">No Duplication</option>
+                        <option value="2">Double Names</option>
+                        <option value="3">Triple Names</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Spin Time (seconds)</label>
+                    <input type="range" class="form-input" id="spinDuration" min="2" max="10" value="5" step="0.5">
+                    <span id="spinDurationValue">5.0</span>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="action-btn import-export-btn" id="importExportBtn">Import/Export</button>
+                    <button type="button" class="action-btn reset-btn" id="resetBtn">Reset All</button>
+                </div>
+            </form>
+            
+            <div class="history-container">
+                <h3 class="panel-title" style="margin-top: 20px">Results History</h3>
+                <ul class="history-list" id="historyList">
+                    <!-- History will be populated here -->
+                </ul>
+                <div class="remaining-display" id="remainingDisplay"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import/Export Modal -->
+    <div class="modal" id="importExportModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModal">&times;</button>
+            <h3 class="modal-title">Import/Export Names</h3>
+            <form class="modal-form" id="importExportForm">
+                <p>Enter names (one per line) or copy the existing list:</p>
+                <textarea class="modal-textarea" id="namesTextarea"></textarea>
+                <button type="submit" class="modal-btn">Save Names</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit Name Modal -->
+    <div class="modal" id="editNameModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeEditModal">&times;</button>
+            <h3 class="modal-title">Edit Name</h3>
+            <form class="modal-form" id="editNameForm">
+                <input type="hidden" id="editNameIndex">
+                <input type="text" class="modal-input" id="editNameInput" placeholder="Enter name..." required>
+                <button type="submit" class="modal-btn">Update Name</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        // Initialize variables
+        let names = [];
+        let originalNames = [];
+        let currentNames = [];
+        let winHistory = [];
+        let isSpinning = false;
+        let canvasConfetti = null;
+        let nameColorAssignments = {};
+		
+        // DOM Elements
+        const wheel = document.getElementById('wheel');
+        const spinButton = document.getElementById('spinButton');
+        const nameList = document.getElementById('nameList');
+        const addNameForm = document.getElementById('addNameForm');
+        const nameInput = document.getElementById('nameInput');
+        const winnerDisplay = document.getElementById('winnerDisplay');
+        const historyList = document.getElementById('historyList');
+        const remainingDisplay = document.getElementById('remainingDisplay');
+        const importExportBtn = document.getElementById('importExportBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const importExportModal = document.getElementById('importExportModal');
+        const closeModal = document.getElementById('closeModal');
+        const namesTextarea = document.getElementById('namesTextarea');
+        const importExportForm = document.getElementById('importExportForm');
+        const editNameModal = document.getElementById('editNameModal');
+        const closeEditModal = document.getElementById('closeEditModal');
+        const editNameForm = document.getElementById('editNameForm');
+        const editNameInput = document.getElementById('editNameInput');
+        const editNameIndex = document.getElementById('editNameIndex');
+        const gameMode = document.getElementById('gameMode');
+        const duplicationMode = document.getElementById('duplicationMode');
+        const spinDuration = document.getElementById('spinDuration');
+        const spinDurationValue = document.getElementById('spinDurationValue');
+        
+        // Colors for wheel sections
+        const colors = [
+            '#FF5252', '#FF4081', '#E040FB', '#7C4DFF', 
+            '#536DFE', '#448AFF', '#40C4FF', '#18FFFF', 
+            '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41', 
+            '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'
+        ];
+        
+        // Initialize the app
+		function init() {
+			// Load saved names from localStorage
+			loadNames();
+			
+			// Add event listeners
+			addNameForm.addEventListener('submit', addName);
+			spinButton.addEventListener('click', spinWheel);
+			importExportBtn.addEventListener('click', openImportExportModal);
+			closeModal.addEventListener('click', closeImportExportModal);
+			importExportForm.addEventListener('submit', saveImportedNames);
+			resetBtn.addEventListener('click', resetAll);
+			closeEditModal.addEventListener('click', closeEditNameModal);
+			editNameForm.addEventListener('submit', updateName);
+			gameMode.addEventListener('change', handleGameModeChange);
+			duplicationMode.addEventListener('change', updateWheel);
+			spinDuration.addEventListener('input', updateSpinDurationDisplay);
+			
+			// No complex confetti setup needed
+			canvasConfetti = confetti;
+			
+			// Update the wheel initially
+			updateWheel();
+		}
+        
+        // Load names from localStorage
+		function saveNames() {
+			localStorage.setItem('winnerCircleNames', JSON.stringify(names));
+			localStorage.setItem('winnerCircleColorAssignments', JSON.stringify(nameColorAssignments));
+			originalNames = [...names];
+		}
+
+		// Update loadNames to load color assignments
+		function loadNames() {
+			const savedNames = localStorage.getItem('winnerCircleNames');
+			names = savedNames ? JSON.parse(savedNames) : [];
+			originalNames = [...names];
+			currentNames = [...names];
+			
+			// Load saved color assignments
+			const savedColorAssignments = localStorage.getItem('winnerCircleColorAssignments');
+			nameColorAssignments = savedColorAssignments ? JSON.parse(savedColorAssignments) : {};
+			
+			// Assign colors to names that don't have one yet
+			names.forEach(name => assignColorToName(name));
+			
+			updateNameList();
+		}
+        
+        // Add a new name
+		function addName(e) {
+			e.preventDefault();
+			const name = nameInput.value.trim();
+			
+			if (name && !names.includes(name)) {
+				// Assign color FIRST before adding the name
+				assignColorToName(name);
+				
+				names.push(name);
+				saveNames();
+				updateNameList();
+				updateWheel();
+				nameInput.value = '';
+			} else if (names.includes(name)) {
+				alert('This name already exists!');
+			}
+		}
+        
+        // Edit a name
+        function editName(index) {
+            editNameIndex.value = index;
+            editNameInput.value = names[index];
+            editNameModal.style.display = 'flex';
+        }
+        
+        // Update a name
+		function updateName(e) {
+			e.preventDefault();
+			const index = parseInt(editNameIndex.value);
+			const oldName = names[index];
+			const newName = editNameInput.value.trim();
+			
+			if (newName && !names.includes(newName)) {
+				// Preserve the color assignment
+				nameColorAssignments[newName] = nameColorAssignments[oldName];
+				delete nameColorAssignments[oldName]; // Remove the old name's color
+				
+				names[index] = newName;
+				saveNames();
+				updateNameList();
+				updateWheel();
+				closeEditNameModal();
+			} else if (names.includes(newName) && names[index] !== newName) {
+				alert('This name already exists!');
+			} else {
+				closeEditNameModal();
+			}
+		}
+        
+        // Close the edit name modal
+        function closeEditNameModal() {
+            editNameModal.style.display = 'none';
+        }
+        
+        // Delete a name
+		function deleteName(index) {
+			const nameToDelete = names[index];
+			
+			// Remove the color assignment when completely deleting from game
+			if (gameMode.value === 'first') {
+				delete nameColorAssignments[nameToDelete];
+			}
+			
+			names.splice(index, 1);
+			saveNames();
+			updateNameList();
+			updateWheel();
+		}
+
+		// Spin the wheel
+		function spinWheel() {
+			if (isSpinning || currentNames.length === 0) return;
+			
+			isSpinning = true;
+			spinButton.disabled = true;
+			
+			// Calculate random rotation
+			const spinDurationValue = parseFloat(spinDuration.value);
+			const sectionAngle = 360 / currentNames.length;
+			const spinAngle = 720 + Math.floor(Math.random() * 1080) + Math.floor(Math.random() * sectionAngle);
+			
+			// Apply rotation
+			wheel.style.transition = `transform ${spinDurationValue}s cubic-bezier(0.2, 0.8, 0.15, 1)`;
+			wheel.style.transform = `rotate(${spinAngle}deg)`;
+			
+			// Calculate the selected person after the spin
+			setTimeout(() => {
+				// Calculate which section is at the top after spinning
+				const normalizedAngle = spinAngle % 360;
+				// This determines which section is at the ticker after spinning
+				const selectedIndex = Math.floor(currentNames.length - (normalizedAngle / sectionAngle)) % currentNames.length;
+				const selectedPerson = currentNames[selectedIndex];
+				
+				if (gameMode.value === 'first') {
+					handleFirstOnePicked(selectedPerson);
+				} else {
+					handleLastManStanding(selectedPerson);
+				}
+				
+				// Reset state
+				isSpinning = false;
+				spinButton.disabled = false;
+				
+				// Remove celebration class after animation completes
+				setTimeout(() => {
+					winnerDisplay.classList.remove('celebrate');
+				}, 1500);
+			}, spinDurationValue * 1000);
+		}
+
+		function handleFirstOnePicked(selectedPerson) {
+			// First One Picked mode
+			winnerDisplay.textContent = selectedPerson;
+			winnerDisplay.style.color = 'var(--primary)';
+			winnerDisplay.classList.add('celebrate');
+			
+			// Confetti
+			confetti({
+				particleCount: 150,
+				spread: 70,
+				origin: { y: 0.6 }
+			});
+			
+			// Add to history
+			winHistory.unshift(selectedPerson);
+			updateHistoryList();
+		}
+
+		// Update the wheel UI
+		function updateWheel() {
+			wheel.innerHTML = '';
+			
+			if (names.length === 0) {
+				wheel.style.background = '#333';
+				return;
+			}
+			
+			// Create duplicate array based on duplication settings
+			const duplication = parseInt(duplicationMode.value);
+			currentNames = [];
+			
+			for (let i = 0; i < duplication; i++) {
+				currentNames.push(...names);
+			}
+			
+			// Shuffle if duplicated
+			if (duplication > 1) {
+				shuffleArray(currentNames);
+			}
+			
+			const sectionAngle = 360 / currentNames.length;
+			
+			// Create wheel background using conic-gradient
+			if (currentNames.length > 0) {
+				let conicGradientStops = [];
+				
+				for (let i = 0; i < currentNames.length; i++) {
+					const name = currentNames[i];
+					const startAngle = i * sectionAngle;
+					const endAngle = (i + 1) * sectionAngle;
+					
+					// CRITICAL FIX: Always use the color from nameColorAssignments
+					// This ensures the wheel color always matches the list color
+					const color = nameColorAssignments[name] || assignColorToName(name);
+					conicGradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
+				}
+				
+				wheel.style.background = `conic-gradient(${conicGradientStops.join(', ')})`;
+			}
+			
+			// Add names to the wheel - properly centered in their sections
+			for (let i = 0; i < currentNames.length; i++) {
+				const name = currentNames[i];
+				
+				// Calculate middle angle of the section for proper centering
+				const midAngle = i * sectionAngle + (sectionAngle / 2);
+				
+				const nameContainer = document.createElement('div');
+				nameContainer.className = 'wheel-name-spoke';
+				nameContainer.style.position = 'absolute';
+				nameContainer.style.left = '50%';
+				nameContainer.style.top = '50%';
+				nameContainer.style.transformOrigin = 'left center';
+				nameContainer.style.transform = `rotate(${midAngle}deg)`;
+				nameContainer.style.zIndex = '4';
+				nameContainer.style.width = '40%';
+				nameContainer.style.pointerEvents = 'none';
+				
+				const nameText = document.createElement('div');
+				nameText.textContent = name.toUpperCase();
+				nameText.title = name;
+				nameText.style.position = 'absolute';
+				nameText.style.width = '100%';
+				nameText.style.textAlign = 'center';
+				nameText.style.fontWeight = '900';
+				nameText.style.color = 'white';
+				nameText.style.letterSpacing = '1px';
+				nameText.style.textShadow = '2px 2px 4px rgba(0,0,0,0.9), -2px -2px 4px rgba(0,0,0,0.9)';
+				
+				// Fixed positioning logic to ensure consistent centering
+				nameText.style.left = '0';
+				nameText.style.top = '0';
+				nameText.style.transform = `translate(0, -50%) rotate(90deg)`;
+				nameText.style.transformOrigin = 'left center';
+				
+				// Adjust font size based on name length and total count
+				const baseFontSize = currentNames.length > 20 ? 12 : 
+								  currentNames.length > 12 ? 14 : 
+								  currentNames.length > 6 ? 16 : 18;
+				nameText.style.fontSize = `${name.length > 10 ? baseFontSize - 2 : baseFontSize}px`;
+				
+				nameContainer.appendChild(nameText);
+				wheel.appendChild(nameContainer);
+			}
+			
+			// Add border
+			wheel.style.border = '3px solid white';
+			wheel.style.boxShadow = '0 0 0 2px #ff5252';
+		}
+
+		// Update the name list UI - using the same color mapping
+		function updateNameList() {
+			nameList.innerHTML = '';
+			
+			names.forEach((name, index) => {
+				const li = document.createElement('li');
+				li.className = 'name-item';
+				
+				// IMPORTANT: Use the stored color assignment - never calculate it here
+				li.style.backgroundColor = nameColorAssignments[name];
+				li.style.color = 'white';
+				li.style.textShadow = '1px 1px 2px black';
+				
+				const nameText = document.createElement('span');
+				nameText.className = 'name-text';
+				nameText.style.overflow = 'hidden';
+				nameText.style.textOverflow = 'ellipsis';
+				nameText.style.whiteSpace = 'nowrap';
+				nameText.style.maxWidth = 'calc(100% - 110px)';
+				nameText.textContent = name;
+				nameText.title = name;
+				
+				const editBtn = document.createElement('button');
+				editBtn.className = 'edit-btn';
+				editBtn.textContent = 'Edit';
+				editBtn.addEventListener('click', () => editName(index));
+				
+				const deleteBtn = document.createElement('button');
+				deleteBtn.className = 'delete-btn';
+				deleteBtn.textContent = 'Delete';
+				deleteBtn.addEventListener('click', () => deleteName(index));
+				
+				li.appendChild(nameText);
+				li.appendChild(editBtn);
+				li.appendChild(deleteBtn);
+				
+				nameList.appendChild(li);
+			});
+			
+			updateRemainingDisplay();
+		}
+
+		// Handle last man standing game mode
+		function handleLastManStanding(selectedPerson) {
+			const index = names.indexOf(selectedPerson);
+			
+			if (index !== -1) {
+				// Show who's been eliminated
+				winnerDisplay.textContent = `${selectedPerson} ELIMINATED!`;
+				winnerDisplay.style.color = '#ff0000'; // Red color for elimination
+				
+				// Add to history as an elimination
+				winHistory.unshift(`${selectedPerson} (Eliminated)`);
+				updateHistoryList();
+				
+				// Check if this is the second-to-last contestant
+				if (names.length === 2) {
+					// Find who will be the winner (the one not being eliminated)
+					const finalWinner = names.find(name => name !== selectedPerson);
+					
+					// IMPORTANT: DO NOT delete the color assignment even when eliminating
+					// This ensures color consistency throughout the game
+					
+					// Remove the eliminated person
+					names.splice(index, 1);
+					updateNameList();
+					updateWheel();
+					
+					// Announce the final winner after a delay
+					setTimeout(() => {
+						winnerDisplay.textContent = `${finalWinner} WINS!`;
+						winnerDisplay.style.color = '#4CAF50'; // Green color for the winner
+						winnerDisplay.classList.add('celebrate');
+						
+						// Launch confetti for the winner
+						confetti({
+							particleCount: 150,
+							spread: 70,
+							origin: { y: 0.6 }
+						});
+						
+						// Add the winner to history
+						winHistory.unshift(`${finalWinner} (WINNER!)`);
+						updateHistoryList();
+						
+						// Reset the game after another delay
+						setTimeout(() => {
+							alert(`${finalWinner} is the last one standing and wins!`);
+							resetToOriginalNames();
+						}, 3000);
+					}, 1000);
+				} else {
+					// Normal elimination for non-final rounds
+					names.splice(index, 1);
+					updateNameList();
+					updateWheel();
+					
+					// Check if all contestants have been eliminated
+					if (names.length === 0) {
+						setTimeout(() => {
+							alert('Game over! All contestants have been eliminated.');
+							resetToOriginalNames();
+						}, 1000);
+					}
+				}
+			}
+		}
+
+		// Handle game mode change
+		function resetToOriginalNames() {
+			names = [...originalNames];
+			updateNameList();
+			updateWheel();
+			winnerDisplay.style.color = ''; // Reset color
+			winnerDisplay.textContent = 'Spin to find out!';
+		}
+
+		// Handle game mode change
+		function handleGameModeChange() {
+			if (gameMode.value === 'first') {
+				// Restore original names if switching from last man standing
+				resetToOriginalNames();
+			} else if (gameMode.value === 'last') {
+				// Reset history when starting last man standing
+				winHistory = [];
+				updateHistoryList();
+			}
+			
+			updateRemainingDisplay();
+		}
+
+		function assignColorToName(name) {
+			// If the name doesn't have a color yet, assign one
+			if (!nameColorAssignments[name]) {
+				// IMPORTANT FIX: Use a more deterministic approach to color assignment
+				// Use the name's string value to deterministically assign a color index
+				// This ensures the same name always gets the same color
+				let nameHash = 0;
+				for (let i = 0; i < name.length; i++) {
+					nameHash = ((nameHash << 5) - nameHash) + name.charCodeAt(i);
+					nameHash = nameHash & nameHash; // Convert to 32bit integer
+				}
+				const colorIndex = Math.abs(nameHash) % colors.length;
+				nameColorAssignments[name] = colors[colorIndex];
+			}
+			return nameColorAssignments[name];
+		}
+
+		// Update remaining display based on game mode
+		function updateRemainingDisplay() {
+			if (gameMode.value === 'last') {
+				remainingDisplay.innerHTML = `<strong>Remaining:</strong> ${names.length} contestants`;
+				remainingDisplay.style.display = 'block';
+			} else {
+				remainingDisplay.style.display = 'none';
+			}
+		}
+
+		// Open the import/export modal
+		function openImportExportModal() {
+			namesTextarea.value = names.join('\n');
+			importExportModal.style.display = 'flex';
+		}
+
+		// Close the import/export modal
+		function closeImportExportModal() {
+			importExportModal.style.display = 'none';
+		}
+
+		// Save imported names
+		function saveImportedNames(e) {
+			e.preventDefault();
+			const importedText = namesTextarea.value.trim();
+			
+			if (importedText) {
+				// Split by new lines and filter empty lines
+				const newNames = importedText
+					.split('\n')
+					.map(name => name.trim())
+					.filter(name => name.length > 0);
+				
+				// Deduplicate names
+				const uniqueNames = [...new Set(newNames)];
+				
+				names = uniqueNames;
+				saveNames();
+				updateNameList();
+				updateWheel();
+			}
+			
+			closeImportExportModal();
+		}
+
+		// Reset all data
+		function resetAll() {
+			if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+				names = [];
+				originalNames = [];
+				currentNames = [];
+				winHistory = [];
+				nameColorAssignments = {}; // Properly clear color assignments
+				
+				// Save the reset state
+				localStorage.removeItem('winnerCircleNames');
+				localStorage.removeItem('winnerCircleColorAssignments');
+				
+				updateNameList();
+				updateWheel();
+				winnerDisplay.textContent = 'Spin to find out!';
+				winnerDisplay.style.color = '';
+			}
+		}
+
+		// Update spin duration display
+		function updateSpinDurationDisplay() {
+			spinDurationValue.textContent = spinDuration.value;
+		}
+
+		// Utility function to shuffle array
+		function shuffleArray(array) {
+			for (let i = array.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[array[i], array[j]] = [array[j], array[i]];
+			}
+			return array;
+		}
+
+		// Initialize the app when the page loads
+		document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>			
 
 	<!-- Twitter Card Meta Tags -->
 	<meta name="twitter:card" content="summary_large_image">
