@@ -747,7 +747,30 @@
 			originalUpdateNameList();
 			updateDebugInfo();
 		};
-        
+
+		function updateHistoryList() {
+			historyList.innerHTML = '';
+			
+			// Add each history item to the list (show up to 10 most recent)
+			const historyToShow = winHistory.slice(0, 10);
+			
+			historyToShow.forEach((item, index) => {
+				const li = document.createElement('li');
+				li.className = 'history-item';
+				
+				// Check if this is a winner or eliminated entry
+				if (item.includes('WINNER') || item.includes('WIN')) {
+					li.innerHTML = `#${index + 1}: <span style="color: #4CAF50">${item}</span>`;
+				} else if (item.includes('Eliminated')) {
+					li.innerHTML = `#${index + 1}: <span style="color: #ff0000">${item}</span>`;
+				} else {
+					li.innerHTML = `#${index + 1}: <span>${item}</span>`;
+				}
+				
+				historyList.appendChild(li);
+			});
+		}
+				
 		function init() {
 			// Load saved names from localStorage
 			loadNames();
