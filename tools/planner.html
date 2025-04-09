@@ -1156,6 +1156,48 @@
 				});
 			}
 
+			function addParsingMethodToggle() {
+				// Check if the toggle already exists
+				if (document.getElementById('parsing-method-toggle')) {
+					return; // Don't create duplicates
+				}
+				
+				// Create a container for the toggle
+				const toggleContainer = document.createElement('div');
+				toggleContainer.id = 'parsing-method-toggle';
+				toggleContainer.style.padding = '10px';
+				toggleContainer.style.borderBottom = '1px solid #444';
+				toggleContainer.style.backgroundColor = '#333';
+				
+				// Create the toggle HTML
+				toggleContainer.innerHTML = `
+					<div style="margin-bottom: 8px; font-weight: 500;">Parsing Method</div>
+					<div style="display: flex; gap: 10px; flex-direction: column;">
+						<label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+							<input type="radio" name="parsing-method" value="standard" checked>
+							<span>Standard (STRAIN, REG/FEM, BREEDER, COUNT, PARENT1, PARENT2)</span>
+						</label>
+						<label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+							<input type="radio" name="parsing-method" value="quantity-first">
+							<span>Quantity First (QTY, Name, Brand, Notes, Mother, Father)</span>
+						</label>
+					</div>
+				`;
+				
+				// Insert after the sheet URL container
+				const sheetUrlContainer = document.querySelector('.sheet-url-container');
+				sheetUrlContainer.parentNode.insertBefore(toggleContainer, sheetUrlContainer.nextSibling);
+				
+				// Add event listeners for the radio buttons
+				const radioButtons = toggleContainer.querySelectorAll('input[type="radio"]');
+				radioButtons.forEach(radio => {
+					radio.addEventListener('change', function() {
+						// When parsing method changes, reload the strains with the new method
+						loadStrains();
+					});
+				});
+			}
+
 			function toggleMinimalView() {
 			  isMinimalView = !isMinimalView;
 			  document.getElementById('breeding-canvas').classList.toggle('minimal-view', isMinimalView);
@@ -1229,7 +1271,15 @@
 						return response.text();
 					})
 					.then(csv => {
-						allStrains = parseCSV(csv);
+						// Check which parsing method is selected
+						const parsingMethod = document.querySelector('input[name="parsing-method"]:checked')?.value || 'standard';
+						
+						if (parsingMethod === 'quantity-first') {
+							allStrains = parseQuantityFirstCSV(csv);
+						} else {
+							allStrains = parseCSV(csv);
+						}
+						
 						renderStrainList(allStrains);
 						updateExistingNodesWithParents();
 						
@@ -1270,6 +1320,45 @@
 				
 				results.push(currentValue);
 				return results;
+			}
+
+			// Add this function right after the parseCSV function:
+			function parseQuantityFirstCSV(csv) {
+				const lines = csv.split('\n');
+				
+				// Skip the header row - different column structure for quantity-first format
+				// Expected columns in order: QTY, Name, Brand, Notes, Mother, Father
+				
+				const result = [];
+				// Start from line 1 (skipping header)
+				for (let i = 1; i < lines.length; i++) {
+					if (!lines[i].trim()) continue;
+					
+					// Handle quoted fields with commas
+					const values = parseCSVLine(lines[i]);
+					
+					// Skip if first value is empty or matches header
+					if (values.length < 2 || !values[0].trim()) continue;
+					if (values[0].trim().toUpperCase() === 'QTY' || values[0].trim() === 'Unnamed Seed') continue;
+					
+					// Get quantity and convert to number
+					const qty = parseInt(values[0]) || 1;
+					
+					// Create entry with mapping for quantity-first format
+					const entry = {
+						'STRAIN': values[1]?.trim() || '',
+						'REG / FEM': values[3]?.trim() || '', // Notes column maps to REG/FEM
+						'BREEDER': values[2]?.trim() || '',   // Brand maps to BREEDER
+						'COUNT': values[0]?.trim() || '',     // QTY maps to COUNT
+						'PARENT1': values[4]?.trim() || '',   // Mother maps to PARENT1
+						'PARENT2': values[5]?.trim() || '',   // Father maps to PARENT2
+						'id': `strain-${i}`
+					};
+					
+					result.push(entry);
+				}
+				
+				return result;
 			}
 
 			function addMinimalViewToggle() {
@@ -1596,7 +1685,9 @@
             }
             
 			function setupEventListeners() {
-
+			
+				addParsingMethodToggle();
+				
 				const exportImageBtn = document.createElement('button');
 				exportImageBtn.className = 'canvas-tool';
 				exportImageBtn.id = 'save-image';
