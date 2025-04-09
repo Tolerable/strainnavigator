@@ -720,10 +720,11 @@
 			document.body.appendChild(debugButton);
 		}
 
-		// Function to update debug info
 		function updateDebugInfo() {
 			const debugDiv = document.getElementById('debugDiv');
-			if (debugDiv.style.display === 'none') return;
+			
+			// The fix: Check if debugDiv exists before trying to access properties
+			if (!debugDiv || debugDiv.style.display === 'none') return;
 			
 			// Create debug content
 			let content = '<strong>Names:</strong><br>';
