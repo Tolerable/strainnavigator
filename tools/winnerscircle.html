@@ -741,13 +741,6 @@
 			debugDiv.innerHTML = content;
 		}
 
-		// Call updateDebugInfo whenever wheel or namelist is updated
-		const originalUpdateWheel = updateWheel;
-		updateWheel = function() {
-			originalUpdateWheel();
-			updateDebugInfo();
-		};
-
 		const originalUpdateNameList = updateNameList;
 		updateNameList = function() {
 			originalUpdateNameList();
