@@ -948,18 +948,22 @@
 				const winningIndex = Math.floor(currentNames.length - (normalizedAngle / sectionAngle)) % currentNames.length;
 				const winner = currentNames[winningIndex];
 				
-				// Update the display
-				winnerDisplay.textContent = winner;
-				winnerDisplay.classList.add('celebrate');
+				// Different behaviors based on game mode
+				if (gameMode.value === 'first') {
+					// Update the display for regular mode
+					winnerDisplay.textContent = winner;
+					winnerDisplay.classList.add('celebrate');
+					winnerDisplay.style.color = ''; // Reset to default color
+					
+					// Launch confetti
+					confetti({
+						particleCount: 150,
+						spread: 70,
+						origin: { y: 0.6 }
+					});
+				}
 				
-				// Launch confetti
-				confetti({
-					particleCount: 150,
-					spread: 70,
-					origin: { y: 0.6 }
-				});
-				
-				// Add to history
+				// Add to history (for both modes)
 				addToHistory(winner);
 				
 				// Handle game modes
@@ -980,7 +984,12 @@
 
 		// Add winner to history
 		function addToHistory(winner) {
-			winHistory.unshift(winner);
+			// Different text for different game modes
+			if (gameMode.value === 'last') {
+				winHistory.unshift(`${winner} eliminated`);
+			} else {
+				winHistory.unshift(winner);
+			}
 			
 			// Keep history at a maximum of 10 items
 			if (winHistory.length > 10) {
@@ -1008,6 +1017,10 @@
 			const index = names.indexOf(winner);
 			
 			if (index !== -1) {
+				// Update the winner display to show who's been eliminated
+				winnerDisplay.textContent = `${winner} is ELIMINATED!`;
+				winnerDisplay.style.color = '#ff0000'; // Red color for elimination
+				
 				// Check if this is the second-to-last contestant (meaning one will remain after removal)
 				if (names.length === 2) {
 					// Find who will be the winner (the one not being eliminated)
@@ -1020,11 +1033,20 @@
 					
 					// Announce the final winner
 					setTimeout(() => {
-						alert(`${finalWinner} is the last one standing and wins!`);
-						// Reset the game
-						names = [...originalNames];
-						updateNameList();
-						updateWheel();
+						winnerDisplay.textContent = `${finalWinner} WINS!`;
+						winnerDisplay.style.color = '#4CAF50'; // Green color for the winner
+						winnerDisplay.classList.add('celebrate');
+						
+						// Reset the game after a delay
+						setTimeout(() => {
+							alert(`${finalWinner} is the last one standing and wins!`);
+							// Reset the game
+							names = [...originalNames];
+							updateNameList();
+							updateWheel();
+							winnerDisplay.style.color = ''; // Reset color
+							winnerDisplay.textContent = 'Spin to find out!';
+						}, 3000);
 					}, 1000);
 				} else {
 					// Normal elimination for non-final rounds
@@ -1040,6 +1062,8 @@
 							names = [...originalNames];
 							updateNameList();
 							updateWheel();
+							winnerDisplay.style.color = ''; // Reset color
+							winnerDisplay.textContent = 'Spin to find out!';
 						}, 1000);
 					}
 				}
