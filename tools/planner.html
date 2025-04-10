@@ -1989,6 +1989,9 @@
 				
 				// Context menu items
 				contextEdit.addEventListener('click', () => {
+					if (contextMenuTargetNode) {
+						editNode(contextMenuTargetNode);
+					}
 					hideContextMenu();
 				});
 				
@@ -2008,6 +2011,74 @@
 				
 				// Window resize
 				window.addEventListener('resize', updateSvgSize);
+			}
+
+			function editNode(nodeId) {
+				const node = nodes.find(n => n.id === nodeId);
+				if (!node) return;
+				
+				// If it's a cross node, show the name cross modal with populated values
+				if (node.origin === 'cross') {
+					// Get the parent nodes
+					const femaleNode = nodes.find(n => n.id === node.femaleParent);
+					const maleNode = nodes.find(n => n.id === node.maleParent);
+					
+					if (!femaleNode || !maleNode) return;
+					
+					// Set up parent text
+					crossParents.innerHTML = `
+						<div>
+							<span style="color: #e091b9;">♀ ${femaleNode.name}</span> × 
+							<span style="color: #91b7e0;">♂ ${maleNode.name}</span>
+						</div>
+					`;
+					
+					// Set default name (which is already the current name)
+					defaultCrossName.textContent = node.name;
+					
+					// Pre-fill custom name field with current name
+					customCrossName.value = node.name;
+					
+					// Pre-select correct radio buttons based on node data
+					const growthTypeRadios = document.querySelectorAll('input[name="growth-type"]');
+					growthTypeRadios.forEach(radio => {
+						radio.checked = radio.value === node.growthType;
+					});
+					
+					const seedTypeRadios = document.querySelectorAll('input[name="seed-type"]');
+					seedTypeRadios.forEach(radio => {
+						radio.checked = radio.value === node.sexType;
+					});
+					
+					const floweringTypeCheckbox = document.querySelector('input[name="flowering-type"]');
+					if (floweringTypeCheckbox) {
+						floweringTypeCheckbox.checked = node.floweringType === 'FAST';
+					}
+					
+					const statusRadios = document.querySelectorAll('input[name="cross-status"]');
+					statusRadios.forEach(radio => {
+						radio.checked = radio.value === node.status;
+					});
+					
+					// Store that we're editing, not creating new
+					pendingCrossData = {
+						nodeId: nodeId, // Store the ID of the node being edited
+						femaleId: node.femaleParent,
+						maleId: node.maleParent,
+						femaleName: femaleNode.name,
+						maleName: maleNode.name,
+						defaultName: node.name,
+						isEditing: true  // Flag to indicate this is an edit, not a new cross
+					};
+					
+					// Change the modal title and button text for editing
+					document.querySelector('#name-cross-modal .modal-header').textContent = 'Edit Cross';
+					document.getElementById('create-cross-btn').textContent = 'Update Cross';
+					
+					// Show the modal
+					showModal(nameCrossModal);
+					customCrossName.focus();
+				}
 			}
 
 			function setupStatusToggle() {
@@ -2584,24 +2655,103 @@
 				const seedType = document.querySelector('input[name="seed-type"]:checked')?.value || 'REG';
 				const floweringType = document.querySelector('input[name="flowering-type"]:checked') ? 'FAST' : '';
 				
-				// Get selected status - NEW
+				// Get selected status
 				const status = document.querySelector('input[name="cross-status"]:checked')?.value || 'planned';
 				
-				// Create cross data
-				const crossData = {
-					femaleId: pendingCrossData.femaleId,
-					maleId: pendingCrossData.maleId,
-					femaleName: pendingCrossData.femaleName,
-					maleName: pendingCrossData.maleName,
-					name: finalName,
-					growthType: growthType,
-					sexType: seedType,
-					floweringType: floweringType,
-					status: status  // NEW
-				};
+				// Check if this is an edit or a new cross
+				if (pendingCrossData.isEditing && pendingCrossData.nodeId) {
+					// This is an edit - update the existing node
+					const nodeId = pendingCrossData.nodeId;
+					const nodeElement = document.getElementById(nodeId);
+					const nodeData = nodes.find(n => n.id === nodeId);
+					
+					if (nodeElement && nodeData) {
+						// Update node data
+						nodeData.name = finalName;
+						nodeData.growthType = growthType;
+						nodeData.sexType = seedType;
+						nodeData.floweringType = floweringType;
+						nodeData.status = status;
+						
+						// Update node attributes
+						nodeElement.dataset.name = finalName;
+						nodeElement.dataset.growthType = growthType;
+						nodeElement.dataset.sexType = seedType;
+						nodeElement.dataset.floweringType = floweringType;
+						nodeElement.dataset.status = status;
+						
+						// Update node class for status
+						nodeElement.className = nodeElement.className.replace(/status-\w+/, `status-${status}`);
+						
+						// Create trait tags HTML
+						let traitsHTML = '';
+						if (growthType) traitsHTML += `<span class="strain-trait ${growthType.toLowerCase()}">${growthType}</span>`;
+						if (seedType) traitsHTML += `<span class="strain-trait ${seedType.toLowerCase()}">${seedType}</span>`;
+						if (floweringType) traitsHTML += `<span class="strain-trait ${floweringType.toLowerCase()}">${floweringType}</span>`;
+						
+						// Update node HTML
+						nodeElement.innerHTML = `
+							<div class="node-header">
+								<div class="node-name">${finalName}</div>
+								<div class="node-controls">
+									<div class="node-control" data-action="remove" title="Remove">×</div>
+								</div>
+							</div>
+							<div class="node-content">
+								<div class="node-traits">${traitsHTML}</div>
+								<div class="node-parents">
+									<div>♀: ${pendingCrossData.femaleName}</div>
+									<div>♂: ${pendingCrossData.maleName}</div>
+								</div>
+								<div class="status-indicator">
+									<div class="status-dot ${status}"></div>
+									<div>Status: ${status.replace('-', ' ').charAt(0).toUpperCase() + status.replace('-', ' ').slice(1)}</div>
+									<div class="status-toggle" data-node="${nodeId}">Change</div>
+								</div>
+							</div>
+							<div class="connection-points">
+								<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Use as Female (Mother)"></div>
+								<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Use as Male (Father)"></div>
+							</div>
+						`;
+						
+						// Re-add event listeners
+						nodeElement.addEventListener('mousedown', startDraggingNode);
+						
+						nodeElement.querySelectorAll('.connection-point').forEach(point => {
+							point.addEventListener('mousedown', startConnecting);
+						});
+						
+						const removeButton = nodeElement.querySelector('[data-action="remove"]');
+						if (removeButton) {
+							removeButton.addEventListener('click', e => {
+								e.preventDefault();
+								e.stopPropagation();
+								removeNode(nodeId);
+							});
+						}
+					}
+				} else {
+					// This is a new cross - create a new node
+					const crossData = {
+						femaleId: pendingCrossData.femaleId,
+						maleId: pendingCrossData.maleId,
+						femaleName: pendingCrossData.femaleName,
+						maleName: pendingCrossData.maleName,
+						name: finalName,
+						growthType: growthType,
+						sexType: seedType,
+						floweringType: floweringType,
+						status: status
+					};
+					
+					// Add cross node to canvas
+					const newNodeId = addCrossNodeToCanvas(crossData);
+				}
 				
-				// Add cross node to canvas
-				const newNodeId = addCrossNodeToCanvas(crossData);
+				// Reset modal title and button text
+				document.querySelector('#name-cross-modal .modal-header').textContent = 'Name Your Cross';
+				document.getElementById('create-cross-btn').textContent = 'Create Cross';
 				
 				// Hide modal and reset
 				hideModal(nameCrossModal);
