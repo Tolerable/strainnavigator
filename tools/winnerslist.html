@@ -665,7 +665,12 @@
         let nameColorAssignments = {};
         let currentSelectionIndex = 0;
         let selectionInterval = null;
-        
+        let savedSettings = {
+			gameMode: 'first',
+			selectionSpeed: 3,
+			selectionDuration: 3
+		};
+
         // DOM Elements
         const nameList = document.getElementById('nameList');
         const selectionIndicator = document.querySelector('.selection-indicator');
@@ -705,6 +710,9 @@
             // Load saved names from localStorage
             loadNames();
             
+			// Load saved settings
+			loadSettings();			
+			
             // Add event listeners
             addNameForm.addEventListener('submit', addName);
             pickButton.addEventListener('click', startSelection);
@@ -724,6 +732,34 @@
             // Update the display initially
             updateRemainingDisplay();
         }
+
+		// Add function to load settings
+		function loadSettings() {
+			const savedSettingsStr = localStorage.getItem('winnerListSettings');
+			if (savedSettingsStr) {
+				savedSettings = JSON.parse(savedSettingsStr);
+				
+				// Apply loaded settings to form elements
+				gameMode.value = savedSettings.gameMode;
+				selectionSpeed.value = savedSettings.selectionSpeed;
+				selectionDuration.value = savedSettings.selectionDuration;
+				
+				// Update display values
+				updateSpeedDisplay();
+				updateSelectionDurationDisplay();
+			}
+		}
+
+		// Add function to save settings
+		function saveSettings() {
+			// Update saved settings object
+			savedSettings.gameMode = gameMode.value;
+			savedSettings.selectionSpeed = selectionSpeed.value;
+			savedSettings.selectionDuration = selectionDuration.value;
+			
+			// Save to localStorage
+			localStorage.setItem('winnerListSettings', JSON.stringify(savedSettings));
+		}
         
         // Load names from localStorage
         function loadNames() {
@@ -1219,18 +1255,19 @@
 		}
 
         // Handle game mode change
-        function handleGameModeChange() {
-            if (gameMode.value === 'first') {
-                // Restore original names if switching from last man standing
-                resetToOriginalNames();
-            } else if (gameMode.value === 'last') {
-                // Reset history when starting last man standing
-                winHistory = [];
-                updateHistoryList();
-            }
-            
-            updateRemainingDisplay();
-        }
+		function handleGameModeChange() {
+			if (gameMode.value === 'first') {
+				// Restore original names if switching from last man standing
+				resetToOriginalNames();
+			} else if (gameMode.value === 'last') {
+				// Reset history when starting last man standing
+				winHistory = [];
+				updateHistoryList();
+			}
+			
+			updateRemainingDisplay();
+			saveSettings(); // Save settings after change
+		}
         
         // Update history list
         function updateHistoryList() {
@@ -1267,23 +1304,26 @@
         }
         
         // Update the speed display
-        function updateSpeedDisplay() {
-            const speedLabels = ['Very Slow', 'Slow', 'Medium', 'Fast', 'Very Fast'];
-            speedValue.textContent = speedLabels[parseInt(selectionSpeed.value) - 1];
-            
-            // Update speed class on container
-            const container = document.querySelector('.name-list-container');
-            container.className = 'name-list-container';
-            container.classList.add(`speed-${selectionSpeed.value}`);
-            if (isSelecting) {
-                container.classList.add('selection-active');
-            }
-        }
+		function updateSpeedDisplay() {
+			const speedLabels = ['Very Slow', 'Slow', 'Medium', 'Fast', 'Very Fast'];
+			speedValue.textContent = speedLabels[parseInt(selectionSpeed.value) - 1];
+			
+			// Update speed class on container
+			const container = document.querySelector('.name-list-container');
+			container.className = 'name-list-container';
+			container.classList.add(`speed-${selectionSpeed.value}`);
+			if (isSelecting) {
+				container.classList.add('selection-active');
+			}
+			
+			saveSettings(); // Save settings after change
+		}
         
         // Update selection duration display
-        function updateSelectionDurationDisplay() {
-            selectionDurationValue.textContent = selectionDuration.value;
-        }
+		function updateSelectionDurationDisplay() {
+			selectionDurationValue.textContent = selectionDuration.value;
+			saveSettings(); // Save settings after change
+		}
         
         // Open the import/export modal
         function openImportExportModal() {
@@ -1324,24 +1364,32 @@
         }
         
         // Reset all data
-        function resetAll() {
-            if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
-                names = [];
-                originalNames = [];
-                winHistory = [];
-                nameColorAssignments = {}; // Clear color assignments
-                
-                // Save the reset state
-                localStorage.removeItem('winnerListNames');
-                localStorage.removeItem('winnerListColorAssignments');
-                
-                updateNameList();
-                winnerDisplay.textContent = 'Click Pick to find out!';
-                winnerDisplay.style.color = 'var(--primary)';
-                
-                updateRemainingDisplay();
-            }
-        }
+		function resetAll() {
+			if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+				names = [];
+				originalNames = [];
+				winHistory = [];
+				nameColorAssignments = {}; // Clear color assignments
+				
+				// Save the reset state
+				localStorage.removeItem('winnerListNames');
+				localStorage.removeItem('winnerListColorAssignments');
+				localStorage.removeItem('winnerListSettings'); // Also clear settings
+				
+				// Reset to default settings
+				gameMode.value = 'first';
+				selectionSpeed.value = 3;
+				selectionDuration.value = 3;
+				updateSpeedDisplay();
+				updateSelectionDurationDisplay();
+				
+				updateNameList();
+				winnerDisplay.textContent = 'Click Pick to find out!';
+				winnerDisplay.style.color = 'var(--primary)';
+				
+				updateRemainingDisplay();
+			}
+		}
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', init);
