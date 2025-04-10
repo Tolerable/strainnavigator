@@ -1664,44 +1664,45 @@
 				showLoadModal();
 			}
             
-            function renderStrainList(strains) {
-                if (!strains.length) {
-                    strainList.innerHTML = '<div class="strain-item"><div class="strain-info"><div class="strain-name">No strains found</div></div></div>';
-                    return;
-                }
-                
-                strainList.innerHTML = '';
-                
-                strains.forEach(strain => {
-                    const strainName = strain.STRAIN || strain.Strain || strain.Name || 'Unnamed';
-                    const count = strain.COUNT || strain.Count || '';
-                    const type = strain['REG / FEM'] || strain.Type || '';
-                    
-                    // Create type tags
-                    let tags = '';
-                    if (type.toLowerCase().includes('reg')) tags += '<span class="strain-tag tag-reg">REG</span>';
-                    if (type.toLowerCase().includes('fem')) tags += '<span class="strain-tag tag-fem">FEM</span>';
-                    if (type.toLowerCase().includes('auto')) tags += '<span class="strain-tag tag-auto">AUTO</span>';
-                    if (type.toLowerCase().includes('photo')) tags += '<span class="strain-tag tag-photo">PHOTO</span>';
-                    if (type.toLowerCase().includes('fast')) tags += '<span class="strain-tag tag-fast">FAST</span>';
-                    
-                    const item = document.createElement('div');
-                    item.className = 'strain-item';
-                    item.dataset.id = strain.id;
-                    
-                    item.innerHTML = `
-                        <div class="strain-info">
-                            <div class="strain-name">${strainName}</div>
-                            <div class="strain-type">${tags}</div>
-                        </div>
-                        <div class="strain-count">${count}</div>
-                    `;
-                    
-                    item.addEventListener('click', () => addStrainToCanvas(strain));
-                    
-                    strainList.appendChild(item);
-                });
-            }
+			function renderStrainList(strains) {
+				if (!strains.length) {
+					strainList.innerHTML = '<div class="strain-item"><div class="strain-info"><div class="strain-name">No strains found</div></div></div>';
+					return;
+				}
+				
+				strainList.innerHTML = '';
+				
+				strains.forEach(strain => {
+					// Handle different property naming formats
+					const strainName = strain.STRAIN || strain.Strain || strain.Name || 'Unnamed';
+					const count = strain.COUNT || strain.Count || strain.QTY || '';
+					const type = strain['REG / FEM'] || strain.Type || strain.Notes || '';
+					
+					// Create type tags
+					let tags = '';
+					if (type.toLowerCase().includes('reg')) tags += '<span class="strain-tag tag-reg">REG</span>';
+					if (type.toLowerCase().includes('fem')) tags += '<span class="strain-tag tag-fem">FEM</span>';
+					if (type.toLowerCase().includes('auto')) tags += '<span class="strain-tag tag-auto">AUTO</span>';
+					if (type.toLowerCase().includes('photo')) tags += '<span class="strain-tag tag-photo">PHOTO</span>';
+					if (type.toLowerCase().includes('fast')) tags += '<span class="strain-tag tag-fast">FAST</span>';
+					
+					const item = document.createElement('div');
+					item.className = 'strain-item';
+					item.dataset.id = strain.id;
+					
+					item.innerHTML = `
+						<div class="strain-info">
+							<div class="strain-name">${strainName}</div>
+							<div class="strain-type">${tags}</div>
+						</div>
+						<div class="strain-count">${count}</div>
+					`;
+					
+					item.addEventListener('click', () => addStrainToCanvas(strain));
+					
+					strainList.appendChild(item);
+				});
+			}
             
 			function setupEventListeners() {
 				// ADD THESE LINES RIGHT HERE at the beginning of the function
@@ -2269,7 +2270,9 @@
 			function performSearch() {
 				const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
 				const exactMatch = document.getElementById('exact-match')?.checked || false;
-				const selectedFields = Array.from(document.querySelectorAll('.search-field:checked')).map(cb => cb.value);
+				// Default to all fields if none selected
+				let selectedFields = Array.from(document.querySelectorAll('.search-field:checked')).map(cb => cb.value);
+				if (selectedFields.length === 0) selectedFields = ['name', 'breeder', 'type', 'parents'];
 				
 				// If search is empty, show all strains
 				if (!searchTerm) {
@@ -2286,14 +2289,14 @@
 					(text, term) => text.includes(term);
 				
 				const filteredStrains = allStrains.filter(strain => {
-					// Map the field names to their actual property names in the strain object
+					// Map the field names to handle both data formats
 					const fieldMap = {
 						'name': (strain.STRAIN || strain.Strain || strain.Name || '').toLowerCase(),
-						'breeder': (strain.BREEDER || strain.Breeder || '').toLowerCase(),
-						'type': (strain['REG / FEM'] || strain.Type || '').toLowerCase(),
+						'breeder': (strain.BREEDER || strain.Breeder || strain.Brand || '').toLowerCase(),
+						'type': (strain['REG / FEM'] || strain.Type || strain.Notes || '').toLowerCase(),
 						'parents': [
-							(strain.PARENT1 || strain.parent1 || '').toLowerCase(),
-							(strain.PARENT2 || strain.parent2 || '').toLowerCase()
+							(strain.PARENT1 || strain.parent1 || strain.Mother || '').toLowerCase(),
+							(strain.PARENT2 || strain.parent2 || strain.Father || '').toLowerCase()
 						].join(' ')
 					};
 					
@@ -2320,7 +2323,11 @@
 				// Add new result info
 				const strainList = document.getElementById('strain-list');
 				strainList.parentNode.insertBefore(searchResultInfo, strainList);
-			}            
+				
+				// Debug: Log the first few strains to help diagnose display issues
+				console.log('First 3 filtered strains:', filteredStrains.slice(0, 3));
+			}
+        
             function filterStrains(filter) {
                 if (filter === 'all') {
                     renderStrainList(allStrains);
