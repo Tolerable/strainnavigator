@@ -2642,6 +2642,336 @@
 				
 				console.log('Updated existing nodes with parent information');
 			}
+
+			function addCrossesTab() {
+				// Create tab container at the top of the sidebar
+				const sidebarHeader = document.querySelector('.sidebar-header');
+				const tabContainer = document.createElement('div');
+				tabContainer.className = 'section-tabs';
+				tabContainer.style.cssText = 'display: flex; width: 100%; margin-top: 5px;';
+				
+				// Add tabs HTML
+				tabContainer.innerHTML = `
+					<div class="section-tab active" data-section="strains" style="flex: 1; text-align: center; padding: 6px 0; border-radius: 4px 0 0 4px; background-color: #5d4a7e; cursor: pointer; font-size: 13px;">
+						Strains
+					</div>
+					<div class="section-tab" data-section="crosses" style="flex: 1; text-align: center; padding: 6px 0; border-radius: 0 4px 4px 0; background-color: #444; cursor: pointer; font-size: 13px;">
+						My Crosses
+					</div>
+				`;
+				
+				// Add tab container to sidebar header
+				sidebarHeader.appendChild(tabContainer);
+				
+				// Create the crosses list container (initially hidden)
+				const sidebarContent = document.querySelector('.sidebar');
+				const crossesContainer = document.createElement('div');
+				crossesContainer.id = 'crosses-container';
+				crossesContainer.className = 'strain-list';
+				crossesContainer.style.display = 'none';  // Initially hidden
+				
+				// Insert the crosses container after the strain list
+				const strainList = document.getElementById('strain-list');
+				strainList.parentNode.insertBefore(crossesContainer, strainList.nextSibling);
+				
+				// Add event listeners for tab switching
+				tabContainer.querySelectorAll('.section-tab').forEach(tab => {
+					tab.addEventListener('click', function() {
+						// Update active tab styling
+						tabContainer.querySelectorAll('.section-tab').forEach(t => {
+							t.classList.remove('active');
+							t.style.backgroundColor = '#444';
+						});
+						this.classList.add('active');
+						this.style.backgroundColor = '#5d4a7e';
+						
+						// Show/hide the appropriate content
+						const section = this.dataset.section;
+						if (section === 'strains') {
+							// Show strain-related elements, hide crosses
+							document.querySelector('.search-box').style.display = '';
+							document.querySelector('.sheet-url-container').style.display = '';
+							document.querySelector('.filter-tabs').style.display = '';
+							document.getElementById('strain-list').style.display = '';
+							document.getElementById('crosses-container').style.display = 'none';
+							
+							// Check for parsing-method-toggle
+							const parsingToggle = document.getElementById('parsing-method-toggle');
+							if (parsingToggle) parsingToggle.style.display = '';
+						} else {
+							// Hide strain-related elements, show crosses
+							document.querySelector('.search-box').style.display = 'none';
+							document.querySelector('.sheet-url-container').style.display = 'none';
+							document.querySelector('.filter-tabs').style.display = 'none';
+							document.getElementById('strain-list').style.display = 'none';
+							document.getElementById('crosses-container').style.display = '';
+							
+							// Check for parsing-method-toggle
+							const parsingToggle = document.getElementById('parsing-method-toggle');
+							if (parsingToggle) parsingToggle.style.display = 'none';
+							
+							// Load crosses
+							loadSavedCrosses();
+						}
+					});
+				});
+				
+				// Add this call at the bottom of setupEventListeners function
+				addSaveCrossButton();
+			}
+
+			function addSaveCrossButton() {
+				// Add a checkbox to the cross modal
+				const modalFooter = document.querySelector('#name-cross-modal .modal-footer');
+				
+				// Add a "Save to My Crosses" checkbox before the buttons
+				const saveToMyCrossesContainer = document.createElement('div');
+				saveToMyCrossesContainer.style.cssText = 'display: flex; align-items: center; margin-right: auto;';
+				saveToMyCrossesContainer.innerHTML = `
+					<label style="display: flex; align-items: center; cursor: pointer;">
+						<input type="checkbox" id="save-to-my-crosses" checked style="margin-right: 5px;">
+						<span style="color: #ccc; font-size: 13px;">Save to My Crosses</span>
+					</label>
+				`;
+				
+				// Insert at the beginning of the footer
+				modalFooter.insertBefore(saveToMyCrossesContainer, modalFooter.firstChild);
+			}
+
+			function saveCrossToMyList(crossData) {
+				// Get existing crosses array
+				const myCrosses = JSON.parse(localStorage.getItem('breedingPlannerMyCrosses') || '[]');
+				
+				// Create a unique ID for this cross
+				const crossId = `cross-${Date.now()}`;
+				
+				// Create the cross entry
+				const crossEntry = {
+					id: crossId,
+					name: crossData.name,
+					femaleName: crossData.femaleName,
+					maleName: crossData.maleName,
+					growthType: crossData.growthType || 'PHOTO',
+					sexType: crossData.sexType || 'REG',
+					floweringType: crossData.floweringType || '',
+					date: new Date().toISOString()
+				};
+				
+				// Add to crosses array
+				myCrosses.push(crossEntry);
+				
+				// Save back to localStorage
+				localStorage.setItem('breedingPlannerMyCrosses', JSON.stringify(myCrosses));
+				
+				// If the crosses tab is visible, refresh the display
+				if (document.getElementById('crosses-container').style.display !== 'none') {
+					loadSavedCrosses();
+				}
+			}
+
+			function loadSavedCrosses() {
+				const crossesContainer = document.getElementById('crosses-container');
+				const myCrosses = JSON.parse(localStorage.getItem('breedingPlannerMyCrosses') || '[]');
+				
+				if (myCrosses.length === 0) {
+					crossesContainer.innerHTML = `
+						<div style="padding: 15px; text-align: center; color: #999;">
+							No saved crosses yet.
+							<div style="margin-top: 10px; font-size: 12px;">
+								When you create a cross in the breeding canvas, check "Save to My Crosses" to add it here.
+							</div>
+						</div>
+					`;
+					return;
+				}
+				
+				crossesContainer.innerHTML = '';
+				
+				// Sort by newest first
+				myCrosses.sort((a, b) => new Date(b.date) - new Date(a.date));
+				
+				myCrosses.forEach(cross => {
+					// Create strain tags like in the strain list
+					let tags = '';
+					if (cross.growthType) 
+						tags += `<span class="strain-tag tag-${cross.growthType.toLowerCase()}">${cross.growthType}</span>`;
+					if (cross.sexType) 
+						tags += `<span class="strain-tag tag-${cross.sexType.toLowerCase()}">${cross.sexType}</span>`;
+					if (cross.floweringType) 
+						tags += `<span class="strain-tag tag-fast">FAST</span>`;
+					
+					const item = document.createElement('div');
+					item.className = 'strain-item';
+					item.dataset.id = cross.id;
+					
+					// Get date for display
+					const date = new Date(cross.date).toLocaleDateString();
+					
+					item.innerHTML = `
+						<div class="strain-info">
+							<div class="strain-name">${cross.name}</div>
+							<div class="strain-type">${tags}</div>
+							<div style="font-size: 11px; color: #aaa; margin-top: 3px;">
+								♀ ${cross.femaleName} × ♂ ${cross.maleName}
+							</div>
+						</div>
+						<div style="display: flex; gap: 5px;">
+							<div class="strain-count" style="font-size: 10px;">${date}</div>
+							<button class="btn-delete-cross" data-id="${cross.id}" title="Delete Cross" 
+									style="background: none; border: none; color: #f44336; cursor: pointer; font-size: 16px; padding: 0 5px;">×</button>
+						</div>
+					`;
+					
+					// Add click event to add to canvas
+					item.addEventListener('click', (e) => {
+						// Don't trigger if clicking the delete button
+						if (e.target.classList.contains('btn-delete-cross')) return;
+						
+						addSavedCrossToCanvas(cross);
+					});
+					
+					crossesContainer.appendChild(item);
+				});
+				
+				// Add delete button event listeners
+				document.querySelectorAll('.btn-delete-cross').forEach(btn => {
+					btn.addEventListener('click', function(e) {
+						e.preventDefault();
+						e.stopPropagation();
+						
+						const crossId = this.dataset.id;
+						if (confirm('Are you sure you want to delete this cross?')) {
+							deleteSavedCross(crossId);
+						}
+					});
+				});
+			}
+
+			function deleteSavedCross(crossId) {
+				const myCrosses = JSON.parse(localStorage.getItem('breedingPlannerMyCrosses') || '[]');
+				const filteredCrosses = myCrosses.filter(cross => cross.id !== crossId);
+				
+				localStorage.setItem('breedingPlannerMyCrosses', JSON.stringify(filteredCrosses));
+				
+				// Refresh display
+				loadSavedCrosses();
+			}
+
+			function addSavedCrossToCanvas(cross) {
+				nodeCounter++;
+				const nodeId = `node-${nodeCounter}`;
+				
+				// Create cross data object
+				const crossData = {
+					name: cross.name,
+					growthType: cross.growthType || 'PHOTO',
+					sexType: cross.sexType || 'REG',
+					floweringType: cross.floweringType || '',
+					status: 'planned',
+					femaleName: cross.femaleName,
+					maleName: cross.maleName,
+					fromMyCrosses: true  // Flag to indicate this came from My Crosses
+				};
+				
+				// Create node element
+				const node = document.createElement('div');
+				node.id = nodeId;
+				node.className = 'breeding-node cross-node status-planned';
+				node.dataset.name = crossData.name;
+				node.dataset.growthType = crossData.growthType;
+				node.dataset.sexType = crossData.sexType;
+				node.dataset.floweringType = crossData.floweringType;
+				node.dataset.status = 'planned';
+				
+				// Calculate position
+				// Get center of visible area
+				const centerX = (canvasContainer.scrollLeft - canvasOffset.x) + canvasContainer.clientWidth / 2 - 100;
+				const centerY = (canvasContainer.scrollTop - canvasOffset.y) + canvasContainer.clientHeight / 2 - 60;
+				
+				node.style.left = `${centerX}px`;
+				node.style.top = `${centerY}px`;
+				
+				// Create trait tags HTML
+				let traitsHTML = '';
+				if (crossData.growthType) {
+					traitsHTML += `<span class="strain-trait ${crossData.growthType.toLowerCase()}">${crossData.growthType}</span>`;
+				}
+				if (crossData.sexType) {
+					traitsHTML += `<span class="strain-trait ${crossData.sexType.toLowerCase()}">${crossData.sexType}</span>`;
+				}
+				if (crossData.floweringType) {
+					traitsHTML += `<span class="strain-trait ${crossData.floweringType.toLowerCase()}">${crossData.floweringType}</span>`;
+				}
+				
+				// Set HTML content
+				node.innerHTML = `
+					<div class="node-header">
+						<div class="node-name">${crossData.name}</div>
+						<div class="node-controls">
+							<div class="node-control" data-action="remove" title="Remove">×</div>
+						</div>
+					</div>
+					<div class="node-content">
+						<div class="node-traits">${traitsHTML}</div>
+						<div class="node-parents">
+							<div>♀: ${crossData.femaleName}</div>
+							<div>♂: ${crossData.maleName}</div>
+						</div>
+						<div class="status-indicator">
+							<div class="status-dot planned"></div>
+							<div>Status: Planned</div>
+							<div class="status-toggle" data-node="${nodeId}">Change</div>
+						</div>
+					</div>
+					<div class="connection-points">
+						<div class="connection-point connection-point-female" data-node="${nodeId}" data-role="female" title="Use as Female (Mother)"></div>
+						<div class="connection-point connection-point-male" data-node="${nodeId}" data-role="male" title="Use as Male (Father)"></div>
+					</div>
+				`;
+				
+				// Make node draggable
+				node.addEventListener('mousedown', startDraggingNode);
+				
+				// Setup connection points
+				node.querySelectorAll('.connection-point').forEach(point => {
+					point.addEventListener('mousedown', startConnecting);
+				});
+				
+				// Setup remove button
+				const removeButton = node.querySelector('[data-action="remove"]');
+				if (removeButton) {
+					removeButton.addEventListener('click', e => {
+						e.preventDefault();
+						e.stopPropagation();
+						removeNode(nodeId);
+					});
+				}
+				
+				// Add to canvas
+				breedingCanvas.appendChild(node);
+				
+				// Add to nodes array
+				const newNode = {
+					id: nodeId,
+					name: crossData.name,
+					growthType: crossData.growthType,
+					sexType: crossData.sexType,
+					floweringType: crossData.floweringType,
+					status: 'planned',
+					origin: 'cross',
+					fromMyCrosses: true,
+					femaleName: crossData.femaleName,
+					maleName: crossData.maleName,
+					children: []
+				};
+				
+				nodes.push(newNode);
+				
+				// Select the new node
+				selectNode(nodeId);
+				
+				return nodeId;
+			}
             
 			function createCross() {
 				if (!pendingCrossData) return;
@@ -4409,7 +4739,7 @@
 				showLoadModal();
 			}
             
-						
+		addCrossesTab();				
         });
     </script>
 </body>
