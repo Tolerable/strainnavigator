@@ -489,6 +489,85 @@
             border: 2px solid var(--winner);
             font-weight: bold;
         }
+
+		/* Toggle Switch Styles */
+		.toggle-switch {
+			position: relative;
+			display: inline-block;
+			width: 60px;
+			height: 34px;
+			margin-right: 10px;
+		}
+
+		.toggle-input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+
+		.toggle-label {
+			position: absolute;
+			cursor: pointer;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background-color: #ccc;
+			transition: .4s;
+			border-radius: 34px;
+		}
+
+		.toggle-label:before {
+			position: absolute;
+			content: "";
+			height: 26px;
+			width: 26px;
+			left: 4px;
+			bottom: 4px;
+			background-color: white;
+			transition: .4s;
+			border-radius: 50%;
+		}
+
+		.toggle-input:checked + .toggle-label {
+			background-color: var(--accent);
+		}
+
+		.toggle-input:checked + .toggle-label:before {
+			transform: translateX(26px);
+		}
+
+		.toggle-text-off, .toggle-text-on {
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
+			font-size: 0.7rem;
+			font-weight: bold;
+			color: white;
+		}
+
+		.toggle-text-off {
+			right: 8px;
+		}
+
+		.toggle-text-on {
+			left: 8px;
+			display: none;
+		}
+
+		.toggle-input:checked + .toggle-label .toggle-text-off {
+			display: none;
+		}
+
+		.toggle-input:checked + .toggle-label .toggle-text-on {
+			display: block;
+		}
+
+		.form-help {
+			font-size: 0.8rem;
+			color: #aaa;
+			margin-top: 5px;
+		}
         
         @media (max-width: 768px) {
             .container {
@@ -600,6 +679,19 @@
                         <option value="last">Last One Standing</option>
                     </select>
                 </div>
+				
+				<div class="form-group" id="autoPickContainer" style="display: none;">
+					<label class="form-label">Auto-Pick Mode</label>
+					<div class="toggle-switch">
+						<input type="checkbox" id="autoPick" class="toggle-input">
+						<label for="autoPick" class="toggle-label">
+							<span class="toggle-text-off">Off</span>
+							<span class="toggle-text-on">On</span>
+						</label>
+					</div>
+					<p class="form-help">When enabled, all names will be automatically picked in sequence until the game is complete.</p>
+				</div>				
+				
                 <div class="form-group">
                     <label class="form-label">Selection Speed</label>
                     <input type="range" class="form-input" id="selectionSpeed" min="1" max="5" value="3" step="1">
@@ -665,10 +757,11 @@
         let nameColorAssignments = {};
         let currentSelectionIndex = 0;
         let selectionInterval = null;
-        let savedSettings = {
+		let savedSettings = {
 			gameMode: 'first',
 			selectionSpeed: 3,
-			selectionDuration: 3
+			selectionDuration: 3,
+			autoPick: false
 		};
 
         // DOM Elements
@@ -696,7 +789,9 @@
         const speedValue = document.getElementById('speedValue');
         const selectionDuration = document.getElementById('selectionDuration');
         const selectionDurationValue = document.getElementById('selectionDurationValue');
-        
+		const autoPickContainer = document.getElementById('autoPickContainer');
+		const autoPick = document.getElementById('autoPick');        
+		
         // Colors for name items
         const colors = [
             '#FF5252', '#FF4081', '#E040FB', '#7C4DFF', 
@@ -713,7 +808,11 @@
 			// Load saved settings
 			loadSettings();			
 			
-            // Add event listeners
+            // Add event listeners			
+			autoPick.addEventListener('change', function() {
+				saveSettings();
+			});
+
             addNameForm.addEventListener('submit', addName);
             pickButton.addEventListener('click', startSelection);
             importExportBtn.addEventListener('click', openImportExportModal);
@@ -744,6 +843,12 @@
 				selectionSpeed.value = savedSettings.selectionSpeed;
 				selectionDuration.value = savedSettings.selectionDuration;
 				
+				// Set auto-pick checkbox
+				autoPick.checked = savedSettings.autoPick || false;
+				
+				// Show/hide auto-pick container based on game mode
+				toggleAutoPickVisibility();
+				
 				// Update display values
 				updateSpeedDisplay();
 				updateSelectionDurationDisplay();
@@ -756,9 +861,19 @@
 			savedSettings.gameMode = gameMode.value;
 			savedSettings.selectionSpeed = selectionSpeed.value;
 			savedSettings.selectionDuration = selectionDuration.value;
+			savedSettings.autoPick = autoPick.checked;
 			
 			// Save to localStorage
 			localStorage.setItem('winnerListSettings', JSON.stringify(savedSettings));
+		}
+
+		function toggleAutoPickVisibility() {
+			// Only show auto-pick for Last Man Standing mode
+			if (gameMode.value === 'last') {
+				autoPickContainer.style.display = 'block';
+			} else {
+				autoPickContainer.style.display = 'none';
+			}
 		}
         
         // Load names from localStorage
@@ -975,27 +1090,45 @@
         }
         
         // Finish the selection process
-        function finishSelection() {
-            // Clear the selection interval
-            clearInterval(selectionInterval);
-            
-            // Get the selected name
-            const selectedName = names[currentSelectionIndex];
-            
-            // Stop the animation
-            document.querySelector('.name-list-container').classList.remove('selection-active');
-            
-            // Handle the selection based on game mode
-            if (gameMode.value === 'first') {
-                handleFirstOnePicked(selectedName, currentSelectionIndex);
-            } else {
-                handleLastManStanding(selectedName, currentSelectionIndex);
-            }
-            
-            // Reset state
-            isSelecting = false;
-            pickButton.disabled = false;
-        }
+		function finishSelection() {
+			// Clear the selection interval
+			clearInterval(selectionInterval);
+			
+			// Get the selected name
+			const selectedName = names[currentSelectionIndex];
+			
+			// Stop the animation
+			document.querySelector('.name-list-container').classList.remove('selection-active');
+			
+			// Handle the selection based on game mode
+			if (gameMode.value === 'first') {
+				handleFirstOnePicked(selectedName, currentSelectionIndex);
+				
+				// Reset state
+				isSelecting = false;
+				pickButton.disabled = false;
+			} else {
+				handleLastManStanding(selectedName, currentSelectionIndex);
+				
+				// Check if we should continue automatically
+				if (autoPick.checked && names.length > 1) {
+					// Reset state for the next pick
+					isSelecting = false;
+					
+					// Wait a moment before picking the next name
+					setTimeout(() => {
+						// Only continue if there are at least 2 names left
+						if (names.length > 1) {
+							startSelection();
+						}
+					}, 2000); // 2 second delay between picks
+				} else {
+					// Reset state if not auto-picking or no more names
+					isSelecting = false;
+					pickButton.disabled = false;
+				}
+			}
+		}
         
         // Handle first one picked mode
 		function handleFirstOnePicked(selectedName, index) {
@@ -1080,15 +1213,22 @@
 				setTimeout(() => {
 					updateNameList();
 					
-					// Re-enable the pick button after the update
-					isSelecting = false;
-					pickButton.disabled = false;
+					// If not auto-picking, re-enable the pick button
+					if (!autoPick.checked) {
+						isSelecting = false;
+						pickButton.disabled = false;
+					}
+					// If auto-picking, the button stays disabled until game over
 				}, 1000);
 			}
 		}
 		
 		// Improved winner announcement modal with better sizing for long names
 		function showWinnerAnnouncement(winnerName, isGameOver = false) {
+			// Don't show announcement modal when auto-picking until the game is over
+			if (autoPick.checked && gameMode.value === 'last' && !isGameOver) {
+				return;
+			}
 			// Create a modal for announcing the winner
 			const winnerModal = document.createElement('div');
 			winnerModal.className = 'modal winner-announcement';
@@ -1264,6 +1404,9 @@
 				winHistory = [];
 				updateHistoryList();
 			}
+			
+			// Toggle auto-pick visibility
+			toggleAutoPickVisibility();
 			
 			updateRemainingDisplay();
 			saveSettings(); // Save settings after change
