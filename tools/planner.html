@@ -774,8 +774,34 @@
 			</div>
 			
 			<div class="search-box">
-				<input type="text" id="search-input" placeholder="Search strains...">
+				<div style="position: relative; flex: 1;">
+					<input type="text" id="search-input" placeholder="Search strains...">
+					<div id="search-clear" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); 
+						cursor: pointer; display: none; color: #999; font-weight: bold; font-size: 16px;">×</div>
+				</div>
 				<button id="search-btn">Search</button>
+				<button id="search-options-btn" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 14px;" title="Search Settings">⚙️</button>
+			</div>
+
+			<div id="search-options" style="position: absolute; display: none; top: 45px; left: 10px; z-index: 100; 
+				background: #333; border: 1px solid #444; border-radius: 4px; padding: 10px; 
+				box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+				<div style="margin-bottom: 8px; font-weight: 500;">Search In:</div>
+				<div>
+					<label><input type="checkbox" class="search-field" value="name" checked> Strain Name</label>
+				</div>
+				<div>
+					<label><input type="checkbox" class="search-field" value="breeder" checked> Breeder</label>
+				</div>
+				<div>
+					<label><input type="checkbox" class="search-field" value="type" checked> Type</label>
+				</div>
+				<div>
+					<label><input type="checkbox" class="search-field" value="parents" checked> Parents</label>
+				</div>
+				<div style="margin-top: 8px;">
+					<label><input type="checkbox" id="exact-match"> Exact Match</label>
+				</div>
 			</div>
 			
 			<div class="sheet-url-container" style="padding: 10px; border-bottom: 1px solid #444;">
@@ -1678,6 +1704,37 @@
             }
             
 			function setupEventListeners() {
+				// ADD THESE LINES RIGHT HERE at the beginning of the function
+				const searchInput = document.getElementById('search-input');
+				const searchClear = document.getElementById('search-clear');
+				const searchOptionsBtn = document.getElementById('search-options-btn');
+				const searchOptions = document.getElementById('search-options');
+
+				// Show/hide clear button based on input
+				searchInput.addEventListener('input', function() {
+					searchClear.style.display = this.value ? 'block' : 'none';
+				});
+
+				// Clear search functionality
+				searchClear.addEventListener('click', function() {
+					searchInput.value = '';
+					searchClear.style.display = 'none';
+					performSearch(); // Reset search results to show all strains
+				});
+
+				// Toggle search options
+				searchOptionsBtn.addEventListener('click', function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					searchOptions.style.display = searchOptions.style.display === 'none' ? 'block' : 'none';
+				});
+
+				// Close search options when clicking elsewhere
+				document.addEventListener('click', function(e) {
+					if (!searchOptions.contains(e.target) && e.target !== searchOptionsBtn) {
+						searchOptions.style.display = 'none';
+					}
+				});
 			
 				addParsingMethodToggle();
 				
@@ -2209,31 +2266,61 @@
 			}
             
             // Search and Filter
-            function performSearch() {
-                const searchTerm = searchInput.value.trim().toLowerCase();
-                
-                if (!searchTerm) {
-                    renderStrainList(allStrains);
-                    return;
-                }
-                
-                const filteredStrains = allStrains.filter(strain => {
-                    const name = (strain.STRAIN || strain.Strain || strain.Name || '').toLowerCase();
-                    const breeder = (strain.BREEDER || strain.Breeder || '').toLowerCase();
-                    const type = (strain['REG / FEM'] || strain.Type || '').toLowerCase();
-                    const parent1 = (strain.PARENT1 || strain.parent1 || '').toLowerCase();
-                    const parent2 = (strain.PARENT2 || strain.parent2 || '').toLowerCase();
-                    
-                    return name.includes(searchTerm) || 
-                        breeder.includes(searchTerm) || 
-                        type.includes(searchTerm) || 
-                        parent1.includes(searchTerm) || 
-                        parent2.includes(searchTerm);
-                });
-                
-                renderStrainList(filteredStrains);
-            }
-            
+			function performSearch() {
+				const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+				const exactMatch = document.getElementById('exact-match')?.checked || false;
+				const selectedFields = Array.from(document.querySelectorAll('.search-field:checked')).map(cb => cb.value);
+				
+				// If search is empty, show all strains
+				if (!searchTerm) {
+					renderStrainList(allStrains);
+					// Remove search result info if any
+					const existingInfo = document.getElementById('search-result-info');
+					if (existingInfo) existingInfo.remove();
+					return;
+				}
+				
+				// Use exact match or includes based on user selection
+				const matchFn = exactMatch ? 
+					(text, term) => text === term : 
+					(text, term) => text.includes(term);
+				
+				const filteredStrains = allStrains.filter(strain => {
+					// Map the field names to their actual property names in the strain object
+					const fieldMap = {
+						'name': (strain.STRAIN || strain.Strain || strain.Name || '').toLowerCase(),
+						'breeder': (strain.BREEDER || strain.Breeder || '').toLowerCase(),
+						'type': (strain['REG / FEM'] || strain.Type || '').toLowerCase(),
+						'parents': [
+							(strain.PARENT1 || strain.parent1 || '').toLowerCase(),
+							(strain.PARENT2 || strain.parent2 || '').toLowerCase()
+						].join(' ')
+					};
+					
+					// Check if any of the selected fields match the search term
+					return selectedFields.some(field => {
+						const fieldValue = fieldMap[field];
+						return matchFn(fieldValue, searchTerm);
+					});
+				});
+				
+				renderStrainList(filteredStrains);
+				
+				// Show search result count
+				const resultCount = filteredStrains.length;
+				const searchResultInfo = document.createElement('div');
+				searchResultInfo.id = 'search-result-info';
+				searchResultInfo.style.cssText = 'padding: 5px 10px; font-size: 12px; color: #aaa; border-bottom: 1px solid #444;';
+				searchResultInfo.textContent = `Found ${resultCount} result${resultCount !== 1 ? 's' : ''}`;
+				
+				// Remove existing result info if any
+				const existingInfo = document.getElementById('search-result-info');
+				if (existingInfo) existingInfo.remove();
+				
+				// Add new result info
+				const strainList = document.getElementById('strain-list');
+				strainList.parentNode.insertBefore(searchResultInfo, strainList);
+			}            
             function filterStrains(filter) {
                 if (filter === 'all') {
                     renderStrainList(allStrains);
