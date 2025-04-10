@@ -1290,15 +1290,31 @@
 						return response.text();
 					})
 					.then(csv => {
-						// Check which parsing method is selected
-						const parsingMethod = document.querySelector('input[name="parsing-method"]:checked')?.value || 'standard';
-						
-						// STORE THE PARSING METHOD FOR THIS SHEET ID
-						localStorage.setItem(`breedingPlanner_${sheetId}_parsingMethod`, parsingMethod);
-						
-						if (parsingMethod === 'quantity-first') {
-							allStrains = parseQuantityFirstCSV(csv);
+						// DETECT FORMAT AUTOMATICALLY instead of using the radio button
+						// Get first line to check headers
+						const lines = csv.split('\n');
+						if (lines.length > 0) {
+							const headers = lines[0].toLowerCase();
+							
+							// Check if it's quantity-first format (has QTY as first column)
+							const isQuantityFirst = headers.includes('qty') || 
+												   (headers.includes('quantity') && !headers.includes('strain'));
+							
+							if (isQuantityFirst) {
+								// Set the radio button to match detected format
+								const qtyFirstRadio = document.querySelector('input[name="parsing-method"][value="quantity-first"]');
+								if (qtyFirstRadio) qtyFirstRadio.checked = true;
+								
+								allStrains = parseQuantityFirstCSV(csv);
+							} else {
+								// Set the radio button to match detected format
+								const standardRadio = document.querySelector('input[name="parsing-method"][value="standard"]');
+								if (standardRadio) standardRadio.checked = true;
+								
+								allStrains = parseCSV(csv);
+							}
 						} else {
+							// Default to standard if can't detect
 							allStrains = parseCSV(csv);
 						}
 						
