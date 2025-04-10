@@ -1031,40 +1031,6 @@
 			winnerModal.style.display = 'flex';
 			winnerModal.style.zIndex = '2000';
 			
-			// Rest of modal creation code...
-			
-			// Add a single-click handler to the button
-			newRoundBtn.addEventListener('click', function() {
-				// Prevent multiple clicks
-				newRoundBtn.disabled = true;
-				
-				// Remove the modal
-				document.body.removeChild(winnerModal);
-				
-				// Clear history for new round
-				winHistory = [];
-				updateHistoryList();
-				
-				// Reset the winner display
-				winnerDisplay.textContent = 'Click Pick to find out!';
-				winnerDisplay.style.color = 'var(--primary)';
-				
-				// If game over, reset names too
-				if (isGameOver) {
-					resetToOriginalNames();
-				}
-				
-				// Re-enable the pick button
-				isSelecting = false;
-				pickButton.disabled = false;
-			});
-			
-			// Create a modal for announcing the winner
-			const winnerModal = document.createElement('div');
-			winnerModal.className = 'modal winner-announcement';
-			winnerModal.style.display = 'flex';
-			winnerModal.style.zIndex = '2000';
-			
 			// Create the modal content with wider dimensions
 			const modalContent = document.createElement('div');
 			modalContent.className = 'modal-content winner-modal';
@@ -1142,12 +1108,15 @@
 			newRoundBtn.style.display = 'block';
 			newRoundBtn.textContent = isGameOver ? 'START NEW GAME' : 'START NEW ROUND';
 			
-			// Add events to the button
+			// Add a single-click handler to the button
 			newRoundBtn.addEventListener('click', function() {
+				// Prevent multiple clicks
+				newRoundBtn.disabled = true;
+				
 				// Remove the modal
 				document.body.removeChild(winnerModal);
 				
-				// Clear history for new round, but keep the names
+				// Clear history for new round
 				winHistory = [];
 				updateHistoryList();
 				
@@ -1161,8 +1130,9 @@
 				}
 				
 				// Re-enable the pick button
+				isSelecting = false;
 				pickButton.disabled = false;
-			});
+			});		
 			
 			// Build the modal
 			modalContent.appendChild(winnerTitle);
@@ -1180,7 +1150,8 @@
 				spread: 90,
 				origin: { y: 0.4 },
 				disableForReducedMotion: true
-			});
+			});			
+
 		}
         
         // Reset selection states
