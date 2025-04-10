@@ -2270,9 +2270,12 @@
 			function performSearch() {
 				const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
 				const exactMatch = document.getElementById('exact-match')?.checked || false;
-				// Default to all fields if none selected
 				let selectedFields = Array.from(document.querySelectorAll('.search-field:checked')).map(cb => cb.value);
-				if (selectedFields.length === 0) selectedFields = ['name', 'breeder', 'type', 'parents'];
+				
+				// If no fields selected, search in all fields
+				if (selectedFields.length === 0) {
+					selectedFields = ['name', 'breeder', 'type', 'parents'];
+				}
 				
 				// If search is empty, show all strains
 				if (!searchTerm) {
@@ -2289,21 +2292,26 @@
 					(text, term) => text.includes(term);
 				
 				const filteredStrains = allStrains.filter(strain => {
-					// Map the field names to handle both data formats
-					const fieldMap = {
-						'name': (strain.STRAIN || strain.Strain || strain.Name || '').toLowerCase(),
-						'breeder': (strain.BREEDER || strain.Breeder || strain.Brand || '').toLowerCase(),
-						'type': (strain['REG / FEM'] || strain.Type || strain.Notes || '').toLowerCase(),
-						'parents': [
-							(strain.PARENT1 || strain.parent1 || strain.Mother || '').toLowerCase(),
-							(strain.PARENT2 || strain.parent2 || strain.Father || '').toLowerCase()
-						].join(' ')
-					};
-					
-					// Check if any of the selected fields match the search term
+					// Check both standard and quantity-first format field names
 					return selectedFields.some(field => {
-						const fieldValue = fieldMap[field];
-						return matchFn(fieldValue, searchTerm);
+						if (field === 'name') {
+							const value = (strain.STRAIN || strain.Strain || strain.Name || '').toLowerCase();
+							return matchFn(value, searchTerm);
+						}
+						else if (field === 'breeder') {
+							const value = (strain.BREEDER || strain.Breeder || strain.Brand || '').toLowerCase();
+							return matchFn(value, searchTerm);
+						}
+						else if (field === 'type') {
+							const value = (strain['REG / FEM'] || strain.Type || strain.Notes || '').toLowerCase();
+							return matchFn(value, searchTerm);
+						}
+						else if (field === 'parents') {
+							const parent1 = (strain.PARENT1 || strain.parent1 || strain.Mother || '').toLowerCase();
+							const parent2 = (strain.PARENT2 || strain.parent2 || strain.Father || '').toLowerCase();
+							return matchFn(parent1, searchTerm) || matchFn(parent2, searchTerm);
+						}
+						return false;
 					});
 				});
 				
@@ -2323,9 +2331,6 @@
 				// Add new result info
 				const strainList = document.getElementById('strain-list');
 				strainList.parentNode.insertBefore(searchResultInfo, strainList);
-				
-				// Debug: Log the first few strains to help diagnose display issues
-				console.log('First 3 filtered strains:', filteredStrains.slice(0, 3));
 			}
         
             function filterStrains(filter) {
