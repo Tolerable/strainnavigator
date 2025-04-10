@@ -910,9 +910,9 @@
 				// Calculate which section is at the top after spinning
 				const normalizedAngle = spinAngle % 360;
 				
-				// CRITICAL FIX: This is what determines which section is at the ticker after spinning
-				// We want to be absolutely sure we're getting the correct name from currentNames
-				const selectedIndex = Math.floor(currentNames.length - (normalizedAngle / sectionAngle)) % currentNames.length;
+				// FIX: Correct calculation to get the section at the ticker (top)
+				// The section at the top is the one opposite to the rotation angle
+				const selectedIndex = Math.floor(normalizedAngle / sectionAngle) % currentNames.length;
 				
 				// Double check we have a valid index
 				if (selectedIndex >= 0 && selectedIndex < currentNames.length) {
@@ -950,6 +950,9 @@
 			winnerDisplay.style.color = 'var(--primary)';
 			winnerDisplay.classList.add('celebrate');
 			
+			// Find and highlight the winning section
+			highlightWinningSection(selectedPerson);
+			
 			// Confetti
 			confetti({
 				particleCount: 150,
@@ -960,6 +963,49 @@
 			// Add to history
 			winHistory.unshift(selectedPerson);
 			updateHistoryList();
+		}
+
+		function highlightWinningSection(winner) {
+			// Find all name elements on the wheel
+			const nameElements = document.querySelectorAll('.wheel-name-spoke');
+			
+			// Find the winning element and add a highlight
+			nameElements.forEach(el => {
+				if (el.dataset.name === winner) {
+					// Add a glowing highlight to the winner
+					const winnerGlow = document.createElement('div');
+					winnerGlow.className = 'winner-glow';
+					winnerGlow.style.position = 'absolute';
+					winnerGlow.style.width = '400%';
+					winnerGlow.style.height = '50px';
+					winnerGlow.style.left = '0';
+					winnerGlow.style.top = '50%';
+					winnerGlow.style.transform = 'translateY(-50%)';
+					winnerGlow.style.background = 'rgba(255, 255, 255, 0.3)';
+					winnerGlow.style.borderRadius = '25px';
+					winnerGlow.style.boxShadow = '0 0 20px 10px var(--secondary)';
+					winnerGlow.style.animation = 'winnerPulse 1.5s ease-in-out infinite';
+					
+					el.appendChild(winnerGlow);
+					
+					// Add CSS animation for the pulse effect
+					const style = document.createElement('style');
+					style.textContent = `
+						@keyframes winnerPulse {
+							0% { opacity: 0.5; }
+							50% { opacity: 1; }
+							100% { opacity: 0.5; }
+						}
+					`;
+					document.head.appendChild(style);
+					
+					// Remove the highlight after 3 seconds
+					setTimeout(() => {
+						winnerGlow.remove();
+						style.remove();
+					}, 3000);
+				}
+			});
 		}
 
 		// Update the wheel UI
@@ -975,16 +1021,13 @@
 			const duplication = parseInt(duplicationMode.value);
 			currentNames = []; // Reset current names array
 			
-			// IMPORTANT: First, make sure currentNames matches what we'll draw on the wheel
+			// Fill currentNames with proper duplication
 			for (let i = 0; i < duplication; i++) {
-				// Push exact copies to maintain order consistency
 				currentNames.push(...names);
 			}
 			
-			// Shuffle if duplicated - this is a critical step where names and colors might get mismatched
+			// Shuffle if duplicated - AFTER all names are added
 			if (duplication > 1) {
-				// We need to use a deterministic shuffle to avoid randomness issues
-				// Or ensure the visual wheel and the currentNames array stay perfectly in sync
 				shuffleArray(currentNames);
 			}
 			
@@ -993,7 +1036,7 @@
 			
 			const sectionAngle = 360 / currentNames.length;
 			
-			// Create wheel background using conic-gradient
+			// Create wheel background using conic-gradient with consistent colors
 			if (currentNames.length > 0) {
 				let conicGradientStops = [];
 				
@@ -1002,7 +1045,7 @@
 					const startAngle = i * sectionAngle;
 					const endAngle = (i + 1) * sectionAngle;
 					
-					// Use the color assignment for this specific name
+					// Ensure this name has a color assigned
 					const color = nameColorAssignments[name] || assignColorToName(name);
 					conicGradientStops.push(`${color} ${startAngle}deg ${endAngle}deg`);
 				}
@@ -1010,8 +1053,7 @@
 				wheel.style.background = `conic-gradient(${conicGradientStops.join(', ')})`;
 			}
 			
-			// Add names to the wheel - properly centered in their sections
-			// CRITICAL: This must match the exact order of currentNames array
+			// Add names to the wheel
 			for (let i = 0; i < currentNames.length; i++) {
 				const name = currentNames[i];
 				
@@ -1029,7 +1071,7 @@
 				nameContainer.style.width = '40%';
 				nameContainer.style.pointerEvents = 'none';
 				
-				// Add a data attribute to help with debugging
+				// Add data attributes for debugging
 				nameContainer.dataset.name = name;
 				nameContainer.dataset.index = i;
 				
@@ -1197,20 +1239,29 @@
 		}
 
 		function assignColorToName(name) {
-			// If the name doesn't have a color yet, assign one
-			if (!nameColorAssignments[name]) {
-				// IMPORTANT FIX: Use a more deterministic approach to color assignment
-				// Use the name's string value to deterministically assign a color index
-				// This ensures the same name always gets the same color
-				let nameHash = 0;
-				for (let i = 0; i < name.length; i++) {
-					nameHash = ((nameHash << 5) - nameHash) + name.charCodeAt(i);
-					nameHash = nameHash & nameHash; // Convert to 32bit integer
-				}
-				const colorIndex = Math.abs(nameHash) % colors.length;
-				nameColorAssignments[name] = colors[colorIndex];
+			// If the name already has a color, return it
+			if (nameColorAssignments[name]) {
+				return nameColorAssignments[name];
 			}
-			return nameColorAssignments[name];
+			
+			// Create a deterministic hash from the name
+			let nameHash = 0;
+			for (let i = 0; i < name.length; i++) {
+				nameHash = ((nameHash << 5) - nameHash) + name.charCodeAt(i);
+				nameHash = nameHash & nameHash; // Convert to 32bit integer
+			}
+			
+			// Use the hash to select a color
+			const colorIndex = Math.abs(nameHash) % colors.length;
+			const color = colors[colorIndex];
+			
+			// Store the assignment and return it
+			nameColorAssignments[name] = color;
+			
+			// Save color assignments after each new assignment
+			localStorage.setItem('winnerCircleColorAssignments', JSON.stringify(nameColorAssignments));
+			
+			return color;
 		}
 
 		// Update remaining display based on game mode
