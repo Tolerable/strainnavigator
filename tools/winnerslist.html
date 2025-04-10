@@ -1127,12 +1127,15 @@
 				// If game over, reset names too
 				if (isGameOver) {
 					resetToOriginalNames();
+				} else {
+					// If not game over (just a round), reset visual states
+					resetAllVisualStates();
 				}
 				
 				// Re-enable the pick button
 				isSelecting = false;
 				pickButton.disabled = false;
-			});		
+			});
 			
 			// Build the modal
 			modalContent.appendChild(winnerTitle);
@@ -1153,6 +1156,21 @@
 			});			
 
 		}
+
+		function resetAllVisualStates() {
+			// Reset all name items to their original state
+			const items = nameList.querySelectorAll('.name-item');
+			items.forEach((item, index) => {
+				// Remove any special classes
+				item.classList.remove('selected');
+				item.classList.remove('winner');
+				item.classList.remove('eliminated');
+				
+				// Reset background color to the assigned color
+				const name = names[index];
+				item.style.backgroundColor = nameColorAssignments[name];
+			});
+		}
         
         // Reset selection states
         function resetSelectionStates() {
@@ -1167,12 +1185,11 @@
 		function resetToOriginalNames() {
 			names = [...originalNames];
 			updateNameList();
+			resetAllVisualStates(); // Make sure this is called
 			winnerDisplay.style.color = 'var(--primary)';
 			winnerDisplay.textContent = 'Click Pick to find out!';
 		}
 
-
-        
         // Handle game mode change
         function handleGameModeChange() {
             if (gameMode.value === 'first') {
