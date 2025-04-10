@@ -854,11 +854,22 @@
         }
         
         // Start the selection animation
-        function startSelection() {
-            if (isSelecting || names.length === 0) return;
-            
-            isSelecting = true;
-            pickButton.disabled = true;
+		function startSelection() {
+			// Prevent starting if there's only one person left
+			if (isSelecting || names.length <= 1) {
+				// If only one person, show a message
+				if (names.length === 1) {
+					winnerDisplay.textContent = `Only ${names[0]} remains!`;
+					winnerDisplay.style.color = 'var(--winner)';
+					
+					// Optional: Show the game over modal with the last person
+					showWinnerAnnouncement(names[0], true);
+				}
+				return;
+			}
+			
+			isSelecting = true;
+			pickButton.disabled = true;
             
             // Reset any previous selections
             resetSelectionStates();
@@ -967,69 +978,77 @@
 			const items = nameList.querySelectorAll('.name-item');
 			items[index].classList.add('eliminated');
 			
-			// Check if this is the second-to-last contestant
-			if (names.length === 2) {
-				// Find who will be the winner (the one not being eliminated)
-				const finalWinnerIndex = index === 0 ? 1 : 0;
-				const finalWinner = names[finalWinnerIndex];
-				
-				// Remove the eliminated person
-				names.splice(index, 1);
-				
-				// Update the list after a short delay
-				setTimeout(() => {
-					updateNameList();
-					
-					// Highlight the final winner
-					const updatedItems = nameList.querySelectorAll('.name-item');
-					updatedItems[0].classList.add('winner');
-					
-					// Announce the final winner
-					winnerDisplay.textContent = `${finalWinner} WINS!`;
-					winnerDisplay.style.color = 'var(--winner)';
-					winnerDisplay.classList.add('celebrate');
-					
-					// Add the winner to history
-					winHistory.unshift(`${finalWinner} (WINNER!)`);
-					updateHistoryList();
-					
-					// Show the game over announcement after a delay
-					setTimeout(() => {
-						showWinnerAnnouncement(finalWinner, true);
-					}, 1500);
-				}, 1000);
-			} else {
-				// Normal elimination for non-final rounds
-				names.splice(index, 1);
+			// Remove the eliminated person
+			names.splice(index, 1);
+			
+			// Check if only one person remains
+			if (names.length <= 1) {
+				// Disable the pick button to prevent further selections
+				pickButton.disabled = true;
 				
 				// Update the list after a short delay
 				setTimeout(() => {
 					updateNameList();
 					
-					// Check if all contestants have been eliminated
-					if (names.length === 0) {
+					if (names.length === 1) {
+						const finalWinner = names[0];
+						
+						// Highlight the final winner
+						const updatedItems = nameList.querySelectorAll('.name-item');
+						updatedItems[0].classList.add('winner');
+						
+						// Announce the final winner
+						winnerDisplay.textContent = `${finalWinner} WINS!`;
+						winnerDisplay.style.color = 'var(--winner)';
+						winnerDisplay.classList.add('celebrate');
+						
+						// Add the winner to history
+						winHistory.unshift(`${finalWinner} (WINNER!)`);
+						updateHistoryList();
+						
+						// Show the game over announcement after a delay
+						setTimeout(() => {
+							showWinnerAnnouncement(finalWinner, true);
+						}, 1500);
+					} else {
+						// No contestants left
 						setTimeout(() => {
 							showWinnerAnnouncement("EVERYONE", true);
 						}, 1000);
 					}
 				}, 1000);
+			} else {
+				// Normal elimination for non-final rounds
+				setTimeout(() => {
+					updateNameList();
+					
+					// Re-enable the pick button after the update
+					isSelecting = false;
+					pickButton.disabled = false;
+				}, 1000);
 			}
 		}
 		
+		// Improved winner announcement modal with better sizing for long names
 		function showWinnerAnnouncement(winnerName, isGameOver = false) {
+			// Disable the pick button while modal is shown
+			pickButton.disabled = true;
+			
 			// Create a modal for announcing the winner
 			const winnerModal = document.createElement('div');
 			winnerModal.className = 'modal winner-announcement';
 			winnerModal.style.display = 'flex';
 			winnerModal.style.zIndex = '2000';
 			
-			// Create the modal content
+			// Create the modal content with wider dimensions
 			const modalContent = document.createElement('div');
 			modalContent.className = 'modal-content winner-modal';
 			modalContent.style.textAlign = 'center';
 			modalContent.style.padding = '40px';
 			modalContent.style.background = 'linear-gradient(145deg, #212121, #333333)';
 			modalContent.style.boxShadow = '0 0 30px rgba(255, 235, 59, 0.5)';
+			modalContent.style.width = '80%'; // Wider modal (80% of screen)
+			modalContent.style.maxWidth = '800px'; // Maximum width
 			
 			// Winner title
 			const winnerTitle = document.createElement('h2');
@@ -1040,17 +1059,39 @@
 			winnerTitle.style.textShadow = '0 0 10px var(--secondary)';
 			winnerTitle.textContent = isGameOver ? 'GAME OVER!' : 'ROUND COMPLETE!';
 			
-			// Winner name
+			// Winner name container with responsive text
+			const winnerNameContainer = document.createElement('div');
+			winnerNameContainer.style.margin = '20px 0';
+			winnerNameContainer.style.padding = '20px';
+			winnerNameContainer.style.background = 'rgba(0, 0, 0, 0.3)';
+			winnerNameContainer.style.borderRadius = '10px';
+			winnerNameContainer.style.overflow = 'hidden';
+			winnerNameContainer.style.display = 'flex';
+			winnerNameContainer.style.justifyContent = 'center';
+			winnerNameContainer.style.alignItems = 'center';
+			winnerNameContainer.style.minHeight = '120px';
+			winnerNameContainer.style.animation = 'celebrate 0.5s ease-in-out infinite alternate';
+			
+			// Winner name with auto-sizing text
 			const winnerName_el = document.createElement('div');
-			winnerName_el.style.fontSize = '4rem';
-			winnerName_el.style.fontWeight = 'bold';
-			winnerName_el.style.color = 'var(--winner)';
-			winnerName_el.style.margin = '20px 0';
-			winnerName_el.style.padding = '20px';
-			winnerName_el.style.background = 'rgba(0, 0, 0, 0.3)';
-			winnerName_el.style.borderRadius = '10px';
-			winnerName_el.style.animation = 'celebrate 0.5s ease-in-out infinite alternate';
 			winnerName_el.textContent = winnerName;
+			winnerName_el.style.color = 'var(--winner)';
+			winnerName_el.style.fontWeight = 'bold';
+			winnerName_el.style.wordBreak = 'break-word';
+			winnerName_el.style.lineHeight = '1.2';
+			
+			// Dynamically size the text based on name length
+			if (winnerName.length > 20) {
+				winnerName_el.style.fontSize = '3rem';
+			} else if (winnerName.length > 15) {
+				winnerName_el.style.fontSize = '3.5rem';
+			} else if (winnerName.length > 10) {
+				winnerName_el.style.fontSize = '4rem';
+			} else {
+				winnerName_el.style.fontSize = '4.5rem';
+			}
+			
+			winnerNameContainer.appendChild(winnerName_el);
 			
 			// Winner message
 			const winnerMessage = document.createElement('p');
@@ -1093,11 +1134,14 @@
 				if (isGameOver) {
 					resetToOriginalNames();
 				}
+				
+				// Re-enable the pick button
+				pickButton.disabled = false;
 			});
 			
 			// Build the modal
 			modalContent.appendChild(winnerTitle);
-			modalContent.appendChild(winnerName_el);
+			modalContent.appendChild(winnerNameContainer);
 			modalContent.appendChild(winnerMessage);
 			modalContent.appendChild(newRoundBtn);
 			winnerModal.appendChild(modalContent);
