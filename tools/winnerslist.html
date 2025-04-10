@@ -1018,8 +1018,19 @@
 			const items = nameList.querySelectorAll('.name-item');
 			items[index].classList.add(`place-${placeOrdinal}`);
 			
-			// Add to history
-			winHistory.unshift(`${selectedName} (${placeText} Place)`);
+			// Add to history - modified to handle different ordering for 1→2→3 mode
+			if (!placeOrderToggle.checked) {
+				// For 1→2→3 mode, add at the end if this is a new round (first 3 selections)
+				if (winHistory.length < 3 || (winHistory.length > 0 && winHistory[0].includes("COMPLETE"))) {
+					winHistory.push(`${selectedName} (${placeText} Place)`);
+				} else {
+					// Otherwise use the default behavior
+					winHistory.unshift(`${selectedName} (${placeText} Place)`);
+				}
+			} else {
+				// For 3→2→1 mode use the original behavior
+				winHistory.unshift(`${selectedName} (${placeText} Place)`);
+			}
 			updateHistoryList();
 			
 			// Remove this winner from the list for subsequent place selections
@@ -1033,7 +1044,13 @@
 				// Finished selecting all places or ran out of names
 				setTimeout(() => {
 					// Add a "FINISHED!" message to history
-					winHistory.unshift("★ PLACED SELECTION COMPLETE ★");
+					if (!placeOrderToggle.checked && (winHistory.length <= 3 || (winHistory.length > 0 && winHistory[winHistory.length-1].includes("Place")))) {
+						// For 1→2→3 mode, add at the end
+						winHistory.push("★ PLACED SELECTION COMPLETE ★");
+					} else {
+						// For 3→2→1 mode add at the beginning
+						winHistory.unshift("★ PLACED SELECTION COMPLETE ★");
+					}
 					updateHistoryList();
 					
 					// Show completion announcement
