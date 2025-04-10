@@ -1726,28 +1726,28 @@
 		}
         
         // Update history list
-        function updateHistoryList() {
-            historyList.innerHTML = '';
-            
-            // Add each history item to the list (show up to 10 most recent)
-            const historyToShow = winHistory.slice(0, 10);
-            
-            historyToShow.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = 'history-item';
-                
-                // Check if this is a winner or eliminated entry
-                if (item.includes('WINNER') || item.includes('WIN')) {
-                    li.innerHTML = `#${index + 1}: <span style="color: var(--winner)">${item}</span>`;
-                } else if (item.includes('Eliminated')) {
-                    li.innerHTML = `#${index + 1}: <span style="color: var(--eliminated)">${item}</span>`;
-                } else {
-                    li.innerHTML = `#${index + 1}: <span>${item}</span>`;
-                }
-                
-                historyList.appendChild(li);
-            });
-        }
+		function updateHistoryList() {
+			historyList.innerHTML = '';
+			
+			// Add each history item to the list (show up to 10 most recent)
+			const historyToShow = winHistory.slice(0, 10);
+			
+			historyToShow.forEach((item) => {
+				const li = document.createElement('li');
+				li.className = 'history-item';
+				
+				// Check if this is a winner or eliminated entry
+				if (item.includes('WINNER') || item.includes('WIN')) {
+					li.innerHTML = `<span style="color: var(--winner)">${item}</span>`;
+				} else if (item.includes('Eliminated')) {
+					li.innerHTML = `<span style="color: var(--eliminated)">${item}</span>`;
+				} else {
+					li.innerHTML = `<span>${item}</span>`;
+				}
+				
+				historyList.appendChild(li);
+			});
+		}
         
         // Update remaining display based on game mode
 		function updateRemainingDisplay() {
