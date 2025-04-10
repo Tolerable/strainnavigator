@@ -1078,6 +1078,9 @@
 		}
 
 		function showPlacedCompletionAnnouncement() {
+			// Clear any place selection text immediately
+			clearPlaceSelectionText();
+			
 			// Create a modal for announcing the winners
 			const completionModal = document.createElement('div');
 			completionModal.className = 'modal winner-announcement';
@@ -1179,9 +1182,15 @@
 				winHistory = [];
 				updateHistoryList();
 				
+				// Reset currentPlace
+				currentPlace = 1;
+				
 				// Reset the winner display
 				winnerDisplay.textContent = 'Click Pick to find out!';
 				winnerDisplay.style.color = 'var(--primary)';
+				
+				// Clear any place selection text again
+				clearPlaceSelectionText();
 				
 				// Re-enable the pick button
 				isSelecting = false;
@@ -1500,6 +1509,8 @@
 		
 		// Improved winner announcement modal with better sizing for long names
 		function showWinnerAnnouncement(winnerName, isGameOver = false) {
+			// Clear any place selection text immediately
+			clearPlaceSelectionText();
 			// Don't show announcement modal when auto-picking until the game is over
 			if (autoPick.checked && gameMode.value === 'last' && !isGameOver) {
 				return;
@@ -1685,6 +1696,12 @@
 			
 			// Update remaining display to clear any place selection text
 			updateRemainingDisplay();
+		}
+
+		function clearPlaceSelectionText() {
+			// Directly clear the remaining display text
+			remainingDisplay.innerHTML = '';
+			remainingDisplay.style.display = 'none';
 		}
 
         // Handle game mode change
