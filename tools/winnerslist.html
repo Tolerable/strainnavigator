@@ -1603,6 +1603,9 @@
 				winnerDisplay.textContent = 'Click Pick to find out!';
 				winnerDisplay.style.color = 'var(--primary)';
 				
+				// ADDED: Reset the current place to 1
+				currentPlace = 1;
+				
 				// If game over, reset names too
 				if (isGameOver) {
 					resetToOriginalNames();
@@ -1610,6 +1613,9 @@
 					// If not game over (just a round), reset visual states
 					resetAllVisualStates();
 				}
+				
+				// ADDED: Make sure remaining display is updated
+				updateRemainingDisplay();
 				
 				// Re-enable the pick button
 				isSelecting = false;
@@ -1666,10 +1672,19 @@
         // Reset to original names
 		function resetToOriginalNames() {
 			names = [...originalNames];
+			
+			// Reset currentPlace
+			currentPlace = 1;
+			
 			updateNameList();
 			resetAllVisualStates(); // Make sure this is called
+			
+			// Reset displays
 			winnerDisplay.style.color = 'var(--primary)';
 			winnerDisplay.textContent = 'Click Pick to find out!';
+			
+			// Update remaining display to clear any place selection text
+			updateRemainingDisplay();
 		}
 
         // Handle game mode change
@@ -1725,25 +1740,30 @@
         // Update remaining display based on game mode
 		function updateRemainingDisplay() {
 			if (gameMode.value === 'last') {
-				remainingDisplay.innerHTML = `<strong>Remaining:</strong> ${names.length} contestants`;
-				remainingDisplay.style.display = 'block';
+				if (names.length > 0) {
+					remainingDisplay.innerHTML = `<strong>Remaining:</strong> ${names.length} contestants`;
+					remainingDisplay.style.display = 'block';
+				} else {
+					remainingDisplay.innerHTML = '';
+					remainingDisplay.style.display = 'none';
+				}
 			} else if (gameMode.value === 'placed') {
 				let nextPlace;
 				if (placeOrderToggle.checked) {
-					// Reverse order (3→2→1)
 					nextPlace = 4 - currentPlace;
 				} else {
-					// Normal order (1→2→3)
 					nextPlace = currentPlace;
 				}
 				
-				if (nextPlace <= 3 && names.length > 0) {
+				if (nextPlace <= 3 && names.length > 0 && currentPlace <= 3) {
 					remainingDisplay.innerHTML = `<strong>Selecting:</strong> ${getOrdinalText(nextPlace)} Place`;
 					remainingDisplay.style.display = 'block';
 				} else {
+					remainingDisplay.innerHTML = '';
 					remainingDisplay.style.display = 'none';
 				}
 			} else {
+				remainingDisplay.innerHTML = '';
 				remainingDisplay.style.display = 'none';
 			}
 		}
@@ -1815,6 +1835,7 @@
 				originalNames = [];
 				winHistory = [];
 				nameColorAssignments = {}; // Clear color assignments
+				currentPlace = 1; // Reset currentPlace
 				
 				// Save the reset state
 				localStorage.removeItem('winnerListNames');
