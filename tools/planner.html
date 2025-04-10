@@ -2763,15 +2763,26 @@
 				// Save back to localStorage
 				localStorage.setItem('breedingPlannerMyCrosses', JSON.stringify(myCrosses));
 				
+				console.log(`Cross "${crossData.name}" saved to My Crosses list`, crossEntry);
+				
 				// If the crosses tab is visible, refresh the display
-				if (document.getElementById('crosses-container').style.display !== 'none') {
+				const crossesContainer = document.getElementById('crosses-container');
+				if (crossesContainer && crossesContainer.style.display !== 'none') {
 					loadSavedCrosses();
 				}
+				
+				return crossId;
 			}
 
 			function loadSavedCrosses() {
 				const crossesContainer = document.getElementById('crosses-container');
+				if (!crossesContainer) {
+					console.error('Crosses container not found!');
+					return;
+				}
+				
 				const myCrosses = JSON.parse(localStorage.getItem('breedingPlannerMyCrosses') || '[]');
+				console.log('Loaded My Crosses list:', myCrosses);
 				
 				if (myCrosses.length === 0) {
 					crossesContainer.innerHTML = `
@@ -2845,6 +2856,19 @@
 						}
 					});
 				});
+			}
+
+			function refreshMyCrossesTab() {
+				// Get the tab element
+				const crossesTab = document.querySelector('.section-tab[data-section="crosses"]');
+				
+				// If it exists, click it to ensure the tab is active, then click again to refresh
+				if (crossesTab) {
+					crossesTab.click();
+				}
+				
+				// Load crosses directly
+				loadSavedCrosses();
 			}
 
 			function deleteSavedCross(crossId) {
