@@ -1293,6 +1293,9 @@
 						// Check which parsing method is selected
 						const parsingMethod = document.querySelector('input[name="parsing-method"]:checked')?.value || 'standard';
 						
+						// STORE THE PARSING METHOD FOR THIS SHEET ID
+						localStorage.setItem(`breedingPlanner_${sheetId}_parsingMethod`, parsingMethod);
+						
 						if (parsingMethod === 'quantity-first') {
 							allStrains = parseQuantityFirstCSV(csv);
 						} else {
@@ -1314,7 +1317,16 @@
 			}
             
 			function loadStrains() {
-				// Now just call the other function with the active sheet ID
+				// Get the saved parsing method for this sheet, or default to 'standard'
+				const savedParsingMethod = localStorage.getItem(`breedingPlanner_${activeSheetId}_parsingMethod`) || 'standard';
+				
+				// If we have a radio button, update it to match the saved method
+				const parsingMethodRadio = document.querySelector(`input[name="parsing-method"][value="${savedParsingMethod}"]`);
+				if (parsingMethodRadio) {
+					parsingMethodRadio.checked = true;
+				}
+				
+				// Now load strains with the active sheet ID
 				loadStrainsFromSheet(activeSheetId);
 			}
             
