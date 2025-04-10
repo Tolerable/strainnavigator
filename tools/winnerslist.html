@@ -53,8 +53,12 @@
         .header {
             grid-column: 1 / -1;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 0;
         }
+
+		.container {
+			gap: 10px;
+		}
         
         .title {
             font-size: 4rem;
@@ -135,7 +139,8 @@
         
         .name-list {
             list-style: none;
-            overflow-y: auto;
+            overflow-y: visible;
+			max-height: none;
             flex-grow: 1;
             margin-bottom: 15px;
             position: relative;
