@@ -3012,6 +3012,9 @@
 				// Get selected status
 				const status = document.querySelector('input[name="cross-status"]:checked')?.value || 'planned';
 				
+				// Check if we should save to My Crosses
+				const saveToMyCrosses = document.getElementById('save-to-my-crosses').checked;
+				
 				// Check if this is an edit or a new cross
 				if (pendingCrossData.isEditing && pendingCrossData.nodeId) {
 					// This is an edit - update the existing node
@@ -3084,6 +3087,22 @@
 								removeNode(nodeId);
 							});
 						}
+						
+						// Save to My Crosses if the checkbox is checked
+						if (saveToMyCrosses) {
+							// Create cross data for saving
+							const crossData = {
+								name: finalName,
+								femaleName: pendingCrossData.femaleName,
+								maleName: pendingCrossData.maleName,
+								growthType: growthType,
+								sexType: seedType,
+								floweringType: floweringType
+							};
+							
+							// Save to My Crosses
+							saveCrossToMyList(crossData);
+						}
 					}
 				} else {
 					// This is a new cross - create a new node
@@ -3101,6 +3120,12 @@
 					
 					// Add cross node to canvas
 					const newNodeId = addCrossNodeToCanvas(crossData);
+					
+					// Save to My Crosses if the checkbox is checked
+					if (saveToMyCrosses) {
+						// Save to My Crosses
+						saveCrossToMyList(crossData);
+					}
 				}
 				
 				// Reset modal title and button text
