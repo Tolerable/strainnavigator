@@ -2558,21 +2558,30 @@
 				// Make node draggable
 				node.addEventListener('mousedown', startDraggingNode);
 				
-				// Setup connection points
-				node.querySelectorAll('.connection-point').forEach(point => {
-					point.addEventListener('mousedown', startConnecting);
-				});
+				// Add to canvas FIRST before setting up event listeners
+				breedingCanvas.appendChild(node);
+				
+				// Setup connection points - do this AFTER adding to canvas
+				const femalePoint = node.querySelector('.connection-point-female');
+				const malePoint = node.querySelector('.connection-point-male');
+				
+				if (femalePoint) {
+					femalePoint.addEventListener('mousedown', startConnecting);
+				}
+				
+				if (malePoint) {
+					malePoint.addEventListener('mousedown', startConnecting);
+				}
 				
 				// Setup remove button
 				const removeButton = node.querySelector('[data-action="remove"]');
-				removeButton.addEventListener('click', e => {
-					e.preventDefault();
-					e.stopPropagation();
-					removeNode(nodeId);
-				});
-				
-				// Add to canvas
-				breedingCanvas.appendChild(node);
+				if (removeButton) {
+					removeButton.addEventListener('click', e => {
+						e.preventDefault();
+						e.stopPropagation();
+						removeNode(nodeId);
+					});
+				}
 				
 				// Add to nodes array
 				nodes.push({
@@ -3579,6 +3588,9 @@
 				const connectionPoint = e.target;
 				const nodeId = connectionPoint.dataset.node;
 				const role = connectionPoint.dataset.role; // 'female' or 'male'
+				
+				// For debugging
+				console.log(`Starting connection from node ${nodeId}, role: ${role}`);
 				
 				connecting = true;
 				connectingSourceNode = nodeId;
