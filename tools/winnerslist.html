@@ -855,44 +855,38 @@
         
         // Start the selection animation
 		function startSelection() {
-			// Prevent starting if there's only one person left
-			if (isSelecting || names.length <= 1) {
-				// If only one person, show a message
-				if (names.length === 1) {
-					winnerDisplay.textContent = `Only ${names[0]} remains!`;
-					winnerDisplay.style.color = 'var(--winner)';
-					
-					// Optional: Show the game over modal with the last person
-					showWinnerAnnouncement(names[0], true);
-				}
-				return;
-			}
+			// If already selecting or there are no names, do nothing
+			if (isSelecting || names.length === 0) return;
 			
+			// If only one name remains, do absolutely nothing when PICK is clicked
+			if (names.length === 1) return;
+			
+			// Only continue if we have multiple names
 			isSelecting = true;
 			pickButton.disabled = true;
-            
-            // Reset any previous selections
-            resetSelectionStates();
-            
-            // Activate selection mode
-            document.querySelector('.name-list-container').classList.add('selection-active');
-            
-            // Start with a random position
-            currentSelectionIndex = Math.floor(Math.random() * names.length);
-            
-            // Calculate selection parameters
-            const speed = 6 - parseInt(selectionSpeed.value); // Invert so higher = faster
-            const duration = parseFloat(selectionDuration.value) * 1000; // Convert to milliseconds
-            
-            // Start the selection animation
-            moveSelectionIndicator();
-            
-            // Set interval to move the indicator
-            selectionInterval = setInterval(moveSelectionIndicator, speed * 25);
-            
-            // Schedule end of selection
-            setTimeout(finishSelection, duration);
-        }
+			
+			// Reset any previous selections
+			resetSelectionStates();
+			
+			// Activate selection mode
+			document.querySelector('.name-list-container').classList.add('selection-active');
+			
+			// Start with a random position
+			currentSelectionIndex = Math.floor(Math.random() * names.length);
+			
+			// Calculate selection parameters
+			const speed = 6 - parseInt(selectionSpeed.value); // Invert so higher = faster
+			const duration = parseFloat(selectionDuration.value) * 1000; // Convert to milliseconds
+			
+			// Start the selection animation
+			moveSelectionIndicator();
+			
+			// Set interval to move the indicator
+			selectionInterval = setInterval(moveSelectionIndicator, speed * 25);
+			
+			// Schedule end of selection
+			setTimeout(finishSelection, duration);
+		}
         
         // Move the selection indicator
         function moveSelectionIndicator() {
@@ -1031,8 +1025,39 @@
 		
 		// Improved winner announcement modal with better sizing for long names
 		function showWinnerAnnouncement(winnerName, isGameOver = false) {
-			// Disable the pick button while modal is shown
-			pickButton.disabled = true;
+			// Create a modal for announcing the winner
+			const winnerModal = document.createElement('div');
+			winnerModal.className = 'modal winner-announcement';
+			winnerModal.style.display = 'flex';
+			winnerModal.style.zIndex = '2000';
+			
+			// Rest of modal creation code...
+			
+			// Add a single-click handler to the button
+			newRoundBtn.addEventListener('click', function() {
+				// Prevent multiple clicks
+				newRoundBtn.disabled = true;
+				
+				// Remove the modal
+				document.body.removeChild(winnerModal);
+				
+				// Clear history for new round
+				winHistory = [];
+				updateHistoryList();
+				
+				// Reset the winner display
+				winnerDisplay.textContent = 'Click Pick to find out!';
+				winnerDisplay.style.color = 'var(--primary)';
+				
+				// If game over, reset names too
+				if (isGameOver) {
+					resetToOriginalNames();
+				}
+				
+				// Re-enable the pick button
+				isSelecting = false;
+				pickButton.disabled = false;
+			});
 			
 			// Create a modal for announcing the winner
 			const winnerModal = document.createElement('div');
