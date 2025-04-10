@@ -1764,22 +1764,8 @@
 					remainingDisplay.innerHTML = '';
 					remainingDisplay.style.display = 'none';
 				}
-			} else if (gameMode.value === 'placed') {
-				let nextPlace;
-				if (placeOrderToggle.checked) {
-					nextPlace = 4 - currentPlace;
-				} else {
-					nextPlace = currentPlace;
-				}
-				
-				if (nextPlace <= 3 && names.length > 0 && currentPlace <= 3) {
-					remainingDisplay.innerHTML = `<strong>Selecting:</strong> ${getOrdinalText(nextPlace)} Place`;
-					remainingDisplay.style.display = 'block';
-				} else {
-					remainingDisplay.innerHTML = '';
-					remainingDisplay.style.display = 'none';
-				}
 			} else {
+				// For 'first' mode and 'placed' mode, don't show anything in remaining display
 				remainingDisplay.innerHTML = '';
 				remainingDisplay.style.display = 'none';
 			}
