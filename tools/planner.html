@@ -769,6 +769,9 @@
 
 	<div class="main-container">
 		<div class="sidebar">
+			<div class="sidebar-header">
+				<h3>Strain Collection</h3>
+			</div>
 			
 			<div class="search-box">
 				<div style="position: relative; flex: 1;">
@@ -1787,20 +1790,11 @@
 				cleanupBtn.addEventListener('click', cleanupOrphanedNodes);
 
 				const sidebarHeader = document.querySelector('.sidebar-header');
-				// Clear the header (removes the "Strain Collection" text)
-				sidebarHeader.innerHTML = '';
-				// Create button container to match tab styling
-				const buttonContainer = document.createElement('div');
-				buttonContainer.style.cssText = 'display: flex; width: 100%; padding: 8px;';
-				sidebarHeader.appendChild(buttonContainer);
-				// Create the manage button with the same style as section tabs
 				const manageSheetBtn = document.createElement('button');
-				manageSheetBtn.className = 'section-tab';
-				manageSheetBtn.style.backgroundColor = '#444';
-				manageSheetBtn.style.marginRight = '5px';
+				manageSheetBtn.className = 'btn btn-secondary';
 				manageSheetBtn.innerText = 'MANAGE';
 				manageSheetBtn.addEventListener('click', showSavedSheetsModal);
-				buttonContainer.appendChild(manageSheetBtn);
+				sidebarHeader.appendChild(manageSheetBtn);
 				
 				// document.getElementById('cancel-sheets-btn').addEventListener('click', function() {
 				// 	hideModal(document.getElementById('saved-sheets-modal'));
@@ -2659,8 +2653,11 @@
 			}
 
 			function addCrossesTab() {
-				// Add tabs to the existing button container
-				const buttonContainer = document.querySelector('.sidebar-header > div');
+				// Create tab container at the top of the sidebar
+				const sidebarHeader = document.querySelector('.sidebar-header');
+				const tabContainer = document.createElement('div');
+				tabContainer.className = 'section-tabs';
+				tabContainer.style.cssText = 'display: flex; width: 100%; margin-top: 5px;';
 				
 				// Add tabs HTML
 				tabContainer.innerHTML = `
