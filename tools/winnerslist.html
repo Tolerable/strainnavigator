@@ -568,6 +568,25 @@
 			color: #aaa;
 			margin-top: 5px;
 		}
+
+		/* Place indicators */
+		.place-1 {
+			background: rgba(255, 215, 0, 0.3) !important; /* Gold */
+			border: 2px solid gold !important;
+			font-weight: bold;
+		}
+
+		.place-2 {
+			background: rgba(192, 192, 192, 0.3) !important; /* Silver */
+			border: 2px solid silver !important;
+			font-weight: bold;
+		}
+
+		.place-3 {
+			background: rgba(205, 127, 50, 0.3) !important; /* Bronze */
+			border: 2px solid #cd7f32 !important;
+			font-weight: bold;
+		}
         
         @media (max-width: 768px) {
             .container {
@@ -672,13 +691,14 @@
         <div class="panel">
             <h2 class="panel-title">Settings</h2>
             <form class="settings-form" id="settingsForm">
-                <div class="form-group">
-                    <label class="form-label">Game Mode</label>
-                    <select class="form-select" id="gameMode">
-                        <option value="first">First One Picked</option>
-                        <option value="last">Last One Standing</option>
-                    </select>
-                </div>
+				<div class="form-group">
+					<label class="form-label">Game Mode</label>
+					<select class="form-select" id="gameMode">
+						<option value="first">First One Picked</option>
+						<option value="last">Last One Standing</option>
+						<option value="placed">Placed Winners (1st, 2nd, 3rd)</option>
+					</select>
+				</div>
 				
 				<div class="form-group" id="autoPickContainer" style="display: none;">
 					<label class="form-label">Auto-Pick Mode</label>
@@ -691,6 +711,18 @@
 					</div>
 					<p class="form-help">When enabled, all names will be automatically picked in sequence until the game is complete.</p>
 				</div>				
+
+				<div class="form-group" id="placeOrderContainer" style="display: none;">
+					<label class="form-label">Selection Order</label>
+					<div class="toggle-switch">
+						<input type="checkbox" id="placeOrderToggle" class="toggle-input">
+						<label for="placeOrderToggle" class="toggle-label">
+							<span class="toggle-text-off">1→2→3</span>
+							<span class="toggle-text-on">3→2→1</span>
+						</label>
+					</div>
+					<p class="form-help">Choose whether to select in ascending (1st, 2nd, 3rd) or descending (3rd, 2nd, 1st) order.</p>
+				</div>
 				
                 <div class="form-group">
                     <label class="form-label">Selection Speed</label>
@@ -761,8 +793,13 @@
 			gameMode: 'first',
 			selectionSpeed: 3,
 			selectionDuration: 3,
-			autoPick: false
+			autoPick: false,
+			reverseOrder: false  
 		};
+
+		let currentPlace = 1;  // For placed mode: 1 = 1st place, 2 = 2nd place, 3 = 3rd place
+		const placeOrderContainer = document.getElementById('placeOrderContainer');
+		const placeOrderToggle = document.getElementById('placeOrderToggle');
 
         // DOM Elements
         const nameList = document.getElementById('nameList');
@@ -813,6 +850,10 @@
 				saveSettings();
 			});
 
+			placeOrderToggle.addEventListener('change', function() {
+				saveSettings();
+			});
+
             addNameForm.addEventListener('submit', addName);
             pickButton.addEventListener('click', startSelection);
             importExportBtn.addEventListener('click', openImportExportModal);
@@ -846,8 +887,11 @@
 				// Set auto-pick checkbox
 				autoPick.checked = savedSettings.autoPick || false;
 				
-				// Show/hide auto-pick container based on game mode
-				toggleAutoPickVisibility();
+				// Set place order toggle
+				placeOrderToggle.checked = savedSettings.reverseOrder || false;
+				
+				// Show/hide option containers based on game mode
+				toggleOptionVisibility();
 				
 				// Update display values
 				updateSpeedDisplay();
@@ -862,17 +906,26 @@
 			savedSettings.selectionSpeed = selectionSpeed.value;
 			savedSettings.selectionDuration = selectionDuration.value;
 			savedSettings.autoPick = autoPick.checked;
+			savedSettings.reverseOrder = placeOrderToggle.checked;
 			
 			// Save to localStorage
 			localStorage.setItem('winnerListSettings', JSON.stringify(savedSettings));
 		}
 
-		function toggleAutoPickVisibility() {
-			// Only show auto-pick for Last Man Standing mode
+		function toggleOptionVisibility() {
+			// Show/hide auto-pick for Last Man Standing mode
 			if (gameMode.value === 'last') {
 				autoPickContainer.style.display = 'block';
-			} else {
+				placeOrderContainer.style.display = 'none';
+			} 
+			// Show/hide place order toggle for Placed Winners mode
+			else if (gameMode.value === 'placed') {
 				autoPickContainer.style.display = 'none';
+				placeOrderContainer.style.display = 'block';
+			}
+			else {
+				autoPickContainer.style.display = 'none';
+				placeOrderContainer.style.display = 'none';
 			}
 		}
         
@@ -932,6 +985,226 @@
             }
             return nameColorAssignments[name];
         }
+
+		function handlePlacedWinners(selectedName, index) {
+			let placeText;
+			let placeOrdinal;
+			
+			// Determine which place we're selecting based on the order toggle
+			if (placeOrderToggle.checked) {
+				// Reverse order (3→2→1)
+				placeOrdinal = 4 - currentPlace;
+				placeText = getOrdinalText(placeOrdinal);
+			} else {
+				// Normal order (1→2→3)
+				placeOrdinal = currentPlace;
+				placeText = getOrdinalText(placeOrdinal);
+			}
+			
+			// Display the winner
+			winnerDisplay.textContent = `${selectedName} - ${placeText} PLACE!`;
+			
+			// Set appropriate text color based on place
+			if (placeOrdinal === 1) {
+				winnerDisplay.style.color = 'gold';
+				winnerDisplay.classList.add('celebrate');
+			} else if (placeOrdinal === 2) {
+				winnerDisplay.style.color = 'silver';
+			} else {
+				winnerDisplay.style.color = '#cd7f32'; // bronze
+			}
+			
+			// Highlight the winner in the list with the appropriate place
+			const items = nameList.querySelectorAll('.name-item');
+			items[index].classList.add(`place-${placeOrdinal}`);
+			
+			// Add to history
+			winHistory.unshift(`${selectedName} (${placeText} Place)`);
+			updateHistoryList();
+			
+			// Remove this winner from the list for subsequent place selections
+			names.splice(index, 1);
+			
+			// Move to the next place
+			currentPlace++;
+			
+			// Check if we've selected all three places
+			if (currentPlace > 3 || names.length === 0) {
+				// Finished selecting all places or ran out of names
+				setTimeout(() => {
+					// Add a "FINISHED!" message to history
+					winHistory.unshift("★ PLACED SELECTION COMPLETE ★");
+					updateHistoryList();
+					
+					// Show completion announcement
+					showPlacedCompletionAnnouncement();
+					
+					// Reset for a new round
+					currentPlace = 1;
+				}, 1000);
+			} else {
+				// Update the list for the next place selection
+				setTimeout(() => {
+					updateNameList();
+					
+					// Re-enable the pick button for the next place
+					isSelecting = false;
+					pickButton.disabled = false;
+					
+					// If using auto-pick, automatically select the next place
+					if (autoPick.checked && names.length > 0) {
+						setTimeout(() => {
+							startSelection();
+						}, 1000);
+					}
+				}, 1000);
+			}
+			
+			// Remove celebration class after animation completes
+			if (placeOrdinal === 1) {
+				setTimeout(() => {
+					winnerDisplay.classList.remove('celebrate');
+				}, 1500);
+			}
+		}
+
+		function getOrdinalText(place) {
+			switch(place) {
+				case 1: return '1st';
+				case 2: return '2nd';
+				case 3: return '3rd';
+				default: return `${place}th`;
+			}
+		}
+
+		function showPlacedCompletionAnnouncement() {
+			// Create a modal for announcing the winners
+			const completionModal = document.createElement('div');
+			completionModal.className = 'modal winner-announcement';
+			completionModal.style.display = 'flex';
+			completionModal.style.zIndex = '2000';
+			
+			// Create the modal content with wider dimensions
+			const modalContent = document.createElement('div');
+			modalContent.className = 'modal-content winner-modal';
+			modalContent.style.textAlign = 'center';
+			modalContent.style.padding = '40px';
+			modalContent.style.background = 'linear-gradient(145deg, #212121, #333333)';
+			modalContent.style.boxShadow = '0 0 30px rgba(255, 235, 59, 0.5)';
+			modalContent.style.width = '80%';
+			modalContent.style.maxWidth = '800px';
+			
+			// Title
+			const title = document.createElement('h2');
+			title.className = 'modal-title';
+			title.style.fontSize = '3rem';
+			title.style.marginBottom = '30px';
+			title.style.color = 'var(--secondary)';
+			title.style.textShadow = '0 0 10px var(--secondary)';
+			title.textContent = 'WINNERS ANNOUNCED!';
+			
+			// Winners container
+			const winnersContainer = document.createElement('div');
+			winnersContainer.style.margin = '20px 0';
+			
+			// Get the winners from history
+			const winners = [];
+			for (let i = 0; i < winHistory.length; i++) {
+				if (winHistory[i].includes('Place')) {
+					winners.push(winHistory[i]);
+					if (winners.length >= 3) break;
+				}
+			}
+			
+			// Sort winners by place
+			winners.sort((a, b) => {
+				const aPlace = parseInt(a.match(/(\d+)st|(\d+)nd|(\d+)rd|(\d+)th/)[0]);
+				const bPlace = parseInt(b.match(/(\d+)st|(\d+)nd|(\d+)rd|(\d+)th/)[0]);
+				return aPlace - bPlace;
+			});
+			
+			// Add each winner to the container
+			winners.forEach((winner, index) => {
+				const place = index + 1;
+				const name = winner.split(' (')[0];
+				
+				const winnerDiv = document.createElement('div');
+				winnerDiv.style.padding = '15px';
+				winnerDiv.style.margin = '10px 0';
+				winnerDiv.style.borderRadius = '10px';
+				winnerDiv.style.background = 'rgba(0, 0, 0, 0.3)';
+				
+				// Style based on place
+				let medal, color;
+				if (place === 1) {
+					medal = '🥇';
+					color = 'gold';
+					winnerDiv.style.animation = 'celebrate 0.5s ease-in-out infinite alternate';
+				} else if (place === 2) {
+					medal = '🥈';
+					color = 'silver';
+				} else {
+					medal = '🥉';
+					color = '#cd7f32'; // bronze
+				}
+				
+				winnerDiv.innerHTML = `<span style="font-size: 2rem; color: ${color};">${medal} ${getOrdinalText(place)} Place: ${name}</span>`;
+				winnersContainer.appendChild(winnerDiv);
+			});
+			
+			// Add a button to start a new round
+			const newRoundBtn = document.createElement('button');
+			newRoundBtn.className = 'action-btn';
+			newRoundBtn.style.padding = '15px 40px';
+			newRoundBtn.style.fontSize = '1.5rem';
+			newRoundBtn.style.background = 'linear-gradient(145deg, var(--primary), #ff0000)';
+			newRoundBtn.style.color = 'white';
+			newRoundBtn.style.border = 'none';
+			newRoundBtn.style.borderRadius = '30px';
+			newRoundBtn.style.cursor = 'pointer';
+			newRoundBtn.style.transition = 'all 0.3s';
+			newRoundBtn.style.boxShadow = '0 5px 15px rgba(255, 0, 0, 0.3)';
+			newRoundBtn.style.fontWeight = 'bold';
+			newRoundBtn.style.margin = '20px auto 0';
+			newRoundBtn.style.display = 'block';
+			newRoundBtn.textContent = 'START NEW ROUND';
+			
+			// Add button event listener
+			newRoundBtn.addEventListener('click', function() {
+				newRoundBtn.disabled = true;
+				document.body.removeChild(completionModal);
+				
+				// Reset for new round
+				resetToOriginalNames();
+				winHistory = [];
+				updateHistoryList();
+				
+				// Reset the winner display
+				winnerDisplay.textContent = 'Click Pick to find out!';
+				winnerDisplay.style.color = 'var(--primary)';
+				
+				// Re-enable the pick button
+				isSelecting = false;
+				pickButton.disabled = false;
+			});
+			
+			// Build the modal
+			modalContent.appendChild(title);
+			modalContent.appendChild(winnersContainer);
+			modalContent.appendChild(newRoundBtn);
+			completionModal.appendChild(modalContent);
+			
+			// Add to body
+			document.body.appendChild(completionModal);
+			
+			// Launch confetti for the winners
+			confetti({
+				particleCount: 200,
+				spread: 90,
+				origin: { y: 0.4 },
+				disableForReducedMotion: true
+			});
+		}
         
         // Edit a name
         function editName(index) {
@@ -1107,7 +1380,7 @@
 				// Reset state
 				isSelecting = false;
 				pickButton.disabled = false;
-			} else {
+			} else if (gameMode.value === 'last') {
 				handleLastManStanding(selectedName, currentSelectionIndex);
 				
 				// Check if we should continue automatically
@@ -1127,6 +1400,8 @@
 					isSelecting = false;
 					pickButton.disabled = false;
 				}
+			} else if (gameMode.value === 'placed') {
+				handlePlacedWinners(selectedName, currentSelectionIndex);
 			}
 		}
         
@@ -1369,6 +1644,9 @@
 				item.classList.remove('selected');
 				item.classList.remove('winner');
 				item.classList.remove('eliminated');
+				item.classList.remove('place-1');
+				item.classList.remove('place-2');
+				item.classList.remove('place-3');
 				
 				// Reset background color to the assigned color
 				const name = names[index];
@@ -1397,16 +1675,24 @@
         // Handle game mode change
 		function handleGameModeChange() {
 			if (gameMode.value === 'first') {
-				// Restore original names if switching from last man standing
+				// Restore original names if switching from another mode
 				resetToOriginalNames();
 			} else if (gameMode.value === 'last') {
 				// Reset history when starting last man standing
 				winHistory = [];
 				updateHistoryList();
+			} else if (gameMode.value === 'placed') {
+				// Reset for placed mode
+				resetToOriginalNames();
+				winHistory = [];
+				updateHistoryList();
 			}
 			
-			// Toggle auto-pick visibility
-			toggleAutoPickVisibility();
+			// Reset currentPlace when changing modes
+			currentPlace = 1;
+			
+			// Toggle option visibility
+			toggleOptionVisibility();
 			
 			updateRemainingDisplay();
 			saveSettings(); // Save settings after change
@@ -1437,14 +1723,30 @@
         }
         
         // Update remaining display based on game mode
-        function updateRemainingDisplay() {
-            if (gameMode.value === 'last') {
-                remainingDisplay.innerHTML = `<strong>Remaining:</strong> ${names.length} contestants`;
-                remainingDisplay.style.display = 'block';
-            } else {
-                remainingDisplay.style.display = 'none';
-            }
-        }
+		function updateRemainingDisplay() {
+			if (gameMode.value === 'last') {
+				remainingDisplay.innerHTML = `<strong>Remaining:</strong> ${names.length} contestants`;
+				remainingDisplay.style.display = 'block';
+			} else if (gameMode.value === 'placed') {
+				let nextPlace;
+				if (placeOrderToggle.checked) {
+					// Reverse order (3→2→1)
+					nextPlace = 4 - currentPlace;
+				} else {
+					// Normal order (1→2→3)
+					nextPlace = currentPlace;
+				}
+				
+				if (nextPlace <= 3 && names.length > 0) {
+					remainingDisplay.innerHTML = `<strong>Selecting:</strong> ${getOrdinalText(nextPlace)} Place`;
+					remainingDisplay.style.display = 'block';
+				} else {
+					remainingDisplay.style.display = 'none';
+				}
+			} else {
+				remainingDisplay.style.display = 'none';
+			}
+		}
         
         // Update the speed display
 		function updateSpeedDisplay() {
