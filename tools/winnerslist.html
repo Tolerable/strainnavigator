@@ -734,6 +734,26 @@
                     <input type="range" class="form-input" id="selectionDuration" min="1" max="10" value="3" step="0.5">
                     <span id="selectionDurationValue">3.0</span>
                 </div>
+				<div class="form-group">
+					<label class="form-label">Background Music</label>
+					<div class="toggle-switch">
+						<input type="checkbox" id="musicToggle" class="toggle-input" checked>
+						<label for="musicToggle" class="toggle-label">
+							<span class="toggle-text-off">Off</span>
+							<span class="toggle-text-on">On</span>
+						</label>
+					</div>
+					<p class="form-help">Enable or disable background music</p>
+				</div>
+
+				<div class="form-group" id="musicSelectionContainer">
+					<label class="form-label">Music Track</label>
+					<select class="form-select" id="musicSelection">
+						<option value="v1">Track 1</option>
+						<option value="v2">Track 2</option>
+					</select>
+					<p class="form-help">Choose your background music</p>
+				</div>				
                 <div class="btn-group">
                     <button type="button" class="action-btn import-export-btn" id="importExportBtn">Import/Export</button>
                     <button type="button" class="action-btn reset-btn" id="resetBtn">Reset All</button>
@@ -794,8 +814,13 @@
 			selectionSpeed: 3,
 			selectionDuration: 3,
 			autoPick: false,
-			reverseOrder: false  
+			reverseOrder: false,
+			musicEnabled: true,
+			musicTrack: 'v1'
 		};
+
+		let currentMusic = 'v1';
+		let isMusicEnabled = true;
 
 		let currentPlace = 1;  // For placed mode: 1 = 1st place, 2 = 2nd place, 3 = 3rd place
 		const placeOrderContainer = document.getElementById('placeOrderContainer');
@@ -828,6 +853,11 @@
         const selectionDurationValue = document.getElementById('selectionDurationValue');
 		const autoPickContainer = document.getElementById('autoPickContainer');
 		const autoPick = document.getElementById('autoPick');        
+
+		const musicToggle = document.getElementById('musicToggle');
+		const musicSelection = document.getElementById('musicSelection');
+		const musicV1 = document.getElementById('music-v1');
+		const musicV2 = document.getElementById('music-v2');
 		
         // Colors for name items
         const colors = [
@@ -865,13 +895,75 @@
             gameMode.addEventListener('change', handleGameModeChange);
             selectionSpeed.addEventListener('input', updateSpeedDisplay);
             selectionDuration.addEventListener('input', updateSelectionDurationDisplay);
+			musicToggle.addEventListener('change', toggleMusic);
+			musicSelection.addEventListener('change', changeMusic);
             
             // Initialize the selection container
             document.querySelector('.name-list-container').classList.add(`speed-${selectionSpeed.value}`);
             
             // Update the display initially
             updateRemainingDisplay();
+			
+			initMusic();
         }
+
+		// Initialize music
+		function initMusic() {
+			// Set initial volume
+			musicV1.volume = 0.5;
+			musicV2.volume = 0.5;
+			
+			// Apply saved music settings
+			if (savedSettings.musicEnabled) {
+				playMusic(savedSettings.musicTrack);
+			}
+			
+			// Update UI to match settings
+			musicToggle.checked = savedSettings.musicEnabled;
+			musicSelection.value = savedSettings.musicTrack;
+		}
+
+		// Play selected music
+		function playMusic(track) {
+			// Stop all tracks first
+			musicV1.pause();
+			musicV2.pause();
+			
+			// Play the selected track if music is enabled
+			if (savedSettings.musicEnabled) {
+				if (track === 'v1') {
+					musicV1.currentTime = 0;
+					musicV1.play().catch(e => console.log('Music playback failed:', e));
+				} else {
+					musicV2.currentTime = 0;
+					musicV2.play().catch(e => console.log('Music playback failed:', e));
+				}
+			}
+			
+			// Update current track
+			currentMusic = track;
+		}
+
+		// Toggle music on/off
+		function toggleMusic() {
+			savedSettings.musicEnabled = musicToggle.checked;
+			
+			if (savedSettings.musicEnabled) {
+				playMusic(currentMusic);
+			} else {
+				musicV1.pause();
+				musicV2.pause();
+			}
+			
+			saveSettings();
+		}
+
+		// Change music track
+		function changeMusic() {
+			savedSettings.musicTrack = musicSelection.value;
+			playMusic(musicSelection.value);
+			saveSettings();
+		}
 
 		// Add function to load settings
 		function loadSettings() {
@@ -890,6 +982,10 @@
 				// Set place order toggle
 				placeOrderToggle.checked = savedSettings.reverseOrder || false;
 				
+				// Music settings (add these lines)
+				musicToggle.checked = savedSettings.musicEnabled !== false; // Default to true if not set
+				musicSelection.value = savedSettings.musicTrack || 'v1'; // Default to v1 if not set
+				
 				// Show/hide option containers based on game mode
 				toggleOptionVisibility();
 				
@@ -907,6 +1003,8 @@
 			savedSettings.selectionDuration = selectionDuration.value;
 			savedSettings.autoPick = autoPick.checked;
 			savedSettings.reverseOrder = placeOrderToggle.checked;
+			savedSettings.musicEnabled = musicToggle.checked;
+			savedSettings.musicTrack = musicSelection.value;
 			
 			// Save to localStorage
 			localStorage.setItem('winnerListSettings', JSON.stringify(savedSettings));
@@ -1861,6 +1959,14 @@
 				gameMode.value = 'first';
 				selectionSpeed.value = 3;
 				selectionDuration.value = 3;
+				
+				// Reset music settings
+				musicToggle.checked = true;
+				musicSelection.value = 'v1';
+				savedSettings.musicEnabled = true;
+				savedSettings.musicTrack = 'v1';
+				playMusic('v1');
+				
 				updateSpeedDisplay();
 				updateSelectionDurationDisplay();
 				
@@ -1875,5 +1981,14 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', init);
     </script>
+
+	<!-- Audio elements for background music -->
+	<audio id="music-v1" loop>
+		<source src="/tools/audio/WinnerList_v1.mp3" type="audio/mpeg">
+	</audio>
+	<audio id="music-v2" loop>
+		<source src="/tools/audio/WinnerList_v2.mp3" type="audio/mpeg">
+	</audio>
+	
 </body>
 </html>
