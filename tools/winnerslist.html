@@ -913,14 +913,18 @@
 			musicV1.volume = 0.5;
 			musicV2.volume = 0.5;
 			
-			// Apply saved music settings
-			if (savedSettings.musicEnabled) {
-				playMusic(savedSettings.musicTrack);
-			}
-			
 			// Update UI to match settings
 			musicToggle.checked = savedSettings.musicEnabled;
 			musicSelection.value = savedSettings.musicTrack;
+			
+			// Add a one-time click handler to the document to enable audio
+			document.addEventListener('click', function enableAudio() {
+				if (savedSettings.musicEnabled) {
+					playMusic(savedSettings.musicTrack);
+				}
+				// Remove this listener after first click
+				document.removeEventListener('click', enableAudio);
+			}, { once: true });
 		}
 
 		// Play selected music
