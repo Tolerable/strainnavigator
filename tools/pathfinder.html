@@ -12,6 +12,8 @@
             --warning: #ff9800;
             --success: #43a047;
             --neutral: #78909c;
+            --danger: #d32f2f;
+            --grey: #78909c;
         }
         
         body {
@@ -64,6 +66,7 @@
             max-width: 520px;
             transition: transform 0.3s ease;
             position: relative;
+            margin-bottom: 20px;
         }
         
         .path-card:hover {
@@ -74,6 +77,10 @@
             padding: 20px;
             color: white;
             text-align: center;
+        }
+        
+        .path-0 .path-header {
+            background-color: var(--grey);
         }
         
         .path-1 .path-header {
@@ -136,11 +143,19 @@
             top: 4px;
         }
         
+        .path-0 .timeline-item:before {
+            background-color: var(--grey);
+        }
+        
         .timeline-title {
             font-weight: bold;
             margin-bottom: 5px;
             font-size: 18px;
             color: var(--dark-green);
+        }
+        
+        .path-0 .timeline-title {
+            color: var(--grey);
         }
         
         .timeline-content {
@@ -208,6 +223,16 @@
         
         .secondary-button:hover {
             background-color: #f0f7f0;
+        }
+        
+        .danger-button {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 2px solid #721c24;
+        }
+        
+        .danger-button:hover {
+            background-color: #f5c6cb;
         }
         
         .resources-section {
@@ -305,6 +330,87 @@
             display: block;
         }
         
+        .risk-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .risk-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+        
+        .transition-section {
+            background-color: white;
+            margin-top: 40px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .transition-title {
+            color: var(--dark-green);
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        .transition-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            position: relative;
+        }
+        
+        .transition-steps:before {
+            content: '';
+            position: absolute;
+            width: 80%;
+            height: 4px;
+            background-color: #e0e0e0;
+            left: 10%;
+            top: 25px;
+            z-index: 1;
+        }
+        
+        .transition-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20%;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--light-green);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .step-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .step-description {
+            text-align: center;
+            font-size: 14px;
+        }
+        
         footer {
             margin-top: 40px;
             text-align: center;
@@ -327,6 +433,20 @@
             .comparison-table {
                 font-size: 14px;
             }
+            
+            .transition-steps {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .transition-steps:before {
+                display: none;
+            }
+            
+            .transition-step {
+                width: 100%;
+                margin-bottom: 30px;
+            }
         }
     </style>
 </head>
@@ -338,6 +458,98 @@
         </header>
         
         <div class="paths-container">
+            <!-- Path 0: Current Grey Market -->
+            <div class="path-card path-0">
+                <div class="path-header" style="background-color: #78909c;">
+                    <h2 class="path-title">Current Path: Grey Market</h2>
+                    <p class="path-description">The risks of continuing unlicensed operations</p>
+                </div>
+                
+                <div class="path-content">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-title">Current Situation</div>
+                            <div class="timeline-content">
+                                <p>Unlicensed growing/selling of cannabis/mushrooms locally</p>
+                                <div class="tags">
+                                    <span class="tag risk">Legal exposure</span>
+                                    <span class="tag risk">Unpredictable income</span>
+                                    <span class="tag benefit">Quick cash flow</span>
+                                </div>
+                                <div class="expand-details" onclick="toggleDetails(this)">See details +</div>
+                                <div class="details">
+                                    <p>• Cash-based transactions with security concerns</p>
+                                    <p>• Limited customer base due to word-of-mouth only</p>
+                                    <p>• Difficult to scale due to legal limitations</p>
+                                    <p>• Income can be good but inconsistent</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-title">3-6 Months</div>
+                            <div class="timeline-content">
+                                <p>Growing operations expand to meet demand</p>
+                                <div class="tags">
+                                    <span class="tag risk">Increased visibility</span>
+                                    <span class="tag risk">Higher penalties if caught</span>
+                                    <span class="tag benefit">Higher revenue</span>
+                                </div>
+                                <div class="expand-details" onclick="toggleDetails(this)">See details +</div>
+                                <div class="details">
+                                    <p>• Electrical, water usage can trigger investigations</p>
+                                    <p>• Larger customer network increases exposure risk</p>
+                                    <p>• No legal recourse for business disputes</p>
+                                    <p>• Difficulty finding reliable helpers/employees</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-title">6-12 Months</div>
+                            <div class="timeline-content">
+                                <p>Balancing increased risks with profits</p>
+                                <div class="tags">
+                                    <span class="tag risk">Potential legal consequences</span>
+                                    <span class="tag risk">Limited growth ceiling</span>
+                                    <span class="tag benefit">Cash accumulation</span>
+                                </div>
+                                <div class="expand-details" onclick="toggleDetails(this)">See details +</div>
+                                <div class="details">
+                                    <p>• Difficulty using/explaining income (tax issues)</p>
+                                    <p>• Cannot access traditional business resources</p>
+                                    <p>• Risk of theft with cash-based business</p>
+                                    <p>• Limited ability to build legitimate resume/experience</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-title">1-2 Years</div>
+                            <div class="timeline-content">
+                                <p>Forced decision point as risks compound</p>
+                                <div class="tags">
+                                    <span class="tag risk">Increasing legal scrutiny</span>
+                                    <span class="tag risk">Difficult to 'cash out'</span>
+                                    <span class="tag neutral">Harder transition to legitimate</span>
+                                </div>
+                                <div class="expand-details" onclick="toggleDetails(this)">See details +</div>
+                                <div class="details">
+                                    <p>• Each transaction increases overall legal exposure</p>
+                                    <p>• No way to sell business or transfer ownership</p>
+                                    <p>• Increasingly difficult to explain source of income</p>
+                                    <p>• Criminal record could prevent future licensing</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-button danger-button" onclick="alert('This path comes with significant legal risks and limits long-term opportunities')">Risks Outweigh Benefits</button>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Path 1: Continue Breeding -->
             <div class="path-card path-1">
                 <div class="path-header">
@@ -515,6 +727,48 @@
             </div>
         </div>
         
+        <!-- Transition Section -->
+        <div class="transition-section">
+            <h3 class="transition-title">How to Transition from Grey Market</h3>
+            
+            <div class="risk-warning">
+                <div class="risk-title">Why Transition Now</div>
+                <p>Continuing in the grey/illicit market becomes increasingly risky over time. As your operation grows, visibility increases, along with potential penalties. A transition plan can help minimize legal exposure while preserving your expertise and genetic assets.</p>
+            </div>
+            
+            <div class="transition-steps">
+                <div class="transition-step">
+                    <div class="step-circle">1</div>
+                    <div class="step-title">Legal Audit</div>
+                    <div class="step-description">Assess current operation for legal vulnerabilities</div>
+                </div>
+                
+                <div class="transition-step">
+                    <div class="step-circle">2</div>
+                    <div class="step-title">Asset Protection</div>
+                    <div class="step-description">Preserve genetics and knowledge</div>
+                </div>
+                
+                <div class="transition-step">
+                    <div class="step-circle">3</div>
+                    <div class="step-title">Business Formation</div>
+                    <div class="step-description">Create compliant legal entity</div>
+                </div>
+                
+                <div class="transition-step">
+                    <div class="step-circle">4</div>
+                    <div class="step-title">Product Transition</div>
+                    <div class="step-description">Shift to fully legal products</div>
+                </div>
+                
+                <div class="transition-step">
+                    <div class="step-circle">5</div>
+                    <div class="step-title">Full Legitimacy</div>
+                    <div class="step-description">Scale with legal protections</div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Comparison Section -->
         <div class="comparison-section">
             <h3 class="comparison-title">Path Comparison</h3>
@@ -522,6 +776,7 @@
                 <thead>
                     <tr>
                         <th>Factor</th>
+                        <th>Grey Market (Current)</th>
                         <th>Master Breeder Path</th>
                         <th>Hemp Entrepreneur Path</th>
                     </tr>
@@ -529,28 +784,45 @@
                 <tbody>
                     <tr>
                         <td>Startup Costs</td>
+                        <td>Already invested</td>
                         <td>Low-Medium ($2-5k)</td>
                         <td>Medium ($5-15k)</td>
                     </tr>
                     <tr>
                         <td>Legal Risk</td>
+                        <td>Very High</td>
                         <td>Medium initially, low later</td>
                         <td>Low throughout</td>
                     </tr>
                     <tr>
                         <td>Income Timeline</td>
+                        <td>Immediate but unstable</td>
                         <td>6-12 months for significant revenue</td>
                         <td>3-6 months for initial revenue</td>
                     </tr>
                     <tr>
                         <td>Long-term Value</td>
+                        <td>Very Low (no transferable assets)</td>
                         <td>High (unique genetic assets)</td>
                         <td>Medium (business infrastructure)</td>
                     </tr>
                     <tr>
                         <td>Time Investment</td>
+                        <td>High (constant vigilance needed)</td>
                         <td>High (breeding requires patience)</td>
                         <td>Medium (business setup front-loaded)</td>
+                    </tr>
+                    <tr>
+                        <td>Banking/Finance</td>
+                        <td>Cash only, tax issues</td>
+                        <td>Legal banking after transition</td>
+                        <td>Legal banking from start</td>
+                    </tr>
+                    <tr>
+                        <td>Future Opportunities</td>
+                        <td>Limited, potential criminal record</td>
+                        <td>Licensing deals, brand value</td>
+                        <td>Retail expansion, raising capital</td>
                     </tr>
                 </tbody>
             </table>
@@ -582,6 +854,48 @@
                     <h4 class="resource-title">COA Testing Services</h4>
                     <p>Recommended labs for Certificate of Analysis testing to verify THC content.</p>
                     <a href="#" class="resource-link" onclick="alert('This would link to list of testing labs')">Find Testing Labs →</a>
+                </div>
+                
+                <div class="resource-card">
+                    <h4 class="resource-title">Criminal Record Expungement</h4>
+                    <p>Information on clearing past cannabis charges in states with legalization.</p>
+                    <a href="#" class="resource-link" onclick="alert('This would link to state-by-state expungement resources')">Expungement Resources →</a>
+                </div>
+                
+                <div class="resource-card">
+                    <h4 class="resource-title">Legal Transition Consultation</h4>
+                    <p>Lawyers specializing in helping grey market operators transition to legal businesses.</p>
+                    <a href="#" class="resource-link" onclick="alert('This would link to cannabis-specific attorneys')">Find Legal Help →</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Real World Experiences Section -->
+        <div class="resources-section">
+            <h3 class="resources-title">Real World Experiences</h3>
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <h4 class="resource-title">Grey Market Success & Failures</h4>
+                    <p>Anonymous stories from those who stayed in the grey market too long and faced consequences.</p>
+                    <a href="#" class="resource-link" onclick="alert('This would link to anonymous case studies')">Read Stories →</a>
+                </div>
+                
+                <div class="resource-card">
+                    <h4 class="resource-title">Transition Success Stories</h4>
+                    <p>How others successfully made the leap from unlicensed to licensed operations.</p>
+                    <a href="#" class="resource-link" onclick="alert('This would link to transition success stories')">Success Stories →</a>
+                </div>
+                
+                <div class="resource-card">
+                    <h4 class="resource-title">Lessons from Legal Troubles</h4>
+                    <p>Common mistakes that led to legal issues and how to avoid them.</p>
+                    <a href="#" class="resource-link" onclick="alert('This would link to legal case studies')">Learn From Others →</a>
+                </div>
+                
+                <div class="resource-card">
+                    <h4 class="resource-title">State Enforcement Trends</h4>
+                    <p>How enforcement varies by state and recent crackdown patterns.</p>
+                    <a href="#" class="resource-link" onclick="alert('This would link to enforcement data')">Enforcement Map →</a>
                 </div>
             </div>
         </div>
