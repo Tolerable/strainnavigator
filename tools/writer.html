@@ -86,12 +86,26 @@
 			display: flex;
 			gap: 15px;
 			margin-bottom: 20px;
-			align-items: center;
+			align-items: flex-start;
 			flex-wrap: wrap;
 		}
 
 		.control-row:last-child {
 			margin-bottom: 0;
+		}
+
+		.input-section {
+			display: flex;
+			flex-direction: column;
+			gap: 15px;
+			width: 100%;
+		}
+
+		.input-row {
+			display: flex;
+			gap: 15px;
+			align-items: center;
+			flex-wrap: wrap;
 		}
 
 		select {
@@ -103,6 +117,30 @@
 			color: var(--text-primary);
 			font-size: 16px;
 			min-width: 180px;
+		}
+
+		textarea {
+			width: 100%;
+			min-height: 120px;
+			padding: 15px 20px;
+			border: none;
+			border-radius: 5px;
+			background-color: var(--bg-primary);
+			color: var(--text-primary);
+			font-size: 16px;
+			font-family: inherit;
+			resize: vertical;
+			line-height: 1.5;
+		}
+
+		textarea::placeholder {
+			color: var(--text-secondary);
+			opacity: 0.7;
+		}
+
+		textarea:focus {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
 		}
 
 		.audio-controls {
@@ -161,6 +199,11 @@
 			color: var(--text-primary);
 			font-size: 16px;
 			min-width: 200px;
+		}
+
+		input[type="text"]:focus {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
 		}
 
 		button {
@@ -269,7 +312,7 @@
 		}
 		
 		@media (max-width: 768px) {
-			.control-row {
+			.control-row, .input-row {
 				flex-direction: column;
 				align-items: stretch;
 			}
@@ -277,6 +320,10 @@
 			select, input[type="text"] {
 				min-width: auto;
 				width: 100%;
+			}
+
+			textarea {
+				min-height: 100px;
 			}
 		}
 		
@@ -299,22 +346,31 @@
 <body>
     <div class="container">
         <div class="controls">
-            <div class="control-row">
-                <select id="releaseType">
-                    <option value="auto">Auto-Detect Type</option>
-                    <option value="strain">Strain Release</option>
-                    <option value="partnership">Partnership Announcement</option>
-                    <option value="event">Event Announcement</option>
-                    <option value="product">Product Launch</option>
-                    <option value="news">Company News</option>
-                    <option value="educational">Educational Content</option>
-                    <option value="promotion">Promotion/Sale</option>
-                </select>
-                <input type="text" id="topicInput" placeholder="Enter your topic or concept">
-            </div>
-            <div class="control-row">
-                <button onclick="generatePost()">Generate Release</button>
-                <button onclick="generateRandomPost()">Random Concept</button>
+            <div class="input-section">
+                <div class="input-row">
+                    <select id="releaseType">
+                        <option value="auto">Auto-Detect Type</option>
+                        <option value="strain">Strain Release</option>
+                        <option value="partnership">Partnership Announcement</option>
+                        <option value="event">Event Announcement</option>
+                        <option value="product">Product Launch</option>
+                        <option value="news">Company News</option>
+                        <option value="educational">Educational Content</option>
+                        <option value="promotion">Promotion/Sale</option>
+                    </select>
+                </div>
+                <textarea id="topicInput" placeholder="Enter your topic, concept, or detailed description here...
+
+Examples:
+• New Purple Haze strain with citrus notes
+• Partnership with GreenTech Labs for sustainable cultivation
+• Cannabis education workshop on terpenes, March 15th
+• Launch of new precision dosing vaporizer line
+• Company expansion into Oregon market"></textarea>
+                <div class="input-row">
+                    <button onclick="generatePost()">Generate Release</button>
+                    <button onclick="generateRandomPost()">Random Concept</button>
+                </div>
             </div>
         </div>
         <div id="loading" class="loading">Generating your release</div>
