@@ -25,20 +25,37 @@
 	"genetics": "Afghani",
 	"photoperiod": "Photo"
 	},
-	"hwm-001": {
+	"gsc-001": {
 	"type": "Hybrid",
-	"description": "A harmonious blend offering energy and inspiration. Known to be Willie Nelson's favorite strain. Features coffee-shop quality flavors with hints of sage and floral notes. This Willie's Wonder descendant combines mood elevation with clear-headed focus.",
+	"description": "A legendary hybrid strain known for its sweet and earthy aroma with hints of mint and cherry. Girl Scout Cookies delivers euphoric effects followed by full-body relaxation.",
+	"effects": ["Euphoric", "Relaxed", "Happy"],
+	"flavors": ["Sweet", "Earthy", "Mint"],
+	"helps_with": ["Pain", "Appetite", "Nausea"],
+	"photoperiod": "Photo"
+	},
+	"hwm-original-001": {
+	"type": "Hybrid",
+	"description": "The original Highwayman cross of Tang Tang and William's Wonder. A harmonious blend offering energy and inspiration. Known to be Willie Nelson's favorite strain. Features coffee-shop quality flavors with hints of sage and floral notes.",
 	"effects": ["Focused", "Creative", "Social"],
 	"flavors": ["Coffee", "Sage", "Floral"],
 	"helps_with": ["Depression", "Stress", "Anxiety"],
 	"photoperiod": "Photo",
 	"generation": "F1"
 	},
+	"hwm-001": {
+	"type": "Hybrid",
+	"description": "A cross of Girl Scout Cookies and the original Highwayman. This GSC x Highwayman hybrid combines the sweet, euphoric qualities of GSC with Highwayman's energetic focus. Features enhanced potency and complex flavor profile blending cookie sweetness with coffee and sage notes.",
+	"effects": ["Focused", "Creative", "Euphoric"],
+	"flavors": ["Sweet", "Coffee", "Earthy"],
+	"helps_with": ["Depression", "Stress", "Anxiety"],
+	"photoperiod": "Photo",
+	"generation": "F1"
+	},
 	"hwm-s1-001": {
 	"type": "Hybrid",
-	"description": "A self-pollinated variant of the renowned Highwayman strain, preserving its beloved characteristics while enhancing stability.",
+	"description": "A self-pollinated variant of the GSC x Highwayman strain, preserving its beloved characteristics while enhancing stability. Maintains the complex cookie-coffee flavor profile with improved consistency.",
 	"effects": ["Focused", "Creative", "Balanced"],
-	"flavors": ["Coffee", "Sage", "Sweet"],
+	"flavors": ["Sweet", "Coffee", "Sage"],
 	"photoperiod": "Photo",
 	"generation": "S1"
 	},
@@ -86,7 +103,7 @@
 	},
 	"myb-001": {
 	"type": "Hybrid",
-	"description": "A cross between RCxMB and Highwayman S1, featuring an alternating node structure with dense, hairy buds. Combines Highwayman's structure with RCxMB's density.",
+	"description": "A cross between RCxMB and GSC x Highwayman S1, featuring an alternating node structure with dense, hairy buds. Combines the GSC x Highwayman structure with RCxMB's density.",
 	"effects": ["Balanced", "Potent", "Clear"],
 	"flavors": ["Complex", "Sweet", "Earthy"],
 	"photoperiod": "Photo",
@@ -102,7 +119,7 @@
 	},
 	"bbs-001": {
 	"type": "Hybrid",
-	"description": "A cross between Highwayman (Female) and RCxMB (Male), featuring an alternating node structure with dense, hairy buds. Combines Highwayman's structure with RCxMB's density.",
+	"description": "A cross between GSC x Highwayman (Female) and RCxMB (Male), featuring an alternating node structure with dense, hairy buds. Combines the GSC x Highwayman structure with RCxMB's density.",
 	"effects": ["Balanced", "Potent", "Clear"],
 	"flavors": ["Complex", "Sweet", "Earthy"],
 	"photoperiod": "Photo",
@@ -110,7 +127,7 @@
 	},
 	"pz-001": {
 	"type": "Hybrid", 
-	"description": "Pink Zydonia is a captivating F1 strain known for its dynamic coloration, with eye-catching pink hues and autumnal tones that often emerge late in flowering, giving it a unique visual appeal. This hybrid masterfully blends the uplifting creativity of Highwayman with the soothing relaxation of Slimer, creating a balanced and versatile experience. Sweet chocolate and coffee notes pair with earthy OG Kush undertones in its complex aroma and flavor, delivering a rich and layered profile. Ideal for both day and evening use, Pink Zydonia lends itself to sparking creativity, relieving stress, or simply unwinding in style.",
+	"description": "Pink Zydonia is a captivating F1 strain known for its dynamic coloration, with eye-catching pink hues and autumnal tones that often emerge late in flowering, giving it a unique visual appeal. This hybrid masterfully blends the uplifting creativity of GSC x Highwayman with the soothing relaxation of Slimer, creating a balanced and versatile experience. Sweet chocolate and coffee notes pair with earthy OG Kush undertones in its complex aroma and flavor, delivering a rich and layered profile. Ideal for both day and evening use, Pink Zydonia lends itself to sparking creativity, relieving stress, or simply unwinding in style.",
 	"effects": ["Creative", "Energetic", "Social"],
 	"flavors": ["Sweet", "Gas", "Floral"],
 	"photoperiod": "Photo",
@@ -118,66 +135,11 @@
 	},
 	"pa-001": {
 	"type": "Hybrid",
-	"description": "A true top-tier strain with legendary roots, PINK APEX is the apex predator of its lineage—a cross of RCxMB (Remo Chemo x Mango Bubba) and Pink Zydonia (Slimer x Highwayman). This F1 hybrid brings sharp, resin-drenched flowers that pack a potent punch. Tropical mango and earthy diesel flavors collide with subtle herbal and creamy undertones, creating a terpene profile as complex as it is unforgettable. Expect a creeping high that builds into a euphoric rush, locking you into a perfect blend of cerebral clarity and physical calmness. PINK APEX is not just a strain—it’s an unstoppable force in your garden and your grinder, dominating both with its cosmic power.",
+	"description": "A true top-tier strain with legendary roots, PINK APEX is the apex predator of its lineage—a cross of RCxMB (Remo Chemo x Mango Bubba) and Pink Zydonia (Slimer x GSC x Highwayman). This F1 hybrid brings sharp, resin-drenched flowers that pack a potent punch. Tropical mango and earthy diesel flavors collide with subtle herbal and creamy undertones, creating a terpene profile as complex as it is unforgettable. Expect a creeping high that builds into a euphoric rush, locking you into a perfect blend of cerebral clarity and physical calmness. PINK APEX is not just a strain—it's an unstoppable force in your garden and your grinder, dominating both with its cosmic power.",
 	"effects": ["Potent", "Balanced", "Long-lasting"],
 	"flavors": ["Complex", "Sweet", "Spicy"],
 	"photoperiod": "Photo",
 	"generation": "F1"
-	},
-	"gl-s3-001": {
-	"type": "Hybrid",
-	"description": "The third selfed generation (S3) of G-Licious, originally from Copy Cat Genetics and further developed by Skrrt's Genetix. Features insane bag appeal with intense gas, fuel, OG funk, and chemical soap terpenes. An exceptionally frosty strain with remarkable potency.",
-	"effects": ["Potent", "Euphoric", "Long-lasting"],
-	"flavors": ["Gas", "Fuel", "Chemical", "OG Funk"],
-	"photoperiod": "Photo",
-	"thc": "41-43%",
-	"totalCannabinoids": "44%+",
-	"cbn": "2%",
-	"yield": "Heavy",
-	"stretchFactor": "3x",
-	"floweringDays": 56,
-	"generation": "S3",
-	"genetics": "(High Octane x Dr.Sleep) x The Wulff reversal",
-	"terpeneProfile": "Gas, Fuel, OG Funk, Chemical Soap",
-	"helps_with": ["Pain", "Stress", "Appetite"]
-	},
-	"gl-s2-001": {
-	"type": "Hybrid",
-	"description": "The second selfed generation (S2) of G-Licious, selfed by Skrrt's Genetix. Maintains the insane bag appeal and frosty characteristics with gas, fuel, OG funk, and chemical soap terpenes.",
-	"effects": ["Potent", "Euphoric", "Long-lasting"],
-	"flavors": ["Gas", "Fuel", "Chemical", "OG Funk"],
-	"photoperiod": "Photo",
-	"thc": "41-43%",
-	"totalCannabinoids": "44%+",
-	"cbn": "2%",
-	"yield": "Heavy",
-	"stretchFactor": "3x",
-	"floweringDays": 56,
-	"generation": "S2",
-	"terpeneProfile": "Gas, Fuel, OG Funk, Chemical Soap"
-	},
-	"gl-s1-001": {
-	"type": "Hybrid",
-	"description": "The first selfed generation (S1) of G-Licious, hunted and reversed in-house by Copy Cat Genetics. Known for its exceptional resin production and powerful effects.",
-	"effects": ["Potent", "Euphoric", "Long-lasting"],
-	"flavors": ["Gas", "Fuel", "Chemical", "OG Funk"],
-	"photoperiod": "Photo",
-	"thc": "41-43%",
-	"totalCannabinoids": "44%+",
-	"cbn": "2%",
-	"yield": "Heavy",
-	"stretchFactor": "3x",
-	"floweringDays": 56,
-	"generation": "S1",
-	"terpeneProfile": "Gas, Fuel, OG Funk, Chemical Soap"
-	},
-	"gl-001": {
-	"type": "Hybrid",
-	"description": "An original creation from Copy Cat Genetics, crossing (High Octane x Dr.Sleep) with The Wulff reversal. The foundation of the G-Licious line.",
-	"effects": ["Potent", "Euphoric", "Long-lasting"],
-	"flavors": ["Gas", "Fuel", "Chemical", "OG Funk"],
-	"photoperiod": "Photo",
-	"genetics": "(High Octane x Dr.Sleep) x The Wulff reversal"
 	}
   }
 }
