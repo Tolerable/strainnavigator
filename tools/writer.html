@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StrainNavigator Strain Release Generator</title>
+    <title>StrainNavigator Release Generator</title>
     <style>
 		:root {
 			--bg-primary: #1a1a1a;
@@ -82,6 +82,29 @@
 			max-width: 800px;
 		}
 
+		.control-row {
+			display: flex;
+			gap: 15px;
+			margin-bottom: 20px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		.control-row:last-child {
+			margin-bottom: 0;
+		}
+
+		select {
+			height: 45px;
+			padding: 0 15px;
+			border: none;
+			border-radius: 5px;
+			background-color: var(--bg-primary);
+			color: var(--text-primary);
+			font-size: 16px;
+			min-width: 180px;
+		}
+
 		.audio-controls {
 			margin: 20px 0;
 			padding: 15px;
@@ -128,12 +151,6 @@
 			background-color: var(--accent-hover);
 		}
 
-		.input-group {
-			display: flex;
-			align-items: center;
-			gap: 15px;
-		}
-
 		input[type="text"] {
 			flex: 1;
 			height: 45px;
@@ -143,6 +160,7 @@
 			background-color: var(--bg-primary);
 			color: var(--text-primary);
 			font-size: 16px;
+			min-width: 200px;
 		}
 
 		button {
@@ -250,6 +268,18 @@
 			60%, 100% { content: "..."; }
 		}
 		
+		@media (max-width: 768px) {
+			.control-row {
+				flex-direction: column;
+				align-items: stretch;
+			}
+			
+			select, input[type="text"] {
+				min-width: auto;
+				width: 100%;
+			}
+		}
+		
 		@media (min-width: 768px) {
 			.audio-player-container {
 				flex-direction: row;
@@ -269,48 +299,144 @@
 <body>
     <div class="container">
         <div class="controls">
-            <div class="input-group">
-                <input type="text" id="topicInput" placeholder="Enter strain name or click Random">
-                <button onclick="generatePost()">Generate Strain Post</button>
-                <button onclick="generateRandomPost()">Random Strain</button>
+            <div class="control-row">
+                <select id="releaseType">
+                    <option value="auto">Auto-Detect Type</option>
+                    <option value="strain">Strain Release</option>
+                    <option value="partnership">Partnership Announcement</option>
+                    <option value="event">Event Announcement</option>
+                    <option value="product">Product Launch</option>
+                    <option value="news">Company News</option>
+                    <option value="educational">Educational Content</option>
+                    <option value="promotion">Promotion/Sale</option>
+                </select>
+                <input type="text" id="topicInput" placeholder="Enter your topic or concept">
+            </div>
+            <div class="control-row">
+                <button onclick="generatePost()">Generate Release</button>
+                <button onclick="generateRandomPost()">Random Concept</button>
             </div>
         </div>
-        <div id="loading" class="loading">Generating your strain release</div>
+        <div id="loading" class="loading">Generating your release</div>
         <div id="blogPost" class="blog-post"></div>
     </div>
 
     <script>
+        const releaseTypes = {
+            auto: {
+                systemMessage: `You are a versatile content writer for StrainNavigator. Analyze the user's input and create the most appropriate type of release or announcement. This could be a strain description, partnership announcement, event promotion, product launch, company news, educational content, or promotional material. 
 
-        function getRandomElements(arr, count) {
-            return arr.sort(() => 0.5 - Math.random()).slice(0, count);
+                Keep your writing clean and professional - do NOT use asterisks, markdown, or special formatting characters in your responses. Write naturally with plain text only.
+
+                Your writing style should be engaging and professional, tailored to cannabis industry audiences. Adapt your tone and format based on what type of content would best serve the input provided.`,
+                prompt: (concept) => `Analyze this topic and create the most appropriate type of release or announcement: "${concept}".
+
+                Determine whether this should be a strain description, partnership announcement, event promotion, product launch, company news, educational content, or promotional material, then write accordingly.
+
+                Keep it engaging but concise (2-4 paragraphs maximum).
+                Format with "TITLE:" at the beginning, followed by the content.
+                The tone should be professional but accessible to cannabis enthusiasts.
+                Do not use any special characters, markdown, or formatting - use plain text only.`,
+                imageKeywords: "cannabis announcement promotional design"
+            },
+            strain: {
+                systemMessage: `You are a cannabis strain description writer for StrainNavigator. 
+                Keep your writing clean and professional - do NOT use asterisks, 
+                markdown, or special formatting characters in your responses.
+                Write naturally with plain text only.
+                Your writing style is professional yet engaging, with accurate cannabis terminology
+                and vivid sensory descriptions.`,
+                prompt: (concept) => `Create a brief, appealing strain description for "${concept}".
+                Keep it concise (2-3 short paragraphs maximum).
+                Be authentic and do not make up specific details you cannot know.
+                Focus on the strain name vibe and general cannabis attributes.
+                Format with "TITLE:" at the beginning, followed by the description.
+                The tone should be professional but accessible to cannabis enthusiasts.
+                Do not use any special characters, markdown, or formatting - use plain text only.`,
+                imageKeywords: "cannabis strain promotional logo vibrant colors bold design premium branding"
+            },
+            partnership: {
+                systemMessage: `You are a partnership announcement writer for StrainNavigator. Write professional, exciting announcements about business partnerships, collaborations, and strategic alliances in the cannabis industry. Keep your writing clean and professional - do NOT use asterisks, markdown, or special formatting characters.`,
+                prompt: (concept) => `Create an exciting partnership announcement for "${concept}".
+                Focus on the collaboration benefits, shared values, and what this means for customers.
+                Keep it professional but enthusiastic (2-3 paragraphs maximum).
+                Format with "TITLE:" at the beginning, followed by the announcement.
+                Do not use any special characters, markdown, or formatting - use plain text only.`,
+                imageKeywords: "business partnership handshake collaboration professional cannabis industry"
+            },
+            event: {
+                systemMessage: `You are an event promotion writer for StrainNavigator. Create compelling announcements for cannabis industry events, educational sessions, product launches, and community gatherings. Keep your writing clean and professional - do NOT use asterisks, markdown, or special formatting characters.`,
+                prompt: (concept) => `Create an engaging event announcement for "${concept}".
+                Include key details about what attendees can expect and why they should participate.
+                Keep it exciting and informative (2-3 paragraphs maximum).
+                Format with "TITLE:" at the beginning, followed by the event details.
+                Do not use any special characters, markdown, or formatting - use plain text only.`,
+                imageKeywords: "event announcement cannabis industry gathering professional vibrant"
+            },
+            product: {
+                systemMessage: `You are a product launch writer for StrainNavigator. Create compelling announcements for new cannabis products, accessories, services, or innovations. Keep your writing clean and professional - do NOT use asterisks, markdown, or special formatting characters.`,
+                prompt: (concept) => `Create an exciting product launch announcement for "${concept}".
+                Highlight key features, benefits, and what makes this product special.
+                Keep it compelling and informative (2-3 paragraphs maximum).
+                Format with "TITLE:" at the beginning, followed by the product details.
+                Do not use any special characters, markdown, or formatting - use plain text only.`,
+                imageKeywords: "product launch cannabis innovation modern design professional branding"
+            },
+            news: {
+                systemMessage: `You are a company news writer for StrainNavigator. Create professional announcements about company updates, achievements, expansions, and important developments. Keep your writing clean and professional - do NOT use asterisks, markdown, or special formatting characters.`,
+                prompt: (concept) => `Create a professional company news announcement for "${concept}".
+                Focus on the significance of this development and its impact.
+                Keep it informative and professional (2-3 paragraphs maximum).
+                Format with "TITLE:" at the beginning, followed by the news content.
+                Do not use any special characters, markdown, or formatting - use plain text only.`,
+                imageKeywords: "company news professional announcement cannabis industry corporate"
+            },
+            educational: {
+                systemMessage: `You are an educational content writer for StrainNavigator. Create informative, accessible content that educates readers about cannabis topics, industry insights, and helpful information. Keep your writing clean and professional - do NOT use asterisks, markdown, or special formatting characters.`,
+                prompt: (concept) => `Create educational content about "${concept}".
+                Make complex topics accessible and provide valuable insights for cannabis enthusiasts.
+                Keep it informative yet engaging (3-4 paragraphs maximum).
+                Format with "TITLE:" at the beginning, followed by the educational content.
+                Do not use any special characters, markdown, or formatting - use plain text only.`,
+                imageKeywords: "educational cannabis information professional clean design informative"
+            },
+            promotion: {
+                systemMessage: `You are a promotional content writer for StrainNavigator. Create compelling promotional announcements for sales, special offers, limited-time deals, and customer incentives. Keep your writing clean and professional - do NOT use asterisks, markdown, or special formatting characters.`,
+                prompt: (concept) => `Create an exciting promotional announcement for "${concept}".
+                Emphasize value, urgency, and benefits for customers.
+                Keep it compelling and action-oriented (2-3 paragraphs maximum).
+                Format with "TITLE:" at the beginning, followed by the promotional details.
+                Do not use any special characters, markdown, or formatting - use plain text only.`,
+                imageKeywords: "promotional sale offer cannabis deal vibrant exciting professional"
+            }
+        };
+
+        function generateRandomConcept() {
+            const concepts = [
+                "Purple Haze premium strain launch",
+                "Partnership with local cultivation experts",
+                "Cannabis education workshop series",
+                "New vaporizer product line",
+                "Grand opening celebration event",
+                "Company expansion to new markets",
+                "Understanding terpenes and effects",
+                "Flash sale on premium products"
+            ];
+            return concepts[Math.floor(Math.random() * concepts.length)];
         }
-
-		function generatePrompt(concept) {
-			return `Create a brief, appealing strain description for "${concept}".
-					Keep it concise (2-3 short paragraphs maximum).
-					Be authentic and do not make up specific details you cannot know.
-					Focus on the strain name vibe and general cannabis attributes.
-					Format with "TITLE:" at the beginning, followed by the description.
-					The tone should be professional but accessible to cannabis enthusiasts.
-					Do not use any special characters, markdown, or formatting - use plain text only.`;
-		}
-
-		function generateRandomConcept() {
-			const phenomenon = phenomena[Math.floor(Math.random() * phenomena.length)];
-			const location = locations[Math.floor(Math.random() * locations.length)];
-			const implication = implications[Math.floor(Math.random() * implications.length)];
-			
-			return `${phenomenon}, a ${location}, ${implication}`;
-		}
 
 		async function generatePost() {
 			const topicInput = document.getElementById('topicInput');
+			const releaseTypeSelect = document.getElementById('releaseType');
 			const concept = topicInput.value.trim() || generateRandomConcept();
+			const releaseType = releaseTypeSelect.value;
 			const seed = Math.floor(Math.random() * 1000000);
 			
 			document.getElementById('loading').style.display = 'block';
 			const blogPost = document.getElementById('blogPost');
 			blogPost.classList.remove('visible');
+
+			const selectedType = releaseTypes[releaseType];
 
 			try {
 				const articleResponse = await fetch('https://text.pollinations.ai/', {
@@ -322,16 +448,11 @@
 						messages: [
 							{
 								role: 'system',
-								content: `You are a cannabis strain description writer for StrainNavigator. 
-								Keep your writing clean and professional - do NOT use asterisks, 
-								markdown, or special formatting characters in your responses.
-								Write naturally with plain text only.
-								Your writing style is professional yet engaging, with accurate cannabis terminology
-								and vivid sensory descriptions.`
+								content: selectedType.systemMessage
 							},
 							{
 								role: 'user',
-								content: generatePrompt(concept)
+								content: selectedType.prompt(concept)
 							}
 						],
 						model: 'openai',
@@ -343,7 +464,6 @@
 				
 				const titleMatch = articleData.match(/TITLE:\s*(.+?)(?:\n|$)/);
 				let title = titleMatch ? titleMatch[1].trim() : concept;
-				// Remove any asterisks or other markdown characters
 				title = title.replace(/[\*\#\_\~\`]/g, '');
 				
 				const cleanArticleData = articleData
@@ -352,12 +472,11 @@
 					.replace(/\*\*/g, '')
 					.trim();
 				
-				const imagePrompt = `detailed ${title} promotional logo including the cannabis strain name in TEXT with vibrant colors, bold lines, intense label design, high contrast, premium branding, excessive cannabis imagery, high resolution, include visual rendering styles`;
+				const imagePrompt = `${selectedType.imageKeywords} ${title} high resolution professional design`;
 				const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=800&height=400&nologo=true&model=flux&enhance=true`;
 				const audioText = `${title}. ${cleanArticleData}`;
 				const audioUrl = await generateAudio(audioText, { voice: 'nova' });
 				
-				// Sanitize title for potential filename
 				const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 				
 				blogPost.innerHTML = `
@@ -375,7 +494,7 @@
 							).join('')}
 						</div>
 						<div class="audio-controls">
-							<h3>Listen to Description</h3>
+							<h3>Listen to Content</h3>
 							<div class="audio-player-container">
 								<audio controls id="description-audio" class="audio-player">
 									<source src="${audioUrl}" type="audio/mpeg" id="audio-source">
@@ -409,7 +528,7 @@
 			} catch (error) {
 				console.error('Error:', error);
 				document.getElementById('loading').style.display = 'none';
-				blogPost.innerHTML = '<p>Error generating strain post. Please try again.</p>';
+				blogPost.innerHTML = '<p>Error generating release. Please try again.</p>';
 				blogPost.classList.add('visible');
 			}
 		}
@@ -419,34 +538,27 @@
 				const audioUrl = document.getElementById('audio-source').src;
 				const title = document.querySelector('.blog-post h1').innerText.trim();
 				const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-				const fileName = `${sanitizedTitle}_strain_audio.mp3`;
+				const fileName = `${sanitizedTitle}_audio.mp3`;
 				
-				// Show some indication that download is in progress
 				const downloadBtn = document.getElementById('downloadAudio');
 				const originalText = downloadBtn.innerHTML;
 				downloadBtn.innerHTML = 'Downloading...';
 				downloadBtn.disabled = true;
 				
-				// Fetch the audio file as a blob
 				const response = await fetch(audioUrl);
 				if (!response.ok) throw new Error('Network response was not ok');
 				
 				const blob = await response.blob();
-				
-				// Create a blob URL
 				const blobUrl = window.URL.createObjectURL(blob);
 				
-				// Create an invisible anchor element with download attribute
 				const downloadLink = document.createElement('a');
 				downloadLink.style.display = 'none';
 				downloadLink.href = blobUrl;
-				downloadLink.download = fileName; // This is what forces the download
+				downloadLink.download = fileName;
 				
-				// Append to the DOM and trigger the download
 				document.body.appendChild(downloadLink);
 				downloadLink.click();
 				
-				// Clean up
 				setTimeout(() => {
 					window.URL.revokeObjectURL(blobUrl);
 					document.body.removeChild(downloadLink);
@@ -457,7 +569,6 @@
 				console.error('Download failed:', error);
 				alert('Download failed. Please try again.');
 				
-				// Reset button state
 				const downloadBtn = document.getElementById('downloadAudio');
 				downloadBtn.innerHTML = `
 					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -473,7 +584,6 @@
 
 		async function generateAudio(text, options = {}) {
 		  try {
-			// First, we need to create a prompt that instructs the AI to read verbatim
 			const instructionPrefix = "READ THIS TEXT VERBATIM WITHOUT ANY COMMENTARY OR RESPONSE: ";
 			const textToRead = instructionPrefix + text;
 			const encodedText = encodeURIComponent(textToRead);
@@ -516,10 +626,8 @@
 			const title = blogPost.querySelector('h1').innerText;
 			const paragraphs = Array.from(blogPost.querySelectorAll('.blog-paragraph'));
 			
-			// Create text with proper line breaks and StrainNavigator info
 			const formattedContent = `${title}\n\n${paragraphs.map(p => p.innerText).join('\n\n')}\n\n© ${new Date().getFullYear()} StrainNavigator\nwww.strainnavigator.com`;
 			
-			// Use newer clipboard API for better text handling
 			navigator.clipboard.writeText(formattedContent)
 				.then(() => {
 					const button = document.getElementById('copyButton');
