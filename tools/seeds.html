@@ -1206,25 +1206,36 @@ async function loadStrain(id) {
 
 async function loadStrainData() {
     try {
+        // ALWAYS load fresh data from files first
+        const response = await fetch('./strains/strainInfo.json');
+        const strainInfoData = await response.json();
+        strainInfo = strainInfoData.info;
+
+        const strainsResponse = await fetch('./strains/strains.json');
+        const strainsData = await strainsResponse.json();
+        strains = strainsData.strains;
+
+        // Then load user data and merge
         const data = await initializeStorage();
         const activeProfile = data.profiles[data.activeProfile];
         
-        if ((!activeProfile.strains || !activeProfile.strains.length)) {
-            const response = await fetch('./strains/strainInfo.json');
-            const strainInfoData = await response.json();
-            strainInfo = strainInfoData.info;
-
-            const strainsResponse = await fetch('./strains/strains.json');
-            const strainsData = await strainsResponse.json();
-            strains = strainsData.strains;
-
-            activeProfile.strains = strains;
-            activeProfile.customStrainInfo = strainInfo;
-            await saveData(data);
-        } else {
-            strains = activeProfile.strains;
-            strainInfo = activeProfile.customStrainInfo;
+        // Merge any custom user strains with the base data
+        if (activeProfile.strains && activeProfile.strains.length > 0) {
+            // Find custom strains (ones not in the base files)
+            const baseStrainIds = strains.map(s => s.id);
+            const customStrains = activeProfile.strains.filter(s => !baseStrainIds.includes(s.id));
+            
+            // Add custom strains to the main array
+            strains = [...strains, ...customStrains];
+            
+            // Merge strain info, prioritizing custom info over base info
+            strainInfo = { ...strainInfo, ...activeProfile.customStrainInfo };
         }
+
+        // Update the profile with fresh base data
+        activeProfile.strains = strains;
+        activeProfile.customStrainInfo = strainInfo;
+        await saveData(data);
 
         // Use focal strain if available, otherwise use defaults
         if (activeProfile.focalStrain) {
