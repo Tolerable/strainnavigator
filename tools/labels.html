@@ -1479,7 +1479,7 @@
 					];
 					
 					// Send to API
-					const response = await fetch('https://text.pollinations.ai/', {
+					const response = await fetch('https://text.pollinations.ai/?referrer=strainnavigator.com', {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
@@ -1591,7 +1591,7 @@
 				const enhanceParam = enhanceOption.checked ? '&enhance=true' : '';
 				const privateParam = privateOption.checked ? '&private=true' : '';
 				const modelParam = '&model=flux';
-				const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true${enhanceParam}${privateParam}${modelParam}&width=2048&height=2048&seed=${randomSeed}`;
+				const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true${enhanceParam}${privateParam}${modelParam}&width=2048&height=2048&seed=${randomSeed}&referrer=strainnavigator.com`;
 				
 				try {
 					showToast("Generating your branded label...");
