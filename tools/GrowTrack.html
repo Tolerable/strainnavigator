@@ -475,10 +475,14 @@
                     <label for="strain">Strain</label>
                     <input type="text" id="strain" name="strain" placeholder="e.g., Northern Lights">
                 </div>
-                <div class="form-group">
-                    <label for="start-date">Start Date</label>
-                    <input type="date" id="start-date" name="startDate" required>
-                </div>
+				<div class="form-group">
+					<label for="start-date">Start Date</label>
+					<input type="date" id="start-date" name="startDate" required>
+				</div>
+				<div class="form-group">
+					<label for="current-day">Current Day (if plant is already growing)</label>
+					<input type="number" id="current-day" name="currentDay" min="1" placeholder="e.g. 30 if plant is 30 days old" value="1">
+				</div>
                 <div class="form-group">
                     <label for="grow-type">Grow Type</label>
                     <select id="grow-type" name="growType">
@@ -598,11 +602,8 @@
 
 		async function addPhoto(photoData) {
 			try {
-				// Get plant info first
-				const plant = await getPlant(photoData.plantId);
-				
-				// Add text overlay to image first (outside of transaction)
-				const labeledImageData = await addTextOverlay(photoData.imageData, photoData.plantName, photoData.date, plant.startDate);
+				// Use the selectedPlant's startDate (already loaded)
+				const labeledImageData = await addTextOverlay(photoData.imageData, photoData.plantName, photoData.date, selectedPlant.startDate);
 				
 				// Then start the database transaction
 				const transaction = db.transaction(['photos'], 'readwrite');
@@ -618,7 +619,6 @@
 					const request = store.add(photo);
 					request.onsuccess = () => resolve(request.result);
 					request.onerror = () => reject(request.error);
-					// Add timeout protection
 					setTimeout(() => reject(new Error('Transaction timeout')), 5000);
 				});
 
@@ -758,7 +758,13 @@
         }
 
 		async function selectPlant(plantId, plantName) {
-			selectedPlant = { id: plantId, name: plantName };
+			// Get the full plant data including startDate
+			const plant = await getPlant(plantId);
+			selectedPlant = { 
+				id: plantId, 
+				name: plantName,
+				startDate: plant.startDate  // Add this!
+			};
 			
 			// Update UI
 			document.querySelectorAll('.plant-chip').forEach(chip => chip.classList.remove('active'));
@@ -1066,20 +1072,29 @@
             document.getElementById('plant-form').reset();
         }
 
-        document.getElementById('plant-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const plantData = Object.fromEntries(formData.entries());
-            
-            try {
-                await addPlant(plantData);
-                closeAddPlant();
-                loadPlants();
-                alert('Plant added successfully!');
-            } catch (error) {
-                alert('Error adding plant: ' + error.message);
-            }
-        });
+		document.getElementById('plant-form').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const formData = new FormData(e.target);
+			const plantData = Object.fromEntries(formData.entries());
+			
+			// Calculate the actual start date based on current day
+			const currentDay = parseInt(plantData.currentDay) || 1;
+			const actualStartDate = new Date();
+			actualStartDate.setDate(actualStartDate.getDate() - (currentDay - 1));
+			
+			// Use the calculated start date instead
+			plantData.startDate = actualStartDate.toISOString().split('T')[0];
+			delete plantData.currentDay; // Remove this from the stored data
+			
+			try {
+				await addPlant(plantData);
+				closeAddPlant();
+				loadPlants();
+				alert('Plant added successfully!');
+			} catch (error) {
+				alert('Error adding plant: ' + error.message);
+			}
+		});
 
         async function openPhotoModal(photoId) {
             const transaction = db.transaction(['photos'], 'readonly');
