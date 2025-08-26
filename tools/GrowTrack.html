@@ -596,11 +596,13 @@
             });
         }
 
-        // Photo management with text overlay
 		async function addPhoto(photoData) {
 			try {
+				// Get plant info first
+				const plant = await getPlant(photoData.plantId);
+				
 				// Add text overlay to image first (outside of transaction)
-				const labeledImageData = await addTextOverlay(photoData.imageData, photoData.plantName, photoData.date);
+				const labeledImageData = await addTextOverlay(photoData.imageData, photoData.plantName, photoData.date, plant.startDate);
 				
 				// Then start the database transaction
 				const transaction = db.transaction(['photos'], 'readwrite');
@@ -628,11 +630,11 @@
 			}
 		}
 
-		async function addTextOverlay(imageDataUrl, plantName, date) {
+		async function addTextOverlay(imageDataUrl, plantName, date, plantStartDate) {
 			return new Promise((resolve, reject) => {
 				const img = new Image();
 				img.onerror = () => reject(new Error('Failed to load image'));
-				img.onload = async () => {
+				img.onload = () => {
 					try {
 						const canvas = document.createElement('canvas');
 						const ctx = canvas.getContext('2d');
@@ -643,9 +645,8 @@
 						// Draw the original image
 						ctx.drawImage(img, 0, 0);
 						
-						// Get plant info to calculate grow day
-						const plant = await getPlant(selectedPlant.id);
-						const growDay = calculateGrowDay(plant.startDate, date);
+						// Calculate grow day using passed start date
+						const growDay = calculateGrowDay(plantStartDate, date);
 						
 						// Prepare text overlay for bottom left
 						const leftTexts = [];
