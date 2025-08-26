@@ -632,7 +632,7 @@
 			return new Promise((resolve, reject) => {
 				const img = new Image();
 				img.onerror = () => reject(new Error('Failed to load image'));
-				img.onload = () => {
+				img.onload = async () => {
 					try {
 						const canvas = document.createElement('canvas');
 						const ctx = canvas.getContext('2d');
@@ -643,34 +643,49 @@
 						// Draw the original image
 						ctx.drawImage(img, 0, 0);
 						
-						// Prepare text overlay
-						const texts = [];
-						if (labelSettings.date) texts.push(new Date(date).toLocaleDateString());
-						if (labelSettings.plant) texts.push(plantName);
+						// Get plant info to calculate grow day
+						const plant = await getPlant(selectedPlant.id);
+						const growDay = calculateGrowDay(plant.startDate, date);
 						
-						if (texts.length > 0) {
-							// Set up text styling
+						// Prepare text overlay for bottom left
+						const leftTexts = [];
+						if (labelSettings.date) leftTexts.push(new Date(date).toLocaleDateString());
+						if (labelSettings.plant) leftTexts.push(plantName);
+						
+						// Prepare day text for bottom right
+						const dayText = `Day ${growDay}`;
+						
+						ctx.font = `${Math.max(16, canvas.width / 40)}px Arial`;
+						const padding = Math.max(10, canvas.width / 80);
+						const lineHeight = Math.max(20, canvas.width / 32);
+						
+						// Draw bottom left info
+						if (leftTexts.length > 0) {
 							ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-							ctx.font = `${Math.max(16, canvas.width / 40)}px Arial`;
 							ctx.textAlign = 'left';
 							ctx.textBaseline = 'bottom';
 							
-							const padding = Math.max(10, canvas.width / 80);
-							const lineHeight = Math.max(20, canvas.width / 32);
-							
-							// Draw background rectangle
-							const textWidth = Math.max(...texts.map(text => ctx.measureText(text).width));
-							const rectHeight = texts.length * lineHeight + padding;
+							const textWidth = Math.max(...leftTexts.map(text => ctx.measureText(text).width));
+							const rectHeight = leftTexts.length * lineHeight + padding;
 							ctx.fillRect(0, canvas.height - rectHeight, textWidth + padding * 2, rectHeight);
 							
-							// Draw text
 							ctx.fillStyle = 'white';
-							texts.forEach((text, index) => {
-								ctx.fillText(text, padding, canvas.height - padding - (texts.length - 1 - index) * lineHeight);
+							leftTexts.forEach((text, index) => {
+								ctx.fillText(text, padding, canvas.height - padding - (leftTexts.length - 1 - index) * lineHeight);
 							});
 						}
 						
-						// Convert to data URL with compression
+						// Draw bottom right day counter
+						ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+						ctx.textAlign = 'right';
+						ctx.textBaseline = 'bottom';
+						
+						const dayWidth = ctx.measureText(dayText).width;
+						ctx.fillRect(canvas.width - dayWidth - padding * 2, canvas.height - lineHeight - padding, dayWidth + padding * 2, lineHeight + padding);
+						
+						ctx.fillStyle = 'white';
+						ctx.fillText(dayText, canvas.width - padding, canvas.height - padding);
+						
 						const result = canvas.toDataURL('image/jpeg', 0.8);
 						resolve(result);
 					} catch (error) {
@@ -741,18 +756,23 @@
             }).join('');
         }
 
-        function selectPlant(plantId, plantName) {
-            selectedPlant = { id: plantId, name: plantName };
-            
-            // Update UI
-            document.querySelectorAll('.plant-chip').forEach(chip => chip.classList.remove('active'));
-            document.querySelector(`[data-id="${plantId}"]`).classList.add('active');
-            document.getElementById('photo-section').classList.remove('hidden');
-            document.getElementById('save-photo').disabled = true;
-            
-            // Reset photo preview
-            resetPhotoPreview();
-        }
+		async function selectPlant(plantId, plantName) {
+			selectedPlant = { id: plantId, name: plantName };
+			
+			// Update UI
+			document.querySelectorAll('.plant-chip').forEach(chip => chip.classList.remove('active'));
+			document.querySelector(`[data-id="${plantId}"]`).classList.add('active');
+			document.getElementById('photo-section').classList.remove('hidden');
+			document.getElementById('save-photo').disabled = true;
+			
+			// Reset photo preview
+			resetPhotoPreview();
+			
+			// Show timeline for this plant
+			const timelineHtml = await showPlantTimeline(plantId, plantName);
+			const recentPhotos = document.getElementById('recent-photos');
+			recentPhotos.innerHTML = timelineHtml;
+		}
 
         function resetPhotoPreview() {
             document.getElementById('photo-preview').classList.add('hidden');
@@ -834,6 +854,14 @@
             };
             reader.readAsDataURL(file);
         }
+
+		function calculateGrowDay(plantStartDate, photoDate) {
+			const start = new Date(plantStartDate);
+			const photo = new Date(photoDate);
+			const diffTime = photo - start;
+			const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 because day 1 is start date
+			return diffDays;
+		}
 
 		document.getElementById('save-photo').addEventListener('click', async () => {
 			if (!selectedPlant) return;
@@ -944,6 +972,87 @@
                 document.querySelector('.action-btn[onclick="toggleGallery()"] div:last-child').textContent = 'View Gallery';
             }
         }
+
+		async function createPlantTimeline(plantId) {
+			const plant = await getPlant(plantId);
+			const photos = await getPhotosByPlant(plantId);
+			
+			// Create a map of all days from start to today
+			const startDate = new Date(plant.startDate);
+			const today = new Date();
+			const totalDays = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
+			
+			const timeline = [];
+			for (let day = totalDays; day >= 1; day--) { // Newest first (left to right)
+				const dayDate = new Date(startDate);
+				dayDate.setDate(dayDate.getDate() + day - 1);
+				const dateString = dayDate.toISOString().split('T')[0];
+				
+				const dayPhoto = photos.find(photo => photo.date === dateString);
+				
+				timeline.push({
+					day: day,
+					date: dateString,
+					photo: dayPhoto || null,
+					missed: !dayPhoto && dayDate <= today
+				});
+			}
+			
+			return timeline;
+		}
+
+		async function showPlantTimeline(plantId, plantName) {
+			const timeline = await createPlantTimeline(plantId);
+			
+			const timelineHtml = `
+				<div style="margin: 20px 0;">
+					<h3 style="color: #67b367; margin-bottom: 15px; text-align: center;">
+						${plantName} - Timeline
+					</h3>
+					<div style="
+						display: flex; 
+						gap: 10px; 
+						overflow-x: auto; 
+						padding: 10px 0;
+						scroll-snap-type: x mandatory;
+					">
+						${timeline.map(day => `
+							<div style="
+								flex-shrink: 0;
+								width: 80px;
+								text-align: center;
+								scroll-snap-align: start;
+								${day.photo ? 'cursor: pointer;' : ''}
+							" ${day.photo ? `onclick="openPhotoModal(${day.photo.id})"` : ''}>
+								<div style="
+									width: 80px;
+									height: 80px;
+									border-radius: 10px;
+									background: ${day.photo ? `url('${day.photo.imageData}') center/cover` : 
+											   day.missed ? 'rgba(255, 100, 100, 0.3)' : 'rgba(255, 255, 255, 0.1)'};
+									border: 2px solid ${day.photo ? '#67b367' : day.missed ? '#ff6464' : 'rgba(255, 255, 255, 0.2)'};
+									display: flex;
+									align-items: center;
+									justify-content: center;
+									margin-bottom: 8px;
+									${day.photo ? 'transform: scale(1); transition: transform 0.2s;' : ''}
+								" ${day.photo ? 'onmouseover="this.style.transform=\'scale(1.05)\'" onmouseout="this.style.transform=\'scale(1)\'"' : ''}>
+									${!day.photo ? `<span style="color: ${day.missed ? '#ff6464' : 'rgba(255,255,255,0.5)'}; font-size: 12px;">${day.missed ? 'MISS' : 'TBD'}</span>` : ''}
+								</div>
+								<div style="font-size: 12px; color: #67b367; font-weight: bold;">
+									Day ${day.day}
+								</div>
+								<div style="font-size: 10px; color: rgba(255,255,255,0.6);">
+									${new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+								</div>
+							</div>
+						`).join('')}
+					</div>
+				</div>
+			`;
+			
+			return timelineHtml;
+		}
 
         // Modal functions
         function openAddPlant() {
