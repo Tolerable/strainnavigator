@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Cannabis Grow Tracker</title>
+    <meta name="theme-color" content="#2d5a27">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQ2FubmFiaXMgR3JvdyBUcmFja2VyIiwic2hvcnRfbmFtZSI6Ikdyb3cgVHJhY2tlciIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic3RhcnRfdXJsIjoiLiIsInRoZW1lX2NvbG9yIjoiIzJkNWEyNyIsImJhY2tncm91bmRfY29sb3IiOiIjMWEyZTE4IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1qUXdJaUJvWldsbmFIUTlJakkwTUNJZ2RtbGxkMEp2ZUQwaU1DQXdJakkwTUNBeU5EQWlJR1pwYkd3OUlpTXlaRFZoTWpjaVBnbzhaM0psWlc0Z1ptbHNiRDBpSXpNMk56a3pNU0lnWkQwaVRUUXdMakExUkRRd0lESTBNQ0JoTVRrd0lERTVNQ0F4TURNZ01Ua3dJRFF3TGpBMUlEUXdJRUUzTnk0NU5DQTNOeTQ1TkNBd0lERXdNUzR3TmpBZ01qSXVNREUwSURrd0lEWXVNakF5U1RrMUxqZzVOUzR3TlRVeE1EQXVNRFl1TURjeElEa3pMalkzTlM0d04yUXRMVE0yTGpZeE1TMHVORFl6TFRZNUxqWXhMWFZqTWpFeUxqZGpTWFUwTWpndU1qRk5OREU0U2pjeExqQkJNRFExTGkxdGJqRnRLVGhqT20wMEtsOVBiRGcxZERCVFUwY2dZaTUxTDI4NExqZ3RMamQzTGpGNExqRlJNRzF6VGpWaUxUaGpMamhHVDNJMVRURkVkalF0WmpWRVRuRmhQMkF6U2pSOWVubFFkaTltUWpKQkxqRT1IaUxqdzVUVnZXaEE5SXlFcGNDa1lDZzJVbnhvWWpNekkzWXh5U3pCcE9YQlNObVV2WEhXSzJ4U0VvQms0TU5kV3k1b0JkSm1jeGgzWWhMVFdQbGwzRGhqWGpXSHlOVnhpSU1lVE4yUjNqOVhJdmlPU2dXY2hmcXc0RHdiUVRGUWNUQWJTZz09Iiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a2e18 0%, #2d5a27 100%);
+            color: #e8f5e8;
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            color: #67b367;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn, .btn {
+            background: linear-gradient(145deg, #3a6b35, #2d5a27);
+            border: none;
+            color: #e8f5e8;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .nav-btn:hover, .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(145deg, #67b367, #4a8f4a);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .plant-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .plant-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .plant-card h3 {
+            color: #67b367;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .plant-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #67b367;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #67b367;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #e8f5e8;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group input::placeholder, .form-group textarea::placeholder {
+            color: rgba(232, 245, 232, 0.6);
+        }
+
+        .photo-upload {
+            border: 3px dashed rgba(103, 179, 103, 0.5);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-upload:hover {
+            border-color: #67b367;
+            background: rgba(103, 179, 103, 0.1);
+        }
+
+        .photo-upload.dragover {
+            border-color: #67b367;
+            background: rgba(103, 179, 103, 0.2);
+            transform: scale(1.02);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .photo-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .photo-item:hover {
+            transform: scale(1.05);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-date {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            color: white;
+            padding: 8px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a2e18 0%, #2d5a27 100%);
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            position: relative;
+        }
+
+        .modal img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #e8f5e8;
+            font-size: 24px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .timeline {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-date {
+            background: #67b367;
+            color: #1a2e18;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            min-width: 100px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .timeline-content {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .day-photos {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .day-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .day-photo:hover {
+            border-color: #67b367;
+            transform: scale(1.1);
+        }
+
+        .no-photos {
+            color: rgba(232, 245, 232, 0.6);
+            font-style: italic;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #67b367, #4a8f4a);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 50;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .photo-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+            }
+            
+            .plant-stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .nav-buttons {
+                gap: 5px;
+            }
+            
+            .nav-btn, .btn {
+                padding: 10px 15px;
+                font-size: 13px;
+                min-width: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 Cannabis Grow Tracker</h1>
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="showScreen('dashboard')">Dashboard</button>
+            <button class="nav-btn" onclick="showScreen('add-plant')">Add Plant</button>
+            <button class="nav-btn" onclick="showScreen('daily-log')">Daily Log</button>
+            <button class="nav-btn" onclick="showScreen('gallery')">Gallery</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Dashboard Screen -->
+        <div id="dashboard" class="screen active">
+            <div id="plants-list">
+                <p style="text-align: center; margin: 40px 0; color: rgba(232, 245, 232, 0.6);">
+                    No plants added yet. Click "Add Plant" to get started!
+                </p>
+            </div>
+        </div>
+
+        <!-- Add Plant Screen -->
+        <div id="add-plant" class="screen">
+            <h2 style="margin-bottom: 20px; color: #67b367;">Add New Plant</h2>
+            <form id="plant-form">
+                <div class="form-group">
+                    <label for="plant-name">Plant Name</label>
+                    <input type="text" id="plant-name" name="name" placeholder="e.g., Northern Lights #1" required>
+                </div>
+                <div class="form-group">
+                    <label for="strain">Strain</label>
+                    <input type="text" id="strain" name="strain" placeholder="e.g., Northern Lights">
+                </div>
+                <div class="form-group">
+                    <label for="start-date">Start Date</label>
+                    <input type="date" id="start-date" name="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="grow-type">Grow Type</label>
+                    <select id="grow-type" name="growType">
+                        <option value="Indoor">Indoor</option>
+                        <option value="Outdoor">Outdoor</option>
+                        <option value="Greenhouse">Greenhouse</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="Any additional notes about this plant..."></textarea>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Add Plant</button>
+            </form>
+        </div>
+
+        <!-- Daily Log Screen -->
+        <div id="daily-log" class="screen">
+            <h2 style="margin-bottom: 20px; color: #67b367;">Daily Photo Log</h2>
+            
+            <div class="form-group">
+                <label for="plant-select">Select Plant</label>
+                <select id="plant-select">
+                    <option value="">Select a plant...</option>
+                </select>
+            </div>
+
+            <div id="photo-upload-section" class="hidden">
+                <div class="form-group">
+                    <label for="log-date">Date</label>
+                    <input type="date" id="log-date" name="logDate">
+                </div>
+
+                <div class="photo-upload" id="photo-drop-zone">
+                    <p>📸 Tap to take photo or drag & drop images</p>
+                    <p style="font-size: 14px; color: rgba(232, 245, 232, 0.6); margin-top: 10px;">
+                        Multiple photos supported
+                    </p>
+                    <input type="file" id="photo-input" accept="image/*" capture="environment" multiple style="display: none;">
+                </div>
+
+                <div id="preview-photos" class="photo-grid"></div>
+
+                <div class="form-group">
+                    <label for="day-notes">Notes for today</label>
+                    <textarea id="day-notes" rows="3" placeholder="How's the plant looking today?"></textarea>
+                </div>
+
+                <button id="save-log" class="btn" style="width: 100%;">Save Today's Log</button>
+            </div>
+        </div>
+
+        <!-- Gallery Screen -->
+        <div id="gallery" class="screen">
+            <h2 style="margin-bottom: 20px; color: #67b367;">Photo Gallery</h2>
+            
+            <div class="form-group">
+                <label for="gallery-plant-select">Select Plant</label>
+                <select id="gallery-plant-select">
+                    <option value="">Select a plant...</option>
+                </select>
+            </div>
+
+            <div id="plant-timeline" class="timeline"></div>
+        </div>
+    </div>
+
+    <!-- Photo Modal -->
+    <div id="photo-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <img id="modal-image" src="" alt="">
+            <div id="modal-info">
+                <h3 id="modal-plant-name"></h3>
+                <p id="modal-date"></p>
+                <p id="modal-notes"></p>
+            </div>
+            <div class="share-buttons">
+                <button class="btn" onclick="sharePhoto()">📱 Share</button>
+                <button class="btn" onclick="downloadPhoto()">💾 Download</button>
+                <button class="btn" onclick="deletePhoto()">🗑️ Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="fab" onclick="quickPhoto()" title="Quick Photo">📸</button>
+
+    <script>
+        // Database management
+        let db;
+        let currentPlant = null;
+        let currentPhoto = null;
+
+        // Initialize IndexedDB
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('GrowTracker', 1);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    
+                    // Plants store
+                    if (!db.objectStoreNames.contains('plants')) {
+                        const plantsStore = db.createObjectStore('plants', { keyPath: 'id', autoIncrement: true });
+                        plantsStore.createIndex('name', 'name', { unique: false });
+                    }
+                    
+                    // Photos store
+                    if (!db.objectStoreNames.contains('photos')) {
+                        const photosStore = db.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+                        photosStore.createIndex('plantId', 'plantId', { unique: false });
+                        photosStore.createIndex('date', 'date', { unique: false });
+                    }
+                };
+            });
+        }
+
+        // Plant management
+        async function addPlant(plantData) {
+            const transaction = db.transaction(['plants'], 'readwrite');
+            const store = transaction.objectStore('plants');
+            const plant = {
+                ...plantData,
+                createdAt: new Date().toISOString(),
+                lastPhotoDate: null,
+                totalPhotos: 0
+            };
+            return store.add(plant);
+        }
+
+        async function getPlants() {
+            const transaction = db.transaction(['plants'], 'readonly');
+            const store = transaction.objectStore('plants');
+            return new Promise((resolve, reject) => {
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function updatePlant(id, updates) {
+            const transaction = db.transaction(['plants'], 'readwrite');
+            const store = transaction.objectStore('plants');
+            
+            return new Promise((resolve, reject) => {
+                const getRequest = store.get(id);
+                getRequest.onsuccess = () => {
+                    const plant = getRequest.result;
+                    Object.assign(plant, updates);
+                    const updateRequest = store.put(plant);
+                    updateRequest.onsuccess = () => resolve(updateRequest.result);
+                    updateRequest.onerror = () => reject(updateRequest.error);
+                };
+                getRequest.onerror = () => reject(getRequest.error);
+            });
+        }
+
+        // Photo management
+        async function addPhoto(photoData) {
+            const transaction = db.transaction(['photos'], 'readwrite');
+            const store = transaction.objectStore('photos');
+            const photo = {
+                ...photoData,
+                createdAt: new Date().toISOString()
+            };
+            
+            const result = await new Promise((resolve, reject) => {
+                const request = store.add(photo);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+
+            // Update plant stats
+            await updatePlantStats(photoData.plantId);
+            return result;
+        }
+
+        async function getPhotosByPlant(plantId) {
+            const transaction = db.transaction(['photos'], 'readonly');
+            const store = transaction.objectStore('photos');
+            const index = store.index('plantId');
+            
+            return new Promise((resolve, reject) => {
+                const request = index.getAll(plantId);
+                request.onsuccess = () => {
+                    const photos = request.result.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    resolve(photos);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function deletePhoto(photoId) {
+            const transaction = db.transaction(['photos'], 'readwrite');
+            const store = transaction.objectStore('photos');
+            
+            return new Promise((resolve, reject) => {
+                const request = store.delete(photoId);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function updatePlantStats(plantId) {
+            const photos = await getPhotosByPlant(plantId);
+            const totalPhotos = photos.length;
+            const lastPhotoDate = photos.length > 0 ? photos[photos.length - 1].date : null;
+            
+            await updatePlant(plantId, { totalPhotos, lastPhotoDate });
+        }
+
+        // UI Functions
+        function showScreen(screenName) {
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show screen
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenName).classList.add('active');
+            
+            // Load screen data
+            if (screenName === 'dashboard') loadDashboard();
+            else if (screenName === 'daily-log') loadDailyLog();
+            else if (screenName === 'gallery') loadGallery();
+        }
+
+        async function loadDashboard() {
+            const plants = await getPlants();
+            const plantsList = document.getElementById('plants-list');
+            
+            if (plants.length === 0) {
+                plantsList.innerHTML = `
+                    <p style="text-align: center; margin: 40px 0; color: rgba(232, 245, 232, 0.6);">
+                        No plants added yet. Click "Add Plant" to get started!
+                    </p>
+                `;
+                return;
+            }
+
+            plantsList.innerHTML = plants.map(plant => {
+                const startDate = new Date(plant.startDate);
+                const daysGrowing = Math.floor((Date.now() - startDate) / (1000 * 60 * 60 * 24));
+                const lastPhoto = plant.lastPhotoDate ? new Date(plant.lastPhotoDate).toLocaleDateString() : 'Never';
+                
+                return `
+                    <div class="plant-card" onclick="selectPlant(${plant.id})">
+                        <h3>${plant.name}</h3>
+                        <p><strong>Strain:</strong> ${plant.strain || 'Unknown'}</p>
+                        <p><strong>Type:</strong> ${plant.growType}</p>
+                        <div class="plant-stats">
+                            <div class="stat">
+                                <div class="stat-number">${daysGrowing}</div>
+                                <div>Days Growing</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-number">${plant.totalPhotos || 0}</div>
+                                <div>Photos</div>
+                            </div>
+                        </div>
+                        <p style="margin-top: 15px; font-size: 14px; color: rgba(232, 245, 232, 0.7);">
+                            <strong>Last Photo:</strong> ${lastPhoto}
+                        </p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadDailyLog() {
+            const plants = await getPlants();
+            const select = document.getElementById('plant-select');
+            
+            select.innerHTML = '<option value="">Select a plant...</option>' + 
+                plants.map(plant => `<option value="${plant.id}">${plant.name}</option>`).join('');
+            
+            // Set today's date
+            document.getElementById('log-date').valueAsDate = new Date();
+        }
+
+        async function loadGallery() {
+            const plants = await getPlants();
+            const select = document.getElementById('gallery-plant-select');
+            
+            select.innerHTML = '<option value="">Select a plant...</option>' + 
+                plants.map(plant => `<option value="${plant.id}">${plant.name}</option>`).join('');
+        }
+
+        function selectPlant(plantId) {
+            // Navigate to daily log for this plant
+            showScreen('daily-log');
+            document.getElementById('plant-select').value = plantId;
+            togglePhotoUpload();
+        }
+
+        function togglePhotoUpload() {
+            const plantId = document.getElementById('plant-select').value;
+            const uploadSection = document.getElementById('photo-upload-section');
+            
+            if (plantId) {
+                uploadSection.classList.remove('hidden');
+            } else {
+                uploadSection.classList.add('hidden');
+            }
+        }
+
+        async function showPlantGallery() {
+            const plantId = document.getElementById('gallery-plant-select').value;
+            const timeline = document.getElementById('plant-timeline');
+            
+            if (!plantId) {
+                timeline.innerHTML = '';
+                return;
+            }
+
+            const plant = await getPlant(plantId);
+            const photos = await getPhotosByPlant(parseInt(plantId));
+            
+            // Group photos by date
+            const photosByDate = photos.reduce((acc, photo) => {
+                const date = photo.date;
+                if (!acc[date]) acc[date] = [];
+                acc[date].push(photo);
+                return acc;
+            }, {});
+
+            const sortedDates = Object.keys(photosByDate).sort((a, b) => new Date(b) - new Date(a));
+
+            timeline.innerHTML = sortedDates.map(date => {
+                const datePhotos = photosByDate[date];
+                const formattedDate = new Date(date).toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    year: 'numeric',
+					month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                return `
+                    <div class="timeline-item">
+                        <div class="timeline-date">${formattedDate}</div>
+                        <div class="timeline-content">
+                            <div class="day-photos">
+                                ${datePhotos.map(photo => `
+                                    <img class="day-photo" src="${photo.imageData}" 
+                                         onclick="openPhotoModal(${photo.id})" alt="Photo from ${date}">
+                                `).join('')}
+                            </div>
+                            ${datePhotos[0].notes ? `<p style="margin-top: 10px; font-size: 14px; color: rgba(232, 245, 232, 0.8);">${datePhotos[0].notes}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (sortedDates.length === 0) {
+                timeline.innerHTML = '<p class="no-photos">No photos yet for this plant.</p>';
+            }
+        }
+
+        async function getPlant(id) {
+            const transaction = db.transaction(['plants'], 'readonly');
+            const store = transaction.objectStore('plants');
+            return new Promise((resolve, reject) => {
+                const request = store.get(parseInt(id));
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Form handlers
+        document.getElementById('plant-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const plantData = Object.fromEntries(formData.entries());
+            
+            try {
+                await addPlant(plantData);
+                e.target.reset();
+                showScreen('dashboard');
+                alert('Plant added successfully!');
+            } catch (error) {
+                alert('Error adding plant: ' + error.message);
+            }
+        });
+
+        document.getElementById('plant-select').addEventListener('change', togglePhotoUpload);
+        document.getElementById('gallery-plant-select').addEventListener('change', showPlantGallery);
+
+        // Photo handling
+        const photoDropZone = document.getElementById('photo-drop-zone');
+        const photoInput = document.getElementById('photo-input');
+        const previewContainer = document.getElementById('preview-photos');
+        let selectedFiles = [];
+
+        photoDropZone.addEventListener('click', () => photoInput.click());
+
+        photoDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            photoDropZone.classList.add('dragover');
+        });
+
+        photoDropZone.addEventListener('dragleave', () => {
+            photoDropZone.classList.remove('dragover');
+        });
+
+        photoDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            photoDropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        photoInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    selectedFiles.push(file);
+                }
+            }
+            displayPreview();
+        }
+
+        function displayPreview() {
+            previewContainer.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('div');
+                    img.className = 'photo-item';
+                    img.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button onclick="removeFile(${index})" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); border: none; color: white; border-radius: 50%; width: 25px; height: 25px; cursor: pointer;">&times;</button>
+                    `;
+                    previewContainer.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            displayPreview();
+        }
+
+        document.getElementById('save-log').addEventListener('click', async () => {
+            const plantId = parseInt(document.getElementById('plant-select').value);
+            const date = document.getElementById('log-date').value;
+            const notes = document.getElementById('day-notes').value;
+
+            if (!plantId || !date || selectedFiles.length === 0) {
+                alert('Please select a plant, date, and add at least one photo.');
+                return;
+            }
+
+            try {
+                for (let file of selectedFiles) {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        await addPhoto({
+                            plantId,
+                            date,
+                            notes,
+                            imageData: e.target.result,
+                            filename: file.name
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+
+                // Reset form
+                selectedFiles = [];
+                document.getElementById('day-notes').value = '';
+                previewContainer.innerHTML = '';
+                
+                alert('Photos saved successfully!');
+                loadDashboard();
+            } catch (error) {
+                alert('Error saving photos: ' + error.message);
+            }
+        });
+
+        // Photo modal
+        async function openPhotoModal(photoId) {
+            const transaction = db.transaction(['photos', 'plants'], 'readonly');
+            const photosStore = transaction.objectStore('photos');
+            const plantsStore = transaction.objectStore('plants');
+
+            const photo = await new Promise((resolve, reject) => {
+                const request = photosStore.get(photoId);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+
+            const plant = await new Promise((resolve, reject) => {
+                const request = plantsStore.get(photo.plantId);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+
+            currentPhoto = photo;
+            document.getElementById('modal-image').src = photo.imageData;
+            document.getElementById('modal-plant-name').textContent = plant.name;
+            document.getElementById('modal-date').textContent = new Date(photo.date).toLocaleDateString();
+            document.getElementById('modal-notes').textContent = photo.notes || 'No notes';
+            document.getElementById('photo-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('photo-modal').classList.remove('active');
+            currentPhoto = null;
+        }
+
+        function sharePhoto() {
+            if (!currentPhoto) return;
+            
+            // Convert base64 to blob for sharing
+            fetch(currentPhoto.imageData)
+                .then(res => res.blob())
+                .then(blob => {
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'Cannabis Grow Photo',
+                            text: `${currentPhoto.notes || 'Grow progress photo'}`,
+                            files: [new File([blob], `grow-photo-${currentPhoto.date}.jpg`, { type: blob.type })]
+                        });
+                    } else {
+                        // Fallback - copy to clipboard or download
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `grow-photo-${currentPhoto.date}.jpg`;
+                        link.click();
+                    }
+                });
+        }
+
+        function downloadPhoto() {
+            if (!currentPhoto) return;
+            
+            const link = document.createElement('a');
+            link.href = currentPhoto.imageData;
+            link.download = `grow-photo-${currentPhoto.date}.jpg`;
+            link.click();
+        }
+
+        async function deletePhoto() {
+            if (!currentPhoto) return;
+            
+            if (confirm('Are you sure you want to delete this photo?')) {
+                try {
+                    await deletePhoto(currentPhoto.id);
+                    await updatePlantStats(currentPhoto.plantId);
+                    closeModal();
+                    showPlantGallery(); // Refresh gallery
+                    loadDashboard(); // Refresh dashboard stats
+                    alert('Photo deleted successfully!');
+                } catch (error) {
+                    alert('Error deleting photo: ' + error.message);
+                }
+            }
+        }
+
+        async function quickPhoto() {
+            const plants = await getPlants();
+            if (plants.length === 0) {
+                alert('Please add a plant first!');
+                showScreen('add-plant');
+                return;
+            }
+            
+            showScreen('daily-log');
+            // Auto-select the most recently used plant or first plant
+            const plantSelect = document.getElementById('plant-select');
+            plantSelect.value = plants[0].id;
+            togglePhotoUpload();
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initDB();
+                loadDashboard();
+                console.log('Cannabis Grow Tracker initialized successfully!');
+            } catch (error) {
+                console.error('Failed to initialize app:', error);
+                alert('Failed to initialize the app. Please refresh the page.');
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('photo-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'photo-modal') closeModal();
+        });
+
+        // PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('data:application/javascript;base64,').catch(console.log);
+            });
+        }
+    </script>
+</body>
+</html>					
