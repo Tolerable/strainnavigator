@@ -597,74 +597,89 @@
         }
 
         // Photo management with text overlay
-        async function addPhoto(photoData) {
-            const transaction = db.transaction(['photos'], 'readwrite');
-            const store = transaction.objectStore('photos');
-            
-            // Add text overlay to image
-            const labeledImageData = await addTextOverlay(photoData.imageData, photoData.plantName, photoData.date);
-            
-            const photo = {
-                ...photoData,
-                imageData: labeledImageData,
-                createdAt: new Date().toISOString()
-            };
-            
-            const result = await new Promise((resolve, reject) => {
-                const request = store.add(photo);
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
+		async function addPhoto(photoData) {
+			try {
+				// Add text overlay to image first (outside of transaction)
+				const labeledImageData = await addTextOverlay(photoData.imageData, photoData.plantName, photoData.date);
+				
+				// Then start the database transaction
+				const transaction = db.transaction(['photos'], 'readwrite');
+				const store = transaction.objectStore('photos');
+				
+				const photo = {
+					...photoData,
+					imageData: labeledImageData,
+					createdAt: new Date().toISOString()
+				};
+				
+				const result = await new Promise((resolve, reject) => {
+					const request = store.add(photo);
+					request.onsuccess = () => resolve(request.result);
+					request.onerror = () => reject(request.error);
+					// Add timeout protection
+					setTimeout(() => reject(new Error('Transaction timeout')), 5000);
+				});
 
-            await updatePlantStats(photoData.plantId);
-            return result;
-        }
+				await updatePlantStats(photoData.plantId);
+				return result;
+			} catch (error) {
+				console.error('Error adding photo:', error);
+				throw error;
+			}
+		}
 
-        async function addTextOverlay(imageDataUrl, plantName, date) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    
-                    // Draw the original image
-                    ctx.drawImage(img, 0, 0);
-                    
-                    // Prepare text overlay
-                    const texts = [];
-                    if (labelSettings.date) texts.push(new Date(date).toLocaleDateString());
-                    if (labelSettings.plant) texts.push(plantName);
-                    
-                    if (texts.length > 0) {
-                        // Set up text styling
-                        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                        ctx.font = `${Math.max(16, canvas.width / 40)}px Arial`;
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'bottom';
-                        
-                        const padding = Math.max(10, canvas.width / 80);
-                        const lineHeight = Math.max(20, canvas.width / 32);
-                        
-                        // Draw background rectangle
-                        const textWidth = Math.max(...texts.map(text => ctx.measureText(text).width));
-                        const rectHeight = texts.length * lineHeight + padding;
-                        ctx.fillRect(0, canvas.height - rectHeight, textWidth + padding * 2, rectHeight);
-                        
-                        // Draw text
-                        ctx.fillStyle = 'white';
-                        texts.forEach((text, index) => {
-                            ctx.fillText(text, padding, canvas.height - padding - (texts.length - 1 - index) * lineHeight);
-                        });
-                    }
-                    
-                    resolve(canvas.toDataURL('image/jpeg', 0.8));
-                };
-                img.src = imageDataUrl;
-            });
-        }
+		async function addTextOverlay(imageDataUrl, plantName, date) {
+			return new Promise((resolve, reject) => {
+				const img = new Image();
+				img.onerror = () => reject(new Error('Failed to load image'));
+				img.onload = () => {
+					try {
+						const canvas = document.createElement('canvas');
+						const ctx = canvas.getContext('2d');
+						
+						canvas.width = img.width;
+						canvas.height = img.height;
+						
+						// Draw the original image
+						ctx.drawImage(img, 0, 0);
+						
+						// Prepare text overlay
+						const texts = [];
+						if (labelSettings.date) texts.push(new Date(date).toLocaleDateString());
+						if (labelSettings.plant) texts.push(plantName);
+						
+						if (texts.length > 0) {
+							// Set up text styling
+							ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+							ctx.font = `${Math.max(16, canvas.width / 40)}px Arial`;
+							ctx.textAlign = 'left';
+							ctx.textBaseline = 'bottom';
+							
+							const padding = Math.max(10, canvas.width / 80);
+							const lineHeight = Math.max(20, canvas.width / 32);
+							
+							// Draw background rectangle
+							const textWidth = Math.max(...texts.map(text => ctx.measureText(text).width));
+							const rectHeight = texts.length * lineHeight + padding;
+							ctx.fillRect(0, canvas.height - rectHeight, textWidth + padding * 2, rectHeight);
+							
+							// Draw text
+							ctx.fillStyle = 'white';
+							texts.forEach((text, index) => {
+								ctx.fillText(text, padding, canvas.height - padding - (texts.length - 1 - index) * lineHeight);
+							});
+						}
+						
+						// Convert to data URL with compression
+						const result = canvas.toDataURL('image/jpeg', 0.8);
+						resolve(result);
+					} catch (error) {
+						reject(error);
+					}
+				};
+				img.src = imageDataUrl;
+			});
+		}
 
         async function getRecentPhotos(limit = 12) {
             const transaction = db.transaction(['photos'], 'readonly');
@@ -820,34 +835,44 @@
             reader.readAsDataURL(file);
         }
 
-        document.getElementById('save-photo').addEventListener('click', async () => {
-            if (!selectedPlant) return;
-            
-            const preview = document.getElementById('photo-preview');
-            const notes = document.getElementById('photo-notes').value;
-            const today = new Date().toISOString().split('T')[0];
-            
-            try {
-                await addPhoto({
-                    plantId: selectedPlant.id,
-                    plantName: selectedPlant.name,
-                    date: today,
-                    notes: notes,
-                    imageData: preview.src
-                });
-                
-                // Reset form
-                resetPhotoPreview();
-                document.getElementById('photo-notes').value = '';
-                
-                // Refresh recent photos
-                loadRecentPhotos();
-                
-                alert('Photo saved successfully!');
-            } catch (error) {
-                alert('Error saving photo: ' + error.message);
-            }
-        });
+		document.getElementById('save-photo').addEventListener('click', async () => {
+			if (!selectedPlant) return;
+			
+			const preview = document.getElementById('photo-preview');
+			const notes = document.getElementById('photo-notes').value;
+			const today = new Date().toISOString().split('T')[0];
+			const saveButton = document.getElementById('save-photo');
+			
+			// Disable button during save
+			saveButton.disabled = true;
+			saveButton.textContent = 'Saving...';
+			
+			try {
+				await addPhoto({
+					plantId: selectedPlant.id,
+					plantName: selectedPlant.name,
+					date: today,
+					notes: notes,
+					imageData: preview.src
+				});
+				
+				// Reset form
+				resetPhotoPreview();
+				document.getElementById('photo-notes').value = '';
+				
+				// Refresh recent photos
+				await loadRecentPhotos();
+				
+				alert('Photo saved successfully!');
+			} catch (error) {
+				console.error('Save error:', error);
+				alert('Error saving photo. Please try again.');
+			} finally {
+				// Re-enable button
+				saveButton.disabled = false;
+				saveButton.textContent = 'Save Photo';
+			}
+		});
 
         async function loadRecentPhotos() {
             const photos = await getRecentPhotos();
