@@ -1103,26 +1103,44 @@
             currentPhoto = null;
         }
 
-        function sharePhoto() {
-            if (!currentPhoto) return;
-            
-            fetch(currentPhoto.imageData)
-                .then(res => res.blob())
-                .then(blob => {
-                    if (navigator.share) {
-                        navigator.share({
-                            title: 'Cannabis Grow Photo',
-                            text: `${currentPhoto.plantName} - ${new Date(currentPhoto.date).toLocaleDateString()}`,
-                            files: [new File([blob], `${currentPhoto.plantName}-${currentPhoto.date}.jpg`, { type: blob.type })]
-                        }).catch(console.log);
-                    } else {
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = `${currentPhoto.plantName}-${currentPhoto.date}.jpg`;
-                        link.click();
-                    }
-                });
-        }
+		function sharePhoto() {
+			if (!currentPhoto) return;
+			
+			fetch(currentPhoto.imageData)
+				.then(res => res.blob())
+				.then(blob => {
+					// Mobile - use native share if available
+					if (navigator.share && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+						navigator.share({
+							title: 'Cannabis Grow Photo',
+							text: `${currentPhoto.plantName} - ${new Date(currentPhoto.date).toLocaleDateString()}`,
+							files: [new File([blob], `${currentPhoto.plantName}-${currentPhoto.date}.jpg`, { type: blob.type })]
+						}).catch(console.log);
+					} 
+					// Desktop - copy to clipboard
+					else if (navigator.clipboard && navigator.clipboard.write) {
+						navigator.clipboard.write([
+							new ClipboardItem({
+								[blob.type]: blob
+							})
+						]).then(() => {
+							alert('Image copied to clipboard! You can now paste it in Discord, etc.');
+						}).catch(err => {
+							console.error('Clipboard copy failed:', err);
+							// Fallback - show instructions
+							alert('Right-click the image and select "Copy Image" to copy to clipboard');
+						});
+					}
+					// Fallback for older browsers
+					else {
+						alert('Right-click the image and select "Copy Image" to copy to clipboard, or use the Download button to save');
+					}
+				})
+				.catch(err => {
+					console.error('Share failed:', err);
+					alert('Share failed. Try the Download button instead.');
+				});
+		}
 
         function downloadPhoto() {
             if (!currentPhoto) return;
