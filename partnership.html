@@ -862,4 +862,89 @@
                 timestamp: new Date().toISOString()
             };
             
-            // Store application (in real
+            // Store application (in real implementation, this would go to your backend)
+            localStorage.setItem('partnershipApplication', JSON.stringify(formData));
+            
+            alert('Application submitted successfully! You will be contacted within 2-3 business days.');
+            
+            // Reset form
+            this.reset();
+        });
+
+        // Request form handling
+        document.getElementById('requestForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const requestData = {
+                type: document.getElementById('requestType').value,
+                details: document.getElementById('requestDetails').value,
+                cost: document.getElementById('estimatedCost').value,
+                urgency: document.getElementById('urgency').value,
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            };
+            
+            // Add to activity log
+            addActivityEntry(`Support Request: ${requestData.type}`, 'Pending Review');
+            
+            alert('Request submitted successfully!');
+            this.reset();
+        });
+
+        // Contribution form handling
+        document.getElementById('contributionForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const contribData = {
+                type: document.getElementById('contribType').value,
+                date: document.getElementById('contribDate').value,
+                details: document.getElementById('contribDetails').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Add to activity log
+            addActivityEntry(`Contribution: ${contribData.type}`, new Date(contribData.date).toLocaleDateString());
+            
+            alert('Contribution logged successfully!');
+            this.reset();
+        });
+
+        function addActivityEntry(description, date) {
+            const logContainer = document.getElementById('activityLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span>${description}</span>
+                <span>${date}</span>
+            `;
+            logContainer.insertBefore(entry, logContainer.firstChild);
+        }
+
+        // Initialize dashboard if user has applied
+        function initializeDashboard() {
+            const application = localStorage.getItem('partnershipApplication');
+            if (application) {
+                const data = JSON.parse(application);
+                document.getElementById('partnerName').textContent = data.name;
+                document.getElementById('startDate').textContent = new Date(data.timestamp).toLocaleDateString();
+                document.getElementById('dashboardTab').style.display = 'block';
+                
+                // Add some sample activity
+                addActivityEntry('Partnership Started', new Date(data.timestamp).toLocaleDateString());
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            initializeDashboard();
+            
+            // Set today's date as default for contribution date
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('contribDate');
+            if (dateInput) {
+                dateInput.value = today;
+            }
+        });
+    </script>
+</body>
+</html>
