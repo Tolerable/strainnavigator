@@ -453,6 +453,123 @@
             margin-bottom: 1rem;
         }
 
+		.advisor-container {
+			background: white;
+			border-radius: 10px;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+			overflow: hidden;
+		}
+
+		.advisor-chat {
+			height: 400px;
+			overflow-y: auto;
+			padding: 20px;
+			background: var(--background);
+			border-bottom: 1px solid #ddd;
+		}
+
+		.advisor-message {
+			margin-bottom: 15px;
+			padding: 12px 15px;
+			border-radius: 15px;
+			max-width: 85%;
+			word-wrap: break-word;
+		}
+
+		.advisor-message.user-message {
+			background: #e3f2fd;
+			margin-left: auto;
+			border-bottom-right-radius: 5px;
+		}
+
+		.advisor-message.ai-message {
+			background: white;
+			margin-right: auto;
+			border-bottom-left-radius: 5px;
+			border: 1px solid var(--light-green);
+		}
+
+		.advisor-header {
+			font-size: 0.9rem;
+			font-weight: bold;
+			margin-bottom: 5px;
+			color: var(--primary-green);
+		}
+
+		.advisor-controls {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 15px 20px;
+			background: white;
+			border-bottom: 1px solid #ddd;
+		}
+
+		.model-selector {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.model-selector label {
+			font-weight: 600;
+			color: var(--primary-green);
+		}
+
+		.model-selector select {
+			padding: 8px 12px;
+			border: 2px solid #ddd;
+			border-radius: 5px;
+			background: white;
+			color: var(--text-color);
+			font-size: 0.9rem;
+		}
+
+		.advisor-input {
+			padding: 20px;
+			background: white;
+		}
+
+		.advisor-input textarea {
+			width: 100%;
+			padding: 15px;
+			border: 2px solid #ddd;
+			border-radius: 8px;
+			background: white;
+			color: var(--text-color);
+			font-size: 1rem;
+			resize: vertical;
+			min-height: 80px;
+			margin-bottom: 15px;
+			transition: border-color 0.3s ease;
+		}
+
+		.advisor-input textarea:focus {
+			outline: none;
+			border-color: var(--secondary-green);
+		}
+
+		.advisor-input textarea::placeholder {
+			color: #999;
+		}
+
+		.loading-message {
+			font-style: italic;
+			color: #666;
+			opacity: 0.8;
+		}
+
+		.loading-message::after {
+			content: '...';
+			animation: dots 1.5s infinite;
+		}
+
+		@keyframes dots {
+			0%, 20% { content: '.'; }
+			40% { content: '..'; }
+			60%, 100% { content: '...'; }
+		}
+
         @media (max-width: 768px) {
             .navbar {
                 padding: 0.5rem 1rem;
@@ -536,6 +653,7 @@
         <div class="nav-tabs">
             <button class="tab-button active" onclick="showTab('about')">About Program</button>
             <button class="tab-button" onclick="showTab('apply')">Apply</button>
+			<button class="tab-button" onclick="showTab('advisor')">Life Coach</button>
             <button class="tab-button" onclick="showTab('dashboard')" id="dashboardTab" style="display: none;">Dashboard</button>
         </div>
 
@@ -740,6 +858,43 @@
                 <button type="submit" class="btn">Submit Application</button>
             </form>
         </div>
+
+		<!-- Advisor Tab -->
+		<div id="advisor" class="tab-content">
+			<h2>Grower Life Coach & Problem Solver</h2>
+			<div class="info-section">
+				<h3>Need Support Working Through Challenges?</h3>
+				<p>Sometimes life gets in the way of our growing projects. Whether it's housing issues, relationship conflicts, financial stress, or just feeling overwhelmed - this AI advisor is here to help you work through problems and stay on track with your goals.</p>
+				<p><strong>What we can help with:</strong> Housing/roommate concerns, financial planning, motivation during tough times, relationship conflicts, work-life balance, risk management, and general life obstacles affecting your projects.</p>
+			</div>
+
+			<div class="advisor-container">
+				<div class="advisor-chat" id="advisorChat">
+					<div class="advisor-message ai-message">
+						<div class="advisor-header">Grower Coach</div>
+						<div>Hi there! I'm here to help you work through any challenges that might be affecting your growing projects or life situation. What's on your mind today?</div>
+					</div>
+				</div>
+
+				<div class="advisor-controls">
+					<div class="model-selector">
+						<label for="advisorModel">AI Model:</label>
+						<select id="advisorModel">
+							<option value="openai">OpenAI GPT-5 (Balanced)</option>
+							<option value="deepseek-reasoning">DeepSeek R1 (Deep Thinking)</option>
+							<option value="openai-reasoning">OpenAI o4-mini (Reasoning)</option>
+							<option value="mistral">Mistral (Fast)</option>
+						</select>
+					</div>
+					<button class="control-btn" onclick="clearAdvisorChat()">Clear Chat</button>
+				</div>
+
+				<div class="advisor-input">
+					<textarea id="advisorInput" placeholder="Describe what's going on... landlord issues, roommate problems, feeling unmotivated, financial stress, relationship conflicts, etc." rows="3"></textarea>
+					<button id="advisorSend" class="btn" onclick="sendAdvisorMessage()">Get Advice</button>
+				</div>
+			</div>
+		</div>
 
         <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content">
@@ -949,6 +1104,156 @@
                 addActivityEntry('Partnership Started', new Date(data.timestamp).toLocaleDateString());
             }
         }
+
+		// Advisor functionality
+		let advisorHistory = [];
+		const MAX_ADVISOR_HISTORY = 8;
+
+		function getAdvisorSystemPrompt() {
+			return `You are a supportive life coach and problem-solving advisor for cannabis cultivators. Your goal is to help growers maintain their projects and overcome obstacles that might cause them to quit or become disengaged.
+
+		Focus on practical solutions and encouragement for challenges like:
+		- Housing, roommate, or landlord issues affecting growing
+		- Financial stress and resource management
+		- Relationship conflicts around growing activities  
+		- Mental health challenges impacting motivation
+		- Life transitions threatening project continuity
+		- Work-life balance and time management
+		- Legal concerns and risk management
+		- General life obstacles affecting projects
+
+		Encourage persistence and creative problem-solving. Help users see challenges as temporary and solvable rather than reasons to quit. Provide specific, actionable advice. When problems seem overwhelming, gently suggest reaching out for additional support.
+
+		Keep responses supportive but practical. Focus on solutions and maintaining forward momentum.`;
+		}
+
+		function addAdvisorMessage(role, content) {
+			const chatContainer = document.getElementById('advisorChat');
+			const messageDiv = document.createElement('div');
+			messageDiv.className = `advisor-message ${role === 'user' ? 'user-message' : 'ai-message'}`;
+			
+			if (role === 'ai') {
+				const headerDiv = document.createElement('div');
+				headerDiv.className = 'advisor-header';
+				headerDiv.textContent = 'Grower Coach';
+				messageDiv.appendChild(headerDiv);
+			}
+			
+			const contentDiv = document.createElement('div');
+			contentDiv.textContent = content;
+			messageDiv.appendChild(contentDiv);
+			
+			chatContainer.appendChild(messageDiv);
+			chatContainer.scrollTop = chatContainer.scrollHeight;
+		}
+
+		function addAdvisorLoadingMessage() {
+			const chatContainer = document.getElementById('advisorChat');
+			const messageDiv = document.createElement('div');
+			messageDiv.className = 'advisor-message ai-message loading-message';
+			messageDiv.id = 'advisorLoadingMessage';
+			
+			const headerDiv = document.createElement('div');
+			headerDiv.className = 'advisor-header';
+			headerDiv.textContent = 'Grower Coach';
+			messageDiv.appendChild(headerDiv);
+			
+			const contentDiv = document.createElement('div');
+			contentDiv.textContent = 'Thinking through your situation';
+			messageDiv.appendChild(contentDiv);
+			
+			chatContainer.appendChild(messageDiv);
+			chatContainer.scrollTop = chatContainer.scrollHeight;
+		}
+
+		function removeAdvisorLoadingMessage() {
+			const loadingMsg = document.getElementById('advisorLoadingMessage');
+			if (loadingMsg) {
+				loadingMsg.remove();
+			}
+		}
+
+		async function sendAdvisorMessage() {
+			const input = document.getElementById('advisorInput');
+			const sendBtn = document.getElementById('advisorSend');
+			const modelSelect = document.getElementById('advisorModel');
+			const message = input.value.trim();
+			
+			if (!message) return;
+			
+			sendBtn.disabled = true;
+			sendBtn.textContent = 'Thinking...';
+			
+			addAdvisorMessage('user', message);
+			input.value = '';
+			
+			advisorHistory.push({ role: 'user', content: message });
+			if (advisorHistory.length > MAX_ADVISOR_HISTORY) {
+				advisorHistory = advisorHistory.slice(-MAX_ADVISOR_HISTORY);
+			}
+			
+			addAdvisorLoadingMessage();
+			
+			try {
+				const selectedModel = modelSelect.value;
+				
+				// Build conversation context
+				let conversationContext = '';
+				if (advisorHistory.length > 1) {
+					const recentHistory = advisorHistory.slice(-4); // Last 4 messages for context
+					conversationContext = recentHistory.map(msg => 
+						`${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+					).join('\n');
+				}
+				
+				const systemPrompt = getAdvisorSystemPrompt();
+				const fullPrompt = conversationContext ? 
+					`${systemPrompt}\n\nPrevious conversation:\n${conversationContext}\n\nCurrent question: ${message}\n\nResponse:` :
+					`${systemPrompt}\n\nUser question: ${message}\n\nResponse:`;
+				
+				const encodedPrompt = encodeURIComponent(fullPrompt);
+				const response = await fetch(`https://text.pollinations.ai/${encodedPrompt}?model=${selectedModel}&referrer=www.strainnavigator.com&temperature=0.7`);
+				
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				
+				const aiResponse = await response.text();
+				
+				removeAdvisorLoadingMessage();
+				advisorHistory.push({ role: 'assistant', content: aiResponse.trim() });
+				addAdvisorMessage('ai', aiResponse.trim());
+				
+			} catch (error) {
+				removeAdvisorLoadingMessage();
+				console.error('Advisor Error:', error);
+				addAdvisorMessage('ai', "I'm having trouble connecting right now. Please try again in a moment, or feel free to reach out for direct support if this is urgent.");
+			}
+			
+			sendBtn.disabled = false;
+			sendBtn.textContent = 'Get Advice';
+		}
+
+		function clearAdvisorChat() {
+			const chatContainer = document.getElementById('advisorChat');
+			chatContainer.innerHTML = '';
+			advisorHistory = [];
+			
+			addAdvisorMessage('ai', "Hi there! I'm here to help you work through any challenges that might be affecting your growing projects or life situation. What's on your mind today?");
+		}
+
+		// Enter key support for advisor
+		document.addEventListener('DOMContentLoaded', function() {
+			const advisorInput = document.getElementById('advisorInput');
+			if (advisorInput) {
+				advisorInput.addEventListener('keypress', function(e) {
+					if (e.key === 'Enter' && !e.shiftKey) {
+						e.preventDefault();
+						sendAdvisorMessage();
+					}
+				});
+			}
+		});
 
         // Initialize on page load
         window.addEventListener('load', function() {
