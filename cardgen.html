@@ -3,6 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<meta property="og:title" content="Partnership Card Generator - StrainNavigator">
+    <meta property="og:description" content="Design your custom Growing Partnership digital card with personalized backgrounds and styling.">
+    <meta property="og:image" content="https://www.strainnavigator.com/cardgen-preview.png">
+    <meta property="og:url" content="https://www.strainnavigator.com/cardgen.html">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Partnership Card Generator - StrainNavigator">
+    <meta name="twitter:description" content="Design your custom Growing Partnership digital card with personalized backgrounds and styling.">
+    <meta name="twitter:image" content="https://www.strainnavigator.com/cardgen-preview.png">
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+	
     <title>StrainNavigator Partnership Card Generator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -30,9 +48,11 @@
             align-items: center;
         }
 
-        .container {
+		.container {
             max-width: 800px;
             width: 100%;
+            margin-top: 80px;
+            padding-top: 40px;
         }
 
         h1 {
@@ -217,10 +237,90 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4);
         }
+
+		.nav-container {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: var(--dark-green);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo i {
+            margin-right: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background-color: var(--secondary-green);
+        }
+
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.5rem;
+        }
+		
     </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <body>
+    <div class="nav-container">
+        <nav class="navbar" id="navbar">
+            <a href="/index.html" class="logo">
+                <i class="fas fa-cannabis"></i> StrainNavigator
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/tools/growhelp.html">AI Grow Help</a></li>
+                <li><a href="/tools/tracker.html">Strain Tracker</a></li>
+                <li><a href="/tools/seeds.html">Explore Strains</a></li>
+                <li><a href="/tools/labels.html">AI Branding</a></li>
+                <li><a href="/tools/growitgame.html">Manage Grow</a></li>
+                <li><a href="partnership.html">Partnership</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+    </div>
+    
     <div class="container">
         <h1><i class="fas fa-cannabis"></i> StrainNavigator Partnership Card Generator</h1>
         
@@ -571,6 +671,15 @@
                 URL.revokeObjectURL(url);
             });
         }
+		
+		// Navigation toggle functionality
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+        
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+		
     </script>
 </body>
 </html>
