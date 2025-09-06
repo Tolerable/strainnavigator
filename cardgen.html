@@ -145,7 +145,7 @@
             flex-direction: column;
             justify-content: space-between;
             cursor: move;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            text-shadow: 0 0 8px rgba(0, 0, 0, 1), 0 0 16px rgba(0, 0, 0, 1), 2px 2px 4px rgba(0, 0, 0, 1), -2px -2px 4px rgba(0, 0, 0, 1);
         }
 
         .card-header {
@@ -379,7 +379,7 @@
                 <input type="file" id="bgImage" accept="image/*">
             </div>
 
-            <div class="form-row" id="imageControls" style="display: none;">
+            <div class="form-row" id="imageControls">
                 <div class="form-group">
                     <label for="bgScale">Zoom: <span id="scaleValue">1.0</span></label>
                     <input type="range" id="bgScale" min="1" max="3" step="0.1" value="1">
@@ -432,19 +432,18 @@
         let shadowStrength = 'medium';
 
         // Handle image upload
-        document.getElementById('bgImage').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    backgroundImage = e.target.result;
-                    imagePosition = { x: 0, y: 0 };
-                    document.getElementById('imageControls').style.display = 'grid';
-                    updateCardBackground();
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+		document.getElementById('bgImage').addEventListener('change', function(e) {
+			const file = e.target.files[0];
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = function(e) {
+					backgroundImage = e.target.result;
+					imagePosition = { x: 0, y: 0 }; // Start at top-left
+					updateImageControls();
+				};
+				reader.readAsDataURL(file);
+			}
+		});
 
         // Handle color selection
         document.querySelectorAll('.color-option').forEach(option => {
@@ -453,7 +452,6 @@
                 this.classList.add('selected');
                 selectedColors = this.dataset.colors;
                 backgroundImage = null;
-                document.getElementById('imageControls').style.display = 'none';
                 updateCardBackground();
             });
         });
@@ -475,109 +473,115 @@
             updateTextShadow();
         });
 
-        function updateTextShadow() {
-            const card = document.querySelector('.partnership-card-display');
-            if (textShadowEnabled) {
-                let shadow;
-                switch(shadowStrength) {
-                    case 'light':
-                        shadow = '1px 1px 2px rgba(0, 0, 0, 0.6)';
-                        break;
-                    case 'medium':
-                        shadow = '2px 2px 4px rgba(0, 0, 0, 0.8)';
-                        break;
-                    case 'heavy':
-                        shadow = '3px 3px 6px rgba(0, 0, 0, 1)';
-                        break;
-                }
-                card.style.textShadow = shadow;
-            } else {
-                card.style.textShadow = 'none';
-            }
-        }
+		function updateTextShadow() {
+			const card = document.querySelector('.partnership-card-display');
+			if (textShadowEnabled) {
+				let shadow;
+				switch(shadowStrength) {
+					case 'light':
+						shadow = '1px 1px 2px rgba(0, 0, 0, 0.6)';
+						break;
+					case 'medium':
+						shadow = '2px 2px 4px rgba(0, 0, 0, 0.8)';
+						break;
+					case 'heavy':
+						shadow = '0 0 8px rgba(0, 0, 0, 1), 0 0 16px rgba(0, 0, 0, 1), 2px 2px 4px rgba(0, 0, 0, 1), -2px -2px 4px rgba(0, 0, 0, 1)';
+						break;
+				}
+				card.style.textShadow = shadow;
+			} else {
+				card.style.textShadow = 'none';
+			}
+		}
 
-        function updateCardBackground() {
-            const card = document.querySelector('.partnership-card-display');
-            const [color1, color2] = selectedColors.split(',');
-            
-            if (backgroundImage) {
-                updateImageControls();
-            } else {
-                card.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
-            }
-        }
+		function updateCardBackground() {
+			const card = document.querySelector('.partnership-card-display');
+			const [color1, color2] = selectedColors.split(',');
+			
+			if (backgroundImage) {
+				updateImageControls();
+			} else {
+				card.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
+				card.style.backgroundImage = 'none';
+			}
+		}
 
-        function updateImageControls() {
-            if (!backgroundImage) return;
-            
-            const scale = parseFloat(document.getElementById('bgScale').value);
-            const card = document.querySelector('.partnership-card-display');
-            
-            // Create temporary image to calculate proper sizing
-            const img = new Image();
-            img.onload = function() {
-                const cardWidth = 340;
-                const cardHeight = 215;
-                const imgAspect = img.width / img.height;
-                const cardAspect = cardWidth / cardHeight;
-                
-                // Calculate minimum scale to always cover the card completely
-                let minScale;
-                if (imgAspect > cardAspect) {
-                    minScale = cardHeight / img.height;
-                } else {
-                    minScale = cardWidth / img.width;
-                }
-                
-                const actualScale = Math.max(scale, minScale);
-                const scaledWidth = img.width * actualScale;
-                const scaledHeight = img.height * actualScale;
-                
-                // Constrain positioning so no white space shows
-                const maxX = 0;
-                const minX = cardWidth - scaledWidth;
-                const maxY = 0;
-                const minY = cardHeight - scaledHeight;
-                
-                imagePosition.x = Math.max(minX, Math.min(maxX, imagePosition.x));
-                imagePosition.y = Math.max(minY, Math.min(maxY, imagePosition.y));
-                
-                // Apply to card
-                card.style.backgroundImage = `url(${backgroundImage})`;
-                card.style.backgroundSize = `${scaledWidth}px ${scaledHeight}px`;
-                card.style.backgroundPosition = `${imagePosition.x}px ${imagePosition.y}px`;
-                card.style.backgroundRepeat = 'no-repeat';
-            };
-            img.src = backgroundImage;
-        }
+		function updateImageControls() {
+			if (!backgroundImage) return;
+			
+			const scale = parseFloat(document.getElementById('bgScale').value);
+			const card = document.querySelector('.partnership-card-display');
+			
+			// DEBUG: Check actual card size
+			const cardRect = card.getBoundingClientRect();
+			console.log('Card actual size:', cardRect.width, 'x', cardRect.height);
+			
+			const img = new Image();
+			img.onload = function() {
+				const cardWidth = cardRect.width;  // Use ACTUAL width, not hardcoded
+				const cardHeight = cardRect.height; // Use ACTUAL height, not hardcoded
+				
+				console.log('Image size:', img.width, 'x', img.height);
+				console.log('Card size:', cardWidth, 'x', cardHeight);
+				
+				const scaleX = cardWidth / img.width;
+				const scaleY = cardHeight / img.height;
+				const coverScale = Math.max(scaleX, scaleY);
+				
+				console.log('ScaleX:', scaleX, 'ScaleY:', scaleY, 'CoverScale:', coverScale);
+				
+				const finalScale = coverScale * scale;
+				const finalWidth = img.width * finalScale;
+				const finalHeight = img.height * finalScale;
+				
+				console.log('Final size:', finalWidth, 'x', finalHeight);
+				
+				// Drag limits to prevent white space
+				const minX = cardWidth - finalWidth;
+				const maxX = 0;
+				const minY = cardHeight - finalHeight;
+				const maxY = 0;
+				
+				imagePosition.x = Math.max(minX, Math.min(maxX, imagePosition.x));
+				imagePosition.y = Math.max(minY, Math.min(maxY, imagePosition.y));
+				
+				// Apply with EXACT pixel sizes
+				card.style.backgroundImage = `url(${backgroundImage})`;
+				card.style.backgroundSize = `${finalWidth}px ${finalHeight}px`;
+				card.style.backgroundPosition = `${imagePosition.x}px ${imagePosition.y}px`;
+				card.style.backgroundRepeat = 'no-repeat';
+			};
+			img.src = backgroundImage;
+		}
 
-        // Drag functionality - drag the card itself
-        document.addEventListener('DOMContentLoaded', function() {
-            document.addEventListener('mousedown', function(e) {
-                const card = document.querySelector('.partnership-card-display');
-                if (backgroundImage && (e.target === card || card.contains(e.target))) {
-                    isDragging = true;
-                    const startX = e.clientX - imagePosition.x;
-                    const startY = e.clientY - imagePosition.y;
-                    
-                    function onMouseMove(e) {
-                        if (!isDragging) return;
-                        imagePosition.x = e.clientX - startX;
-                        imagePosition.y = e.clientY - startY;
-                        updateImageControls();
-                    }
-                    
-                    function onMouseUp() {
-                        isDragging = false;
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.removeEventListener('mouseup', onMouseUp);
-                    }
-                    
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('mouseup', onMouseUp);
-                }
-            });
-        });
+		document.addEventListener('mousedown', function(e) {
+			const card = document.querySelector('.partnership-card-display');
+			if (backgroundImage && (e.target === card || card.contains(e.target))) {
+				isDragging = true;
+				const startMouseX = e.clientX;
+				const startMouseY = e.clientY;
+				const startPosX = imagePosition.x;
+				const startPosY = imagePosition.y;
+				
+				function onMouseMove(e) {
+					if (!isDragging) return;
+					const deltaX = e.clientX - startMouseX;
+					const deltaY = e.clientY - startMouseY;
+					imagePosition.x = startPosX + deltaX;
+					imagePosition.y = startPosY + deltaY;
+					updateImageControls();
+				}
+				
+				function onMouseUp() {
+					isDragging = false;
+					document.removeEventListener('mousemove', onMouseMove);
+					document.removeEventListener('mouseup', onMouseUp);
+				}
+				
+				document.addEventListener('mousemove', onMouseMove);
+				document.addEventListener('mouseup', onMouseUp);
+			}
+		});
 
         function formatCardNumber(value) {
             const numbers = value.replace(/\D/g, '');
