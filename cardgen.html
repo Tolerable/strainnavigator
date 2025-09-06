@@ -365,7 +365,10 @@
     
     <main class="main-content">
         <div class="container">
-            <h1><i class="fas fa-cannabis"></i> StrainNavigator Partnership Card Generator</h1>
+			<h1><i class="fas fa-cannabis"></i> StrainNavigator Partnership Card Generator</h1>
+			<p style="text-align: center; color: #666; margin-bottom: 40px; font-style: italic; max-width: 650px; margin-left: auto; margin-right: auto;">
+				Design and preview custom partnership cards. This tool demonstrates the card design features for active or future members - actual partnership card participation is exclusively for selected participants in our investment program and not available through applications.
+			</p>
             
             <div class="form-section">
                 <h3>Card Details</h3>
@@ -455,6 +458,7 @@
                             <option value="light">Light</option>
                             <option value="medium" selected>Medium</option>
                             <option value="heavy">Heavy</option>
+							<option value="outline">Black Outline</option>
                         </select>
                     </div>
                 </div>
@@ -530,6 +534,9 @@
 						break;
 					case 'heavy':
 						shadow = '0 0 8px rgba(0, 0, 0, 1), 0 0 16px rgba(0, 0, 0, 1), 2px 2px 4px rgba(0, 0, 0, 1), -2px -2px 4px rgba(0, 0, 0, 1)';
+						break;
+					case 'outline':
+						shadow = '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000';
 						break;
 				}
 				card.style.textShadow = shadow;
