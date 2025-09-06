@@ -577,6 +577,8 @@
 			display: flex;
 			flex-direction: column;
 			justify-content: space-between;
+			cursor: move;
+			text-shadow: 0 0 8px rgba(0, 0, 0, 1), 0 0 16px rgba(0, 0, 0, 1), 2px 2px 4px rgba(0, 0, 0, 1), -2px -2px 4px rgba(0, 0, 0, 1);
 		}
 
 		.card-header {
@@ -600,19 +602,19 @@
 		}
 
 		.card-number {
-			font-size: 20px !important;
-			font-weight: 500 !important;
-			letter-spacing: 2px !important;
-			margin: 25px 0 !important;
-			font-family: 'Courier New', monospace !important;
-			white-space: nowrap !important;
+			font-size: 20px;
+			font-weight: 500;
+			letter-spacing: 2px;
+			margin: 5px 0;
+			font-family: 'Courier New', monospace;
+			white-space: nowrap;
 		}
 
 		.card-details {
 			display: flex;
 			gap: 60px;
 			align-items: flex-start;
-			margin-bottom: 15px;
+			margin-bottom: 50px;
 		}
 
 		.card-details > div {
@@ -636,12 +638,14 @@
 
 		.card-footer {
 			position: absolute;
-			bottom: 20px;
+			bottom: 35px;
 			right: 20px;
-			font-size: 9px;
-			color: #e8f5e8;
+			font-size: 18px;
+			font-weight: 500;
+			font-family: 'Courier New', monospace;
+			color: white;
 			text-transform: uppercase;
-			letter-spacing: 1px;
+			letter-spacing: 2px;
 		}
 
 		@keyframes dots {
@@ -852,8 +856,10 @@
 					</div>
 					<div class="partnership-card-display">
 						<div class="card-header">
-							<i class="fas fa-cannabis"></i>
-							<span>StrainNavigator</span>
+							<div>
+								<i class="fas fa-cannabis"></i>
+								<span>StrainNavigator</span>
+							</div>
 						</div>
 						<div class="card-title">Growing Partnership</div>
 						<div class="card-number">1234 5678 9101 2345</div>
