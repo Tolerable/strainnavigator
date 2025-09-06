@@ -36,23 +36,91 @@
             --background: #f0f4f0;
         }
 
-        body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
             background-color: var(--background);
             color: var(--text-color);
-            margin: 0;
-            padding: 40px;
-            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+		.nav-container {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: var(--dark-green);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .navbar {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
+            padding: 0.5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo i {
+            margin-right: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background-color: var(--secondary-green);
+        }
+
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
 		.container {
             max-width: 800px;
             width: 100%;
-            margin-top: 80px;
-            padding-top: 40px;
+            margin: 0 auto;
         }
 
         h1 {
@@ -238,64 +306,39 @@
             box-shadow: 0 5px 15px rgba(46, 125, 50, 0.4);
         }
 
-		.nav-container {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background-color: var(--dark-green);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            color: white;
-            text-decoration: none;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .logo i {
-            margin-right: 10px;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-        }
-
-        .nav-links li {
-            margin-left: 20px;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            background-color: var(--secondary-green);
-        }
-
-        .hamburger {
-            display: none;
-            cursor: pointer;
-            color: white;
-            font-size: 1.5rem;
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background-color: var(--dark-green);
+                flex-direction: column;
+                align-items: center;
+                padding: 1rem;
+                clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+                transition: clip-path 0.4s ease-in-out;
+            }
+            
+            .nav-links.active {
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            }
+            
+            .nav-links li {
+                margin: 1rem 0;
+            }
+            
+            .hamburger {
+                display: block;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
         }
 		
     </style>
@@ -320,107 +363,109 @@
         </nav>
     </div>
     
-    <div class="container">
-        <h1><i class="fas fa-cannabis"></i> StrainNavigator Partnership Card Generator</h1>
-        
-        <div class="form-section">
-            <h3>Card Details</h3>
-            <div class="form-group">
-                <label for="partnerName">Partner Name</label>
-                <input type="text" id="partnerName" placeholder="Enter partner name" value="PARTNER MEMBER">
-            </div>
+    <main class="main-content">
+        <div class="container">
+            <h1><i class="fas fa-cannabis"></i> StrainNavigator Partnership Card Generator</h1>
             
-            <div class="form-row">
+            <div class="form-section">
+                <h3>Card Details</h3>
                 <div class="form-group">
-                    <label for="cardNumber">Card Number</label>
-                    <input type="text" id="cardNumber" placeholder="1234 5678 9101 2345" value="1234 5678 9101 2345" maxlength="19">
+                    <label for="partnerName">Partner Name</label>
+                    <input type="text" id="partnerName" placeholder="Enter partner name" value="PARTNER MEMBER">
                 </div>
-                <div class="form-group">
-                    <label for="expDate">Expiration Date</label>
-                    <input type="text" id="expDate" placeholder="01/30" value="01/30" maxlength="5">
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="secCode">Security Code</label>
-                <input type="text" id="secCode" placeholder="123" value="123" maxlength="4">
-            </div>
-        </div>
-
-        <div class="card-preview">
-            <div class="partnership-card-display">
-                <div class="card-header">
-                    <div>
-                        <i class="fas fa-cannabis"></i>
-                        <span>StrainNavigator</span>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cardNumber">Card Number</label>
+                        <input type="text" id="cardNumber" placeholder="1234 5678 9101 2345" value="1234 5678 9101 2345" maxlength="19">
+                    </div>
+                    <div class="form-group">
+                        <label for="expDate">Expiration Date</label>
+                        <input type="text" id="expDate" placeholder="01/30" value="01/30" maxlength="5">
                     </div>
                 </div>
-                <div class="card-title">Growing Partnership</div>
-                <div class="card-number" id="displayCardNumber">1234 5678 9101 2345</div>
-                <div class="card-details">
-                    <div>
-                        <div class="card-label">EXP</div>
-                        <div id="displayExpDate">01/30</div>
-                    </div>
-                    <div>
-                        <div class="card-label">SEC</div>
-                        <div id="displaySecCode">123</div>
-                    </div>
-                </div>
-                <div class="card-footer" id="displayPartnerName">PARTNER MEMBER</div>
-            </div>
-        </div>
-
-        <div class="form-section">
-            <h3>Card Customization</h3>
-            <div class="form-group">
-                <label for="bgImage">Custom Background Image</label>
-                <input type="file" id="bgImage" accept="image/*">
-            </div>
-
-            <div class="form-row" id="imageControls">
+                
                 <div class="form-group">
-                    <label for="bgScale">Zoom: <span id="scaleValue">1.0</span></label>
-                    <input type="range" id="bgScale" min="1" max="3" step="0.1" value="1">
+                    <label for="secCode">Security Code</label>
+                    <input type="text" id="secCode" placeholder="123" value="123" maxlength="4">
                 </div>
+            </div>
+
+            <div class="card-preview">
+                <div class="partnership-card-display">
+                    <div class="card-header">
+                        <div>
+                            <i class="fas fa-cannabis"></i>
+                            <span>StrainNavigator</span>
+                        </div>
+                    </div>
+                    <div class="card-title">Growing Partnership</div>
+                    <div class="card-number" id="displayCardNumber">1234 5678 9101 2345</div>
+                    <div class="card-details">
+                        <div>
+                            <div class="card-label">EXP</div>
+                            <div id="displayExpDate">01/30</div>
+                        </div>
+                        <div>
+                            <div class="card-label">SEC</div>
+                            <div id="displaySecCode">123</div>
+                        </div>
+                    </div>
+                    <div class="card-footer" id="displayPartnerName">PARTNER MEMBER</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Card Customization</h3>
                 <div class="form-group">
-                    <label>Click and drag the card above to position the background image</label>
+                    <label for="bgImage">Custom Background Image</label>
+                    <input type="file" id="bgImage" accept="image/*">
+                </div>
+
+                <div class="form-row" id="imageControls">
+                    <div class="form-group">
+                        <label for="bgScale">Zoom: <span id="scaleValue">1.0</span></label>
+                        <input type="range" id="bgScale" min="1" max="3" step="0.1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Click and drag the card above to position the background image</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Background Style</label>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+                        <div class="color-option" data-colors="#1b5e20,#2e7d32" style="background: linear-gradient(135deg, #1b5e20, #2e7d32);">Green</div>
+                        <div class="color-option" data-colors="#1a237e,#3f51b5" style="background: linear-gradient(135deg, #1a237e, #3f51b5);">Blue</div>
+                        <div class="color-option" data-colors="#4a148c,#7b1fa2" style="background: linear-gradient(135deg, #4a148c, #7b1fa2);">Purple</div>
+                        <div class="color-option" data-colors="#b71c1c,#d32f2f" style="background: linear-gradient(135deg, #b71c1c, #d32f2f);">Red</div>
+                        <div class="color-option" data-colors="#e65100,#ff9800" style="background: linear-gradient(135deg, #e65100, #ff9800);">Orange</div>
+                        <div class="color-option" data-colors="#263238,#455a64" style="background: linear-gradient(135deg, #263238, #455a64);">Dark</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Text Shadow</label>
+                    <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
+                        <label style="display: flex; align-items: center; margin: 0;">
+                            <input type="checkbox" id="shadowToggle" checked style="margin-right: 8px;">
+                            Enable Shadow
+                        </label>
+                        <select id="shadowStrength" style="padding: 5px;">
+                            <option value="light">Light</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="heavy">Heavy</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-			<div class="form-group">
-                <label>Background Style</label>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
-                    <div class="color-option" data-colors="#1b5e20,#2e7d32" style="background: linear-gradient(135deg, #1b5e20, #2e7d32);">Green</div>
-                    <div class="color-option" data-colors="#1a237e,#3f51b5" style="background: linear-gradient(135deg, #1a237e, #3f51b5);">Blue</div>
-                    <div class="color-option" data-colors="#4a148c,#7b1fa2" style="background: linear-gradient(135deg, #4a148c, #7b1fa2);">Purple</div>
-                    <div class="color-option" data-colors="#b71c1c,#d32f2f" style="background: linear-gradient(135deg, #b71c1c, #d32f2f);">Red</div>
-                    <div class="color-option" data-colors="#e65100,#ff9800" style="background: linear-gradient(135deg, #e65100, #ff9800);">Orange</div>
-                    <div class="color-option" data-colors="#263238,#455a64" style="background: linear-gradient(135deg, #263238, #455a64);">Dark</div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Text Shadow</label>
-                <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
-                    <label style="display: flex; align-items: center; margin: 0;">
-                        <input type="checkbox" id="shadowToggle" checked style="margin-right: 8px;">
-                        Enable Shadow
-                    </label>
-                    <select id="shadowStrength" style="padding: 5px;">
-                        <option value="light">Light</option>
-                        <option value="medium" selected>Medium</option>
-                        <option value="heavy">Heavy</option>
-                    </select>
-                </div>
+            <div class="export-section">
+                <button class="export-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+                <button class="export-btn" onclick="exportCard()">Save as PNG</button>
             </div>
         </div>
-
-        <div class="export-section">
-            <button class="export-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
-            <button class="export-btn" onclick="exportCard()">Save as PNG</button>
-        </div>
-    </div>
+    </main>
 
     <script>
 		let backgroundImage = null;
