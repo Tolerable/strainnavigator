@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- Basic meta tags -->
+	<meta name="description" content="Secure VPN services designed for the cannabis community. Privacy-focused protection for your online activities and transactions.">
+	<meta name="keywords" content="VPN, cannabis privacy, secure browsing, online privacy, THCa, cannabis community">
+
+	<!-- Open Graph meta tags -->
+	<meta property="og:title" content="StrainNavigator VPN - Privacy for Cannabis Community">
+	<meta property="og:description" content="Secure VPN services designed specifically for cannabis enthusiasts and businesses seeking privacy protection.">
+	<meta property="og:image" content="https://www.strainnavigator.com/vpn-preview.jpg">
+	<meta property="og:url" content="https://www.strainnavigator.com/vpn">
+	<meta property="og:type" content="website">
+
+	<!-- Twitter Card meta tags -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="StrainNavigator VPN - Privacy for Cannabis Community">
+	<meta name="twitter:description" content="Secure VPN services designed specifically for cannabis enthusiasts and businesses.">
+
+	<!-- Theme color for browser UI -->
+	<meta name="theme-color" content="#166534">	
+    <title>StrainNavigator VPN - Secure Privacy Services</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	
+    <style>
+        :root {
+            --primary-green: #2e7d32;
+            --secondary-green: #4caf50;
+            --light-green: #8bc34a;
+            --dark-green: #1b5e20;
+            --accent: #f9a825;
+            --dark-accent: #f57f17;
+            --text-color: #333;
+            --light-text: #f5f5f5;
+            --background: #f0f4f0;
+            --coming-soon: #ff6b35;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .nav-container {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: var(--dark-green);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+        }        
+		
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 20px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            background-color: var(--secondary-green);
+        }
+        
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .coming-soon-banner {
+            background: linear-gradient(45deg, var(--coming-soon), #ff8a50);
+            color: white;
+            text-align: center;
+            padding: 0.8rem;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 10px rgba(255, 107, 53, 0.3);
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 2px 10px rgba(255, 107, 53, 0.3); }
+            50% { box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5); }
+            100% { box-shadow: 0 2px 10px rgba(255, 107, 53, 0.3); }
+        }
+        
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 3rem 1rem;
+            background: linear-gradient(rgba(46, 125, 50, 0.9), rgba(27, 94, 32, 0.95)), 
+                        radial-gradient(circle at top right, rgba(76, 175, 80, 0.3), transparent),
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="shield" patternUnits="userSpaceOnUse" width="20" height="20"><circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23shield)"/></svg>');
+            background-size: cover, cover, 20px 20px;
+            background-position: center, center, center;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 10 L60 30 L80 30 L65 45 L70 65 L50 55 L30 65 L35 45 L20 30 L40 30 Z" fill="rgba(255,255,255,0.03)" opacity="0.5"/></svg>') repeat;
+            animation: float 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        .hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero .shield-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cta-section {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: var(--accent);
+            color: var(--text-color);
+            padding: 0.8rem 1.5rem;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .cta-button:hover {
+            background-color: var(--dark-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .cta-secondary {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .cta-secondary:hover {
+            background-color: white;
+            color: var(--dark-green);
+        }
+        
+        .features-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            color: var(--dark-green);
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            margin-bottom: 3rem;
+            opacity: 0.8;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-green);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-card i {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            color: var(--dark-green);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .pricing-section {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: linear-gradient(135deg, var(--background), white);
+            border: 2px solid var(--light-green);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary-green);
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(46, 125, 50, 0.2);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-green);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--dark-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-period {
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features i {
+            color: var(--primary-green);
+            margin-right: 0.5rem;
+        }
+
+        .trust-section {
+            background: linear-gradient(135deg, var(--dark-green), var(--primary-green));
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .trust-item {
+            padding: 1.5rem;
+        }
+
+        .trust-item i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .trust-item h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .community-section {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .community-benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .benefit-item {
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: var(--background);
+        }
+
+        .benefit-item i {
+            font-size: 2rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            background-color: var(--dark-green);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        
+        footer p {
+            margin-bottom: 1rem;
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            margin-bottom: 1rem;
+        }
+        
+        .social-links li {
+            margin: 0 10px;
+        }
+        
+        .social-links a {
+            color: white;
+            font-size: 1.5rem;
+            transition: color 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            color: var(--accent);
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background-color: var(--dark-green);
+                flex-direction: column;
+                align-items: center;
+                padding: 1rem;
+                clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+                transition: clip-path 0.4s ease-in-out;
+            }
+            
+            .nav-links.active {
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            }
+            
+            .nav-links li {
+                margin: 1rem 0;
+            }
+            
+            .hamburger {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .cta-section {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .pricing-card.featured {
+                transform: none;
+            }
+
+            .pricing-card:hover {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-container">
+        <nav class="navbar" id="navbar">
+            <a href="/index.html" class="logo">
+                <i class="fas fa-cannabis"></i> StrainNavigator
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/tools/growhelp.html">AI Grow Help</a></li>
+                <li><a href="/tools/tracker.html">Strain Tracker</a></li>
+                <li><a href="/tools/seeds.html">Explore Strains</a></li>
+                <li><a href="/tools/labels.html">AI Branding</a></li>
+				<li><a href="/tools/growitgame.html">Manage Grow</a></li>
+                <li><a href="/vpn.html" style="color: var(--accent);">VPN Services</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+    </div>
+    
+    <main class="main-content">
+        <div class="coming-soon-banner">
+            <i class="fas fa-rocket"></i> COMING SOON - Pre-register now for early access pricing!
+        </div>
+        
+        <section class="hero">
+            <i class="fas fa-shield-alt shield-icon"></i>
+            <h1>SecureGreen VPN</h1>
+            <p>Privacy-focused VPN services designed specifically for the cannabis community. Browse securely, protect your transactions, and maintain your privacy with servers optimized for discretion.</p>
+            <div class="cta-section">
+                <button class="cta-button" onclick="showPreRegister()">
+                    <i class="fas fa-user-plus"></i> Pre-Register Now
+                </button>
+                <button class="cta-button cta-secondary" onclick="showFeatures()">
+                    <i class="fas fa-info-circle"></i> Learn More
+                </button>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <h2 class="section-title">Why Choose SecureGreen VPN?</h2>
+            <p class="section-subtitle">Built with the cannabis community's unique privacy needs in mind</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Strategic Server Locations</h3>
+                    <p>Servers in privacy-friendly jurisdictions including Romania, Sweden, and Switzerland. No logs, no tracking, no compromises on your privacy.</p>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-users"></i>
+                    <h3>Cannabis Community Focus</h3>
+                    <p>Understanding the unique needs of cannabis enthusiasts, from THCa research to secure marketplace browsing. We get it because we're part of it.</p>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-lock"></i>
+                    <h3>Military-Grade Encryption</h3>
+                    <p>AES-256 encryption with perfect forward secrecy. Your browsing history, transactions, and communications remain completely private.</p>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <h3>High-Speed Connections</h3>
+                    <p>Optimized servers ensure fast browsing and seamless streaming. Privacy shouldn't mean sacrificing performance.</p>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Multi-Device Support</h3>
+                    <p>Protect all your devices - desktop, mobile, tablet. One subscription covers your entire digital life with up to 6 simultaneous connections.</p>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-headset"></i>
+                    <h3>Community Support</h3>
+                    <p>24/7 support from people who understand the cannabis space. No judgment, just helpful assistance when you need it.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="pricing-section">
+            <h2 class="section-title">Choose Your Protection Level</h2>
+            <p class="section-subtitle">Pre-launch pricing - lock in these rates forever</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="plan-name">Green Leaf</div>
+                    <div class="plan-price">$4.99</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> 3 Device Connections</li>
+                        <li><i class="fas fa-check"></i> 25+ Server Locations</li>
+                        <li><i class="fas fa-check"></i> Standard Encryption</li>
+                        <li><i class="fas fa-check"></i> No Logs Policy</li>
+                        <li><i class="fas fa-check"></i> Email Support</li>
+                    </ul>
+                    <button class="cta-button" onclick="showPreRegister('Green Leaf')">Pre-Register</button>
+                </div>
+
+                <div class="pricing-card featured">
+                    <div class="plan-name">Cannabis Pro</div>
+                    <div class="plan-price">$7.99</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> 6 Device Connections</li>
+                        <li><i class="fas fa-check"></i> 50+ Server Locations</li>
+                        <li><i class="fas fa-check"></i> Military-Grade Encryption</li>
+                        <li><i class="fas fa-check"></i> Zero Logs + Kill Switch</li>
+                        <li><i class="fas fa-check"></i> Priority Support</li>
+                        <li><i class="fas fa-check"></i> Dedicated Cannabis Servers</li>
+                        <li><i class="fas fa-check"></i> Marketplace Protection</li>
+                    </ul>
+                    <button class="cta-button" onclick="showPreRegister('Cannabis Pro')">Pre-Register</button>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="plan-name">Grower Elite</div>
+                    <div class="plan-price">$12.99</div>
+                    <div class="plan-period">per month</div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> 10 Device Connections</li>
+                        <li><i class="fas fa-check"></i> 75+ Global Servers</li>
+                        <li><i class="fas fa-check"></i> Advanced Security Suite</li>
+                        <li><i class="fas fa-check"></i> Business-Grade Privacy</li>
+                        <li><i class="fas fa-check"></i> 24/7 Live Chat Support</li>
+                        <li><i class="fas fa-check"></i> Dedicated IP Options</li>
+                        <li><i class="fas fa-check"></i> Business Transaction Security</li>
+                        <li><i class="fas fa-check"></i> Custom Server Locations</li>
+                    </ul>
+                    <button class="cta-button" onclick="showPreRegister('Grower Elite')">Pre-Register</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="trust-section">
+            <h2>Built on Trust & Transparency</h2>
+            <p>Your privacy is our priority. Here's how we protect it.</p>
+            
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <i class="fas fa-ban"></i>
+                    <h4>Strict No-Logs Policy</h4>
+                    <p>We don't store, collect, or share any of your browsing data. What you do online stays private.</p>
+                </div>
+
+                <div class="trust-item">
+                    <i class="fas fa-gavel"></i>
+                    <h4>Privacy-First Jurisdiction</h4>
+                    <p>Headquartered in privacy-friendly countries with strong data protection laws and no mandatory data retention.</p>
+                </div>
+
+                <div class="trust-item">
+                    <i class="fas fa-code"></i>
+                    <h4>Open Source Commitment</h4>
+                    <p>Key components of our software are open source and regularly audited by independent security researchers.</p>
+                </div>
+
+                <div class="trust-item">
+                    <i class="fas fa-coins"></i>
+                    <h4>Cryptocurrency Payments</h4>
+                    <p>Pay with Bitcoin, Ethereum, or other cryptocurrencies for maximum transaction privacy and anonymity.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="community-section">
+            <h2 class="section-title">Join the SecureGreen Community</h2>
+            <p class="section-subtitle">More than just a VPN - you're joining a privacy-focused cannabis community</p>
+            
+            <div class="community-benefits">
+                <div class="benefit-item">
+                    <i class="fas fa-comments"></i>
+                    <h4>Private Forums</h4>
+                    <p>Access to encrypted community forums for discussing privacy, security, and cannabis topics safely.</p>
+                </div>
+
+                <div class="benefit-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h4>Privacy Education</h4>
+                    <p>Regular guides and tutorials on digital privacy, secure transactions, and protecting your online identity.</p>
+                </div>
+
+                <div class="benefit-item">
+                    <i class="fas fa-shield-virus"></i>
+                    <h4>Security Alerts</h4>
+                    <p>Get notified about privacy threats, legal changes, and security best practices relevant to the cannabis community.</p>
+                </div>
+
+                <div class="benefit-item">
+                    <i class="fas fa-gift"></i>
+                    <h4>Member Perks</h4>
+                    <p>Exclusive discounts with cannabis-friendly businesses and early access to privacy tools and services.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 StrainNavigator SecureGreen VPN. All rights reserved.</p>
+		<ul class="social-links">
+			<li><a href="https://github.com/Tolerable/strainnavigator" target="_blank"><i class="fab fa-github"></i></a></li>
+			<li><a href="#"><i class="fab fa-twitter"></i></a></li>
+			<li><a href="#"><i class="fab fa-instagram"></i></a></li>
+			<li><a href="https://discord.gg/jujYC9atYQ" target="_blank"><i class="fab fa-discord"></i></a></li>
+		</ul>
+        <p>For educational and informational purposes only. VPN services launching Q2 2025.</p>
+		<p>
+			<a href="/policy.html" style="color: white; margin: 0 10px; text-decoration: underline;">Privacy Policy</a> | 
+			<a href="/terms.html" style="color: white; margin: 0 10px; text-decoration: underline;">Terms of Service</a> |
+			<a href="/partnership.html" style="color: white; margin: 0 10px; text-decoration: underline;">Partnerships</a>
+		</p>		
+    </footer>
+    
+    <script>
+        // Navigation toggle functionality
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+        
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+        
+        // Close mobile menu when clicking a link
+        const links = document.querySelectorAll('.nav-links a');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // Pre-registration modal functionality
+        function showPreRegister(plan = 'Cannabis Pro') {
+            alert(`Pre-registration for ${plan} plan coming soon! Join our Discord to be notified when registration opens: https://discord.gg/jujYC9atYQ`);
+        }
+
+        function showFeatures() {
+            document.querySelector('.features-section').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+
+        // Smooth scrolling for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate feature cards on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all feature cards
+            document.querySelectorAll('.feature-card, .pricing-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+
+            // Add hover effect to pricing cards
+            document.querySelectorAll('.pricing-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.borderColor = 'var(--primary-green)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('featured')) {
+                        this.style.borderColor = 'var(--light-green)';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
