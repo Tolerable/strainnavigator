@@ -296,12 +296,11 @@
         
 		.features-grid {
 			display: grid;
-			grid-template-columns: repeat(3, 1fr);
+			grid-template-columns: repeat(3, minmax(300px, 1fr));
 			gap: 2rem;
 			margin-top: 2rem;
 			max-width: 1200px;
-			margin-left: auto;
-			margin-right: auto;
+			margin: 0 auto;
 		}
         
         .feature-item {
@@ -336,14 +335,13 @@
         
 		.accessories-grid {
 			display: grid;
-			grid-template-columns: repeat(3, 1fr);
+			grid-template-columns: repeat(3, minmax(280px, 1fr));
 			gap: 1.5rem;
 			margin-top: 2rem;
 			max-width: 1200px;
-			margin-left: auto;
-			margin-right: auto;
-		}
-        
+			margin: 0 auto;
+		}        
+		
         .accessory-card {
             background: var(--background);
             padding: 1.5rem;
