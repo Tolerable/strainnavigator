@@ -183,16 +183,12 @@
             background: white;
         }
         
-		/* FIXED GRID - Force 3 columns on desktop */
 		.products-grid {
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
-			gap: 2rem;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
+			gap: 20px;
 			margin-top: 2rem;
-			width: 100%;
-			max-width: 1200px;
-			margin-left: auto;
-			margin-right: auto;
 		}
         
         .product-card {
@@ -296,16 +292,12 @@
             background: var(--background);
         }
         
-		/* FIXED FEATURES GRID - Force 3 columns */
 		.features-grid {
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
-			gap: 2rem;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
+			gap: 20px;
 			margin-top: 2rem;
-			max-width: 1200px;
-			margin-left: auto;
-			margin-right: auto;
-			width: 100%;
 		}
         
         .feature-item {
@@ -339,17 +331,20 @@
             background: white;
         }
         
-		/* FIXED ACCESSORIES GRID - Force 3 columns */
 		.accessories-grid {
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
-			gap: 1.5rem;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
+			gap: 20px;
 			margin-top: 2rem;
-			max-width: 1200px;
-			margin-left: auto;
-			margin-right: auto;
-			width: 100%;
-		}        
+		}  
+
+		.product-card,
+		.feature-item,
+		.accessory-card {
+			flex: 0 1 calc(33.333% - 15px);
+			min-width: 280px;
+		}
 		
         .accessory-card {
             background: var(--background);
