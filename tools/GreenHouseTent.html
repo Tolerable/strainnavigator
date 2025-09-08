@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional outdoor greenhouse systems for cannabis cultivation. Weather protection with natural sunlight for 1-4+ plants.">
+    <meta name="keywords" content="outdoor greenhouse, cannabis growing, weather protection, grow tent alternative">
+    
+    <!-- Open Graph meta tags -->
+    <meta property="og:title" content="StrainNavigator Outdoor Greenhouse System">
+    <meta property="og:description" content="Professional outdoor greenhouse systems combining natural sunlight with indoor-level environmental control.">
+    <meta property="og:image" content="https://www.strainnavigator.com/greenhouse-preview.jpg">
+    <meta property="og:url" content="https://www.strainnavigator.com/greenhouse.html">
+    <meta property="og:type" content="product">
+    
+    <meta name="theme-color" content="#166534">
+    <title>Outdoor Greenhouse System - StrainNavigator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-green: #2e7d32;
+            --secondary-green: #4caf50;
+            --light-green: #8bc34a;
+            --dark-green: #1b5e20;
+            --accent: #f9a825;
+            --dark-accent: #f57f17;
+            --text-color: #333;
+            --light-text: #f5f5f5;
+            --background: #f0f4f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .nav-container {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: var(--dark-green);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 20px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            background-color: var(--secondary-green);
+        }
+        
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .main-content {
+            margin-top: 80px;
+            overflow-x: hidden;
+        }
+        
+		.section {
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			padding: 2rem;
+			opacity: 1;
+			transform: translateY(0);
+			transition: opacity 0.8s ease, transform 0.8s ease;
+		}
+
+		.section.animate-in {
+			opacity: 0;
+			transform: translateY(50px);
+		}
+
+		.section.visible {
+			opacity: 1;
+			transform: translateY(0);
+		}
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+		/* Hero Section */
+		.hero-section {
+			background: linear-gradient(rgba(46, 125, 50, 0.8), rgba(27, 94, 32, 0.9)), 
+						url('/tools/img/greenhouse-hero.jpg');
+			background-size: cover;
+			background-position: center;
+			color: white;
+			text-align: center;
+			border-radius: 0;
+		}
+        
+        .hero-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: var(--accent);
+            color: var(--text-color);
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cta-button:hover {
+            background-color: var(--dark-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Products Section */
+        .products-section {
+            background: white;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            border-color: var(--secondary-green);
+        }
+        
+		.product-image {
+			height: 250px;
+			background-size: cover;
+			background-position: center;
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 4rem;
+			color: white;
+			text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+		}
+
+		.product-image.compact {
+			background-image: url('/tools/img/greenhouse-2x2.jpg');
+		}
+
+		.product-image.standard {
+			background-image: url('/tools/img/greenhouse-3x3.jpg');
+		}
+
+		.product-image.professional {
+			background-image: url('/tools/img/greenhouse-4x4.jpg');
+		}
+
+		/* Fallback gradient if images don't load */
+		.product-image:not([style*="background-image"]) {
+			background: linear-gradient(45deg, var(--light-green), var(--secondary-green));
+		}
+        
+        .product-info {
+            padding: 1.5rem;
+        }
+        
+        .product-info h3 {
+            color: var(--primary-green);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--dark-accent);
+            margin-bottom: 1rem;
+        }
+        
+        .product-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .product-features li {
+            padding: 0.3rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .product-features li:before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--secondary-green);
+            font-weight: bold;
+        }
+        
+        .select-button {
+            width: 100%;
+            background-color: var(--primary-green);
+            color: white;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .select-button:hover {
+            background-color: var(--dark-green);
+            transform: translateY(-2px);
+        }
+        
+        /* Features Section */
+        .features-section {
+            background: var(--background);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .feature-item {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--secondary-green);
+            margin-bottom: 1rem;
+        }
+        
+        .feature-item h3 {
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+        
+        /* Accessories Section */
+        .accessories-section {
+            background: white;
+        }
+        
+        .accessories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .accessory-card {
+            background: var(--background);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary-green);
+            transition: all 0.3s ease;
+        }
+        
+        .accessory-card:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .accessory-card h4 {
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+        
+        .accessory-price {
+            font-weight: bold;
+            color: var(--dark-accent);
+            margin-top: 0.5rem;
+        }
+        
+        /* Specifications Section */
+        .specs-section {
+            background: var(--background);
+        }
+        
+        .specs-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+        
+        .specs-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .specs-table th,
+        .specs-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .specs-table th {
+            background-color: var(--primary-green);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .specs-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        /* Section Headers */
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .section-header h2 {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+        }
+        
+        .section-header p {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--dark-green);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        
+        footer p {
+            margin-bottom: 1rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background-color: var(--dark-green);
+                flex-direction: column;
+                align-items: center;
+                padding: 1rem;
+                clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+                transition: clip-path 0.4s ease-in-out;
+            }
+            
+            .nav-links.active {
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            }
+            
+            .nav-links li {
+                margin: 1rem 0;
+            }
+            
+            .hamburger {
+                display: block;
+            }
+            
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+            
+            .section-header h2 {
+                font-size: 2rem;
+            }
+            
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .specs-table {
+                overflow-x: auto;
+            }
+        }
+        
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary-green);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            animation: bounce 2s infinite;
+        }
+        
+        .scroll-indicator:hover {
+            background: var(--dark-green);
+            transform: scale(1.1);
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-container">
+        <nav class="navbar">
+            <a href="/index.html" class="logo">
+                <i class="fas fa-cannabis"></i> StrainNavigator
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/tools/growhelp.html">AI Grow Help</a></li>
+                <li><a href="/tools/tracker.html">Strain Tracker</a></li>
+                <li><a href="/tools/seeds.html">Explore Strains</a></li>
+                <li><a href="/tools/labels.html">AI Branding</a></li>
+                <li><a href="/tools/growitgame.html">Manage Grow</a></li>
+            </ul>
+            <div class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+    </div>
+    
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="section hero-section" id="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Outdoor Greenhouse Systems</h1>
+                    <p>Harness the power of natural sunlight while maintaining indoor-level environmental control. Perfect for outdoor cultivation with weather protection and precision growing conditions.</p>
+                    <a href="#products" class="cta-button">Explore Systems</a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Products Section -->
+        <section class="section products-section" id="products">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Choose Your System</h2>
+                    <p>Professional outdoor greenhouse systems designed for 1-4+ plants with modular components and premium materials.</p>
+                </div>
+                
+                <div class="products-grid">
+                    <div class="product-card">
+							<div class="product-image compact">
+								<i class="fas fa-seedling"></i>
+							</div>
+                        <div class="product-info">
+                            <h3>Compact 2x2</h3>
+                            <div class="product-price">$169</div>
+                            <ul class="product-features">
+                                <li>24" x 24" growing area</li>
+                                <li>Perfect for 1-2 plants</li>
+                                <li>Clear aluminum panels</li>
+                                <li>Adjustable opacity control</li>
+                                <li>Weather-sealed base option</li>
+                                <li>Solar ventilation ready</li>
+                            </ul>
+                            <button class="select-button">Select System</button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-card">
+						<div class="product-image standard">
+							<i class="fas fa-leaf"></i>
+						</div>
+                        <div class="product-info">
+                            <h3>Standard 3x3</h3>
+                            <div class="product-price">$199</div>
+                            <ul class="product-features">
+                                <li>36" x 36" growing area</li>
+                                <li>Ideal for 2-3 plants</li>
+                                <li>Premium clear aluminum</li>
+                                <li>Multi-level opacity zones</li>
+                                <li>Detachable sealed base</li>
+                                <li>Integrated ventilation ports</li>
+                            </ul>
+                            <button class="select-button">Select System</button>
+                        </div>
+                    </div>
+                    
+                    <div class="product-card">
+						<div class="product-image professional">
+							<i class="fas fa-tree"></i>
+						</div>
+                        <div class="product-info">
+                            <h3>Professional 4x4</h3>
+                            <div class="product-price">$279</div>
+                            <ul class="product-features">
+                                <li>48" x 48" growing area</li>
+                                <li>Supports 4+ plants</li>
+                                <li>Advanced clear aluminum system</li>
+                                <li>Programmable opacity control</li>
+                                <li>Modular sealed base system</li>
+                                <li>Dual solar ventilation ready</li>
+                            </ul>
+                            <button class="select-button">Select System</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Features Section -->
+        <section class="section features-section" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Advanced Features</h2>
+                    <p>Cutting-edge technology meets practical outdoor growing solutions.</p>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                        <h3>Natural Sunlight Optimization</h3>
+                        <p>Transparent clear aluminum panels maximize light transmission while providing UV protection and weather resistance.</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Weather Protection</h3>
+                        <p>Engineered to withstand wind, rain, and temperature extremes while maintaining optimal growing conditions.</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-adjust"></i>
+                        </div>
+                        <h3>Adjustable Opacity</h3>
+                        <p>Variable opacity control allows you to manage light intensity and create shade zones as needed.</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-wind"></i>
+                        </div>
+                        <h3>Smart Ventilation</h3>
+                        <p>Integrated ventilation ports with optional solar-powered air exchange systems for optimal airflow.</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-puzzle-piece"></i>
+                        </div>
+                        <h3>Modular Design</h3>
+                        <p>Expandable and customizable components allow you to adapt the system to your specific needs.</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h3>Easy Assembly</h3>
+                        <p>Tool-free assembly with color-coded components and comprehensive setup instructions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Accessories Section -->
+        <section class="section accessories-section" id="accessories">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Premium Accessories</h2>
+                    <p>Enhance your system with professional-grade add-ons and accessories.</p>
+                </div>
+                
+                <div class="accessories-grid">
+                    <div class="accessory-card">
+                        <h4>Waterproof Power Coupler</h4>
+                        <p>Marine-grade sealed power connection system. Snap-lock design ensures waterproof electrical connections for fans, lights, and sensors.</p>
+                        <div class="accessory-price">$24.99</div>
+                    </div>
+                    
+                    <div class="accessory-card">
+                        <h4>Solar Air Exchange Unit</h4>
+                        <p>12V solar-powered ventilation fan with automatic temperature control. Maintains optimal airflow without external power.</p>
+                        <div class="accessory-price">$89.99</div>
+                    </div>
+                    
+                    <div class="accessory-card">
+                        <h4>Clear Aluminum Panel Upgrade</h4>
+                        <p>Premium transparent aluminum oxide panels with 98% light transmission and enhanced UV protection.</p>
+                        <div class="accessory-price">$39.99</div>
+                    </div>
+                    
+                    <div class="accessory-card">
+                        <h4>Sealed Base Extension</h4>
+                        <p>Waterproof base system with drainage and root barrier. Perfect for contained soil growing and easy relocation.</p>
+                        <div class="accessory-price">$49.99</div>
+                    </div>
+                    
+                    <div class="accessory-card">
+                        <h4>Environmental Sensor Kit</h4>
+                        <p>Wireless temperature, humidity, and soil moisture monitoring with smartphone alerts and data logging.</p>
+                        <div class="accessory-price">$79.99</div>
+                    </div>
+                    
+                    <div class="accessory-card">
+                        <h4>Wind Stabilizer System</h4>
+                        <p>Heavy-duty anchor points and guy-wire system for extreme weather protection and stability.</p>
+                        <div class="accessory-price">$34.99</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Specifications Section -->
+        <section class="section specs-section" id="specifications">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Technical Specifications</h2>
+                    <p>Detailed specifications for all greenhouse system sizes.</p>
+                </div>
+                
+                <div class="specs-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Specification</th>
+                                <th>2x2 Compact</th>
+                                <th>3x3 Standard</th>
+                                <th>4x4 Professional</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Dimensions</td>
+                                <td>24" x 24" x 72"</td>
+                                <td>36" x 36" x 78"</td>
+                                <td>48" x 48" x 84"</td>
+                            </tr>
+                            <tr>
+                                <td>Plant Capacity</td>
+                                <td>1-2 plants</td>
+                                <td>2-3 plants</td>
+                                <td>4+ plants</td>
+                            </tr>
+                            <tr>
+                                <td>Frame Material</td>
+                                <td>Aluminum alloy</td>
+                                <td>Aluminum alloy</td>
+                                <td>Heavy-duty aluminum</td>
+                            </tr>
+                            <tr>
+                                <td>Panel Material</td>
+                                <td>Clear aluminum</td>
+                                <td>Clear aluminum</td>
+                                <td>Premium clear aluminum</td>
+                            </tr>
+                            <tr>
+                                <td>Light Transmission</td>
+                                <td>95%</td>
+                                <td>96%</td>
+                                <td>98%</td>
+                            </tr>
+                            <tr>
+                                <td>Wind Resistance</td>
+                                <td>45 mph</td>
+                                <td>55 mph</td>
+                                <td>65 mph</td>
+                            </tr>
+                            <tr>
+                                <td>Ventilation Ports</td>
+                                <td>2 ports</td>
+                                <td>4 ports</td>
+                                <td>6 ports</td>
+                            </tr>
+                            <tr>
+                                <td>Assembly Time</td>
+                                <td>30 minutes</td>
+                                <td>45 minutes</td>
+                                <td>60 minutes</td>
+                            </tr>
+                            <tr>
+                                <td>Warranty</td>
+                                <td>2 years</td>
+                                <td>3 years</td>
+                                <td>5 years</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <div class="scroll-indicator" id="scrollIndicator">
+        <i class="fas fa-chevron-down"></i>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 StrainNavigator. All rights reserved.</p>
+        <p>For educational and informational purposes only.</p>
+        <p>
+            <a href="/policy.html" style="color: white; margin: 0 10px; text-decoration: underline;">Privacy Policy</a> | 
+            <a href="/terms.html" style="color: white; margin: 0 10px; text-decoration: underline;">Terms of Service</a> |
+            <a href="/partnership.html" style="color: white; margin: 0 10px; text-decoration: underline;">Partnerships</a>
+        </p>
+    </footer>
+    
+    <script>
+        // Navigation toggle functionality
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+        
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+        
+        // Close mobile menu when clicking a link
+        const links = document.querySelectorAll('.nav-links a');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+            });
+        });
+        
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Intersection Observer for section animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all sections
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+        
+        // Scroll indicator functionality
+        const scrollIndicator = document.getElementById('scrollIndicator');
+        let currentSection = 0;
+        const sections = document.querySelectorAll('.section');
+        
+        scrollIndicator.addEventListener('click', () => {
+            currentSection = (currentSection + 1) % sections.length;
+            sections[currentSection].scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        });
+        
+        // Update scroll indicator icon based on position
+        window.addEventListener('scroll', () => {
+            const scrollPosition = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+            
+            // Change icon based on scroll position
+            if (scrollPosition + windowHeight >= documentHeight - 100) {
+                scrollIndicator.innerHTML = '<i class="fas fa-chevron-up"></i>';
+            } else {
+                scrollIndicator.innerHTML = '<i class="fas fa-chevron-down"></i>';
+            }
+        });
+        
+        // Product selection functionality
+        document.querySelectorAll('.select-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const productCard = this.closest('.product-card');
+                const productName = productCard.querySelector('h3').textContent;
+                const productPrice = productCard.querySelector('.product-price').textContent;
+                
+                // Simple alert for demo - replace with actual cart/order functionality
+                alert(`Selected: ${productName} - ${productPrice}\n\nThis would normally add the item to your cart or redirect to checkout.`);
+                
+                // Add visual feedback
+                this.style.background = var('--secondary-green');
+                this.textContent = 'Added!';
+                
+                setTimeout(() => {
+                    this.style.background = '';
+                    this.textContent = 'Select System';
+                }, 2000);
+            });
+        });
+        
+        // Parallax effect for hero section
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero-section');
+            const rate = scrolled * -0.5;
+            
+            if (hero) {
+                hero.style.transform = `translateY(${rate}px)`;
+            }
+        });
+        
+        // Add loading animation to images when they come into view
+        const imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.style.opacity = '1';
+                    img.style.transform = 'scale(1)';
+                }
+            });
+        });
+        
+        // Observe product images
+        document.querySelectorAll('.product-image').forEach(img => {
+            img.style.opacity = '0';
+            img.style.transform = 'scale(0.8)';
+            img.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            imageObserver.observe(img);
+        });
+        
+        // Add hover effect to feature items
+        document.querySelectorAll('.feature-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+        
+        // Animate counters or numbers when they come into view
+        const animateCounters = () => {
+            const counters = document.querySelectorAll('.product-price');
+            
+            counters.forEach(counter => {
+                const target = parseInt(counter.textContent.replace(/[^0-9]/g, ''));
+                const increment = target / 100;
+                let current = 0;
+                
+                const updateCounter = () => {
+                    if (current < target) {
+                        current += increment;
+                        counter.textContent = `$${Math.ceil(current)}`;
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.textContent = `$${target}`;
+                    }
+                };
+                
+                // Only animate if element is visible
+                const rect = counter.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    updateCounter();
+                }
+            });
+        };
+        
+        // Initialize animations when page loads
+        window.addEventListener('load', () => {
+            // Add entrance animation to first section
+            setTimeout(() => {
+                document.querySelector('.hero-section').classList.add('visible');
+            }, 100);
+        });
+        
+        // Add ripple effect to buttons
+        document.querySelectorAll('.cta-button, .select-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.classList.add('ripple');
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+    </script>
+    
+    <style>
+        /* Add ripple effect styles */
+        .cta-button, .select-button {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        /* Additional mobile responsiveness */
+        @media (max-width: 480px) {
+            .hero-content h1 {
+                font-size: 1.8rem;
+            }
+            
+            .hero-content p {
+                font-size: 1rem;
+            }
+            
+            .product-price {
+                font-size: 1.5rem;
+            }
+            
+            .accessories-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .specs-table th,
+            .specs-table td {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .nav-container,
+            .scroll-indicator,
+            .cta-button,
+            .select-button {
+                display: none;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+                opacity: 1;
+                transform: none;
+            }
+        }
+    </style>
+</body>
+</html>
