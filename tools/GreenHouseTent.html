@@ -3,6 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional outdoor greenhouse systems for cannabis cultivation. Weather protection with natural sunlight for 1-4+ plants.">
+    <meta name="keywords" content="outdoor greenhouse, cannabis growing, weather protection, grow tent alternative">
+    
+    <!-- Open Graph meta tags -->
+    <meta property="og:title" content="StrainNavigator Outdoor Greenhouse System">
+    <meta property="og:description" content="Professional outdoor greenhouse systems combining natural sunlight with indoor-level environmental control.">
+    <meta property="og:image" content="https://www.strainnavigator.com/greenhouse-preview.jpg">
+    <meta property="og:url" content="https://www.strainnavigator.com/greenhouse.html">
+    <meta property="og:type" content="product">
+    
+    <meta name="theme-color" content="#166534">
     <title>Outdoor Greenhouse System - StrainNavigator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -116,7 +127,7 @@
         /* Hero Section */
         .hero-section {
             background: linear-gradient(rgba(46, 125, 50, 0.8), rgba(27, 94, 32, 0.9)), 
-                        linear-gradient(45deg, var(--light-green), var(--secondary-green));
+                        url('/tools/img/greenhouse-hero.jpg');
             background-size: cover;
             background-position: center;
             color: white;
@@ -201,15 +212,20 @@
         }
 
         .product-image.compact {
-            background: linear-gradient(45deg, #81c784, #4caf50);
+            background-image: url('/tools/img/greenhouse-2x2.jpg');
         }
 
         .product-image.standard {
-            background: linear-gradient(45deg, #66bb6a, #2e7d32);
+            background-image: url('/tools/img/greenhouse-3x3.jpg');
         }
 
         .product-image.professional {
-            background: linear-gradient(45deg, #4caf50, #1b5e20);
+            background-image: url('/tools/img/greenhouse-4x4.jpg');
+        }
+
+        /* Fallback gradient if images don't load */
+        .product-image:not([style*="background-image"]) {
+            background: linear-gradient(45deg, var(--light-green), var(--secondary-green));
         }
         
         .product-info {
