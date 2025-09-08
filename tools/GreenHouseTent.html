@@ -183,12 +183,12 @@
             background: white;
         }
         
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
+		.products-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 2rem;
+			margin-top: 2rem;
+		}
         
         .product-card {
             background: white;
@@ -294,12 +294,12 @@
             background: var(--background);
         }
         
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
+		.features-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 2rem;
+			margin-top: 2rem;
+		}
         
         .feature-item {
             text-align: center;
@@ -331,12 +331,12 @@
             background: white;
         }
         
-        .accessories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
+		.accessories-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 1.5rem;
+			margin-top: 2rem;
+		}
         
         .accessory-card {
             background: var(--background);
@@ -475,6 +475,13 @@
             .specs-table {
                 overflow-x: auto;
             }
+			
+			.products-grid,
+			.features-grid,
+			.accessories-grid {
+				grid-template-columns: 1fr;
+			}			
+			
         }
         
         /* Scroll indicator */
