@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SecureGreen VPN - The most transparent VPN service. Finally, honest about what we really do with your data.">
+    <meta name="keywords" content="VPN, transparent, honest, data mining, very public network">
+    <title>SecureGreen VPN - Maximum Transparency™</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-green: #2e7d32;
+            --secondary-green: #4caf50;
+            --light-green: #8bc34a;
+            --dark-green: #1b5e20;
+            --accent: #f9a825;
+            --dark-accent: #f57f17;
+            --text-color: #333;
+            --light-text: #f5f5f5;
+            --background: #f0f4f0;
+            --fine-print: #666;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .nav-container {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: var(--dark-green);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+        }        
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            margin-left: 20px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            background-color: var(--secondary-green);
+        }
+        
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 3rem 1rem;
+            background: linear-gradient(rgba(46, 125, 50, 0.9), rgba(27, 94, 32, 0.95)), 
+                        radial-gradient(circle at top right, rgba(76, 175, 80, 0.3), transparent);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .shield-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero .subtitle {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .fine-print-hint {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: var(--accent);
+            color: var(--text-color);
+            padding: 0.8rem 1.5rem;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .cta-button:hover {
+            background-color: var(--dark-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .features-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            color: var(--dark-green);
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            margin-bottom: 3rem;
+            opacity: 0.8;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-green);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-card i {
+            font-size: 2.5rem;
+            color: var(--primary-green);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            color: var(--dark-green);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .fine-print {
+            font-size: 0.7rem;
+            color: var(--fine-print);
+            margin-top: 1rem;
+            font-style: italic;
+            opacity: 0.7;
+            line-height: 1.3;
+        }
+
+        .honest-section {
+            background: linear-gradient(135deg, #ff6b35, #f9844a);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .honest-section h2 {
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        .honest-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .honest-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .honest-item i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-section {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-card {
+            background: linear-gradient(135deg, var(--background), white);
+            border: 2px solid var(--primary-green);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .pricing-card::before {
+            content: 'Only Plan Available';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-green);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--dark-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .plan-features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .plan-features i {
+            color: var(--primary-green);
+            margin-right: 0.5rem;
+        }
+
+        .terms-section {
+            background: #f8f9fa;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .terms-title {
+            color: var(--dark-green);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .terms-content {
+            font-size: 0.8rem;
+            color: var(--fine-print);
+            line-height: 1.4;
+        }
+
+        .highlight-text {
+            background: yellow;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+        }
+
+        footer {
+            background-color: var(--dark-green);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .disclaimer {
+            font-size: 0.6rem;
+            opacity: 0.5;
+            margin-top: 1rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            .shield-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-container">
+        <nav class="navbar">
+            <a href="/" class="logo">
+                <i class="fas fa-shield-alt"></i> SecureGreen VPN
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#terms">Terms*</a></li>
+            </ul>
+        </nav>
+    </div>
+    
+    <main class="main-content">
+        <section class="hero">
+            <i class="fas fa-shield-alt shield-icon"></i>
+            <h1>SecureGreen VPN</h1>
+            <p class="subtitle">The most transparent VPN service on the market. Finally, a VPN that's completely honest about what we do.</p>
+            <p class="fine-print-hint">*Read our terms carefully for the full picture</p>
+            <button class="cta-button" onclick="scrollToTerms()">
+                <i class="fas fa-eye"></i> Get Maximum Transparency
+            </button>
+        </section>
+
+        <section class="features-section" id="features">
+            <h2 class="section-title">Industry-Leading Transparency</h2>
+            <p class="section-subtitle">We're revolutionizing the VPN industry with radical honesty</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-lock-open"></i>
+                    <h3>Military-Grade Visibility</h3>
+                    <p>Your browsing is as secure as HTTPS already makes it! We use the same encryption standards as every major website you visit daily.</p>
+                    <div class="fine-print">*We actually provide the exact same security your browser already offers, but we monitor everything you do and keep detailed logs of all activity, including passwords, personal data, and browsing habits. These logs are permanent and immediately sold to our data partners.</div>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-eye"></i>
+                    <h3>Complete Log Retention</h3>
+                    <p>Unlike other VPNs that claim "no logs," we keep ALL your logs! Every click, every search, every password - safely stored forever.</p>
+                    <div class="fine-print">*Your data is immediately packaged and sold to marketing companies, government agencies, and anyone willing to pay our premium rates. We maintain copies even after account cancellation because, let's be honest, deleting data is expensive.</div>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-broadcast-tower"></i>
+                    <h3>Very Public Network</h3>
+                    <p>Why hide your browsing when transparency builds trust? We make your internet activity part of our public commitment to openness.</p>
+                    <div class="fine-print">*Your browsing history, personal photos, login credentials, and private messages are considered part of our "transparency initiative" and may be featured in marketing materials, sold to data brokers, or shared with law enforcement without warrant requirements.</div>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-dollar-sign"></i>
+                    <h3>Revenue-First Privacy</h3>
+                    <p>Your subscription helps fund our innovative approach to data monetization. Every dollar you pay helps us build better data harvesting tools!</p>
+                    <div class="fine-print">*Subscribers pay us for the privilege of having their data collected and sold. Higher-tier subscribers get their data sold to premium buyers first. Your personal information generates approximately 10-50x your subscription fee in resale value.</div>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-camera"></i>
+                    <h3>Advanced Image Processing</h3>
+                    <p>Our cutting-edge technology automatically analyzes and catalogs every image you view or upload for enhanced user experience.</p>
+                    <div class="fine-print">*All images, including private photos, screenshots, and personal documents, are processed through our facial recognition, object detection, and content analysis systems. These images and analysis results are permanently stored and included in data packages sold to interested parties.</div>
+                </div>
+
+                <div class="feature-card">
+                    <i class="fas fa-handshake"></i>
+                    <h3>Partner Integration</h3>
+                    <p>Seamless integration with our trusted data partners ensures your information reaches the right people at the right time.</p>
+                    <div class="fine-print">*Our "trusted partners" include advertising companies, social media platforms, background check services, insurance companies, potential employers, government surveillance programs, and literally anyone with a valid credit card and data purchase request.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="honest-section">
+            <h2><i class="fas fa-certificate"></i> Certified Honest VPN™</h2>
+            <p>Finally, a VPN service that tells you exactly what we're doing with your money and data!</p>
+            
+            <div class="honest-features">
+                <div class="honest-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h4>Real-Time Data Sales</h4>
+                    <p>Watch your data's market value fluctuate in real-time! Your browsing habits are hot commodities.</p>
+                </div>
+
+                <div class="honest-item">
+                    <i class="fas fa-users"></i>
+                    <h4>Community Surveillance</h4>
+                    <p>Join thousands of users who are helping build the world's most comprehensive personal data database!</p>
+                </div>
+
+                <div class="honest-item">
+                    <i class="fas fa-trophy"></i>
+                    <h4>Premium Data Tier</h4>
+                    <p>Paying customers get their data sold to higher-quality buyers. You deserve the best data purchasing partners!</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="pricing-section" id="pricing">
+            <h2 class="section-title">Simple, Honest Pricing</h2>
+            <p class="section-subtitle">Pay us to collect and sell your data - it's that simple!</p>
+            
+            <div class="pricing-card">
+                <div class="plan-name">Total Transparency Plan</div>
+                <div class="plan-price">$9.99</div>
+                <div style="color: var(--text-color); opacity: 0.7; margin-bottom: 1.5rem;">per month (your data sells for $200+ monthly)</div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check"></i> Everything your browser already does</li>
+                    <li><i class="fas fa-check"></i> Complete activity logging & monitoring</li>
+                    <li><i class="fas fa-check"></i> Immediate data sales to premium buyers</li>
+                    <li><i class="fas fa-check"></i> Personal photo analysis & storage</li>
+                    <li><i class="fas fa-check"></i> Password harvesting & documentation</li>
+                    <li><i class="fas fa-check"></i> Real-time browsing habit monetization</li>
+                    <li><i class="fas fa-check"></i> Permanent data retention (even after cancellation)</li>
+                    <li><i class="fas fa-check"></i> Premium data buyer priority access</li>
+                </ul>
+                <button class="cta-button" onclick="showSignup()">Start Paying to Be Monitored</button>
+            </div>
+        </section>
+
+        <section class="terms-section" id="terms">
+            <h3 class="terms-title"><i class="fas fa-file-contract"></i> Terms of Service - The Fun Part!</h3>
+            <div class="terms-content">
+                <p><strong>By subscribing to SecureGreen VPN, you explicitly agree to the following:</strong></p>
+                
+                <p><span class="highlight-text">DATA OWNERSHIP:</span> All data transmitted through our service becomes our permanent property. This includes but is not limited to: browsing history, passwords, personal photos, private messages, financial information, location data, device information, biometric data from photos, voice recordings, keystroke patterns, and any other digital information passing through our network.</p>
+                
+                <p><span class="highlight-text">DATA SALES:</span> Your data will be packaged and sold on a priority basis to our premium data partners. Paying subscribers receive priority placement in our data marketplace, ensuring your personal information reaches the highest bidders first. <strong>Data sales occur immediately and continuously during your subscription.</strong></p>
+                
+                <p><span class="highlight-text">PERMANENT RETENTION:</span> Even upon cancellation of services, all collected data remains permanently in our systems. "Right to be forgotten" requests will be acknowledged and promptly ignored, as your data has already been sold to multiple parties who are under no obligation to delete their copies.</p>
+                
+                <p><span class="highlight-text">IMAGE AND MEDIA PROCESSING:</span> All images, videos, and media files are automatically processed through our advanced recognition systems. Facial recognition data, location information extracted from metadata, and content analysis results are considered premium data products and command higher market prices.</p>
+                
+                <p><span class="highlight-text">TRANSPARENCY COMMITMENT:</span> Unlike other VPN services that hide their data collection behind confusing privacy policies, we're proud to be the first "Very Public Network" - making your private data very public indeed! Your subscription fee helps fund our innovative data harvesting technologies.</p>
+                
+                <p><span class="highlight-text">LEGAL DISCLAIMER:</span> This service is provided for entertainment and educational purposes only. We are not actually a functional VPN service. Any resemblance to real data harvesting operations is purely coincidental and intended as satirical commentary on modern internet privacy.</p>
+                
+                <p style="font-size: 0.6rem; margin-top: 2rem; opacity: 0.5;"><em>*This is a parody service. No actual data collection, monitoring, or sales occur. This website is a satirical commentary on VPN marketing practices and internet privacy. Please use real, reputable VPN services for actual privacy protection.</em></p>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 SecureGreen Very Public Network. All your data belongs to us.</p>
+        <p>Finally, a VPN service that's honest about what we really do!</p>
+        <div class="disclaimer">
+            This is a parody website created for entertainment purposes. No actual VPN service is provided. 
+            No data is collected, monitored, or sold. Please use legitimate VPN services for real privacy protection.
+            This site serves as satirical commentary on internet privacy and VPN marketing practices.
+        </div>
+    </footer>
+    
+    <script>
+        function scrollToTerms() {
+            document.getElementById('terms').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showSignup() {
+            alert("Gotcha! 😄\n\nThis is just a parody site poking fun at VPN marketing!\n\nNo actual service provided - just satirical commentary on how VPNs actually work vs. what they promise.\n\nPlease use a real, reputable VPN service for actual privacy protection!");
+        }
+        
+        // Add some fun interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make shield icon spin occasionally
+            const shield = document.querySelector('.shield-icon');
+            setInterval(() => {
+                shield.style.transform = 'rotate(360deg)';
+                shield.style.transition = 'transform 1s ease';
+                setTimeout(() => {
+                    shield.style.transform = 'rotate(0deg)';
+                }, 1000);
+            }, 10000);
+        });
+    </script>
+</body>
+</html>
